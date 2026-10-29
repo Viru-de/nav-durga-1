@@ -17,6 +17,9 @@ import {
   CategoryBasicRates,
   MarketOpeningRates,
   UserFestival,
+  WhatsAppConversation,
+  WhatsAppChatMessage,
+  RateBroadcastRecord,
 } from '../types';
 import {
   INITIAL_COMPANY_SETTINGS,
@@ -36,13 +39,21 @@ import {
   INITIAL_COMMON_PRODUCT_IMAGES,
   INITIAL_GRADE_BASIC_RATES,
   INITIAL_CATEGORY_BASIC_RATES,
+  INITIAL_WHATSAPP_CONVERSATIONS,
+  INITIAL_CHAT_MESSAGES,
+  INITIAL_RATE_BROADCASTS,
 } from '../data/demoData';
 import { normalizeGrade } from '../utils/rateCalculator';
 import { syncProductMasterWithCanonicalGaugeDiffs } from '../data/productMasterData';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { collection, doc, setDoc, getDocs, updateDoc } from 'firebase/firestore';
 
 const STORAGE_KEYS = {
   COMPANY: 'navdurga_company_settings_v1',
   WHATSAPP_CONFIG: 'navdurga_whatsapp_config_v1',
+  CONVERSATIONS: 'navdurga_whatsapp_conversations_v2',
+  CHAT_MESSAGES: 'navdurga_whatsapp_chat_messages_v2',
+  RATE_BROADCASTS: 'navdurga_rate_broadcasts_v2',
   USERS: 'navdurga_users_v1',
   PRODUCTS: 'navdurga_products_v4_active_master',
   CUSTOMERS: 'navdurga_customers_v1',
@@ -82,6 +93,9 @@ export interface AppFullState {
   quotations: Quotation[];
   followUps: FollowUp[];
   whatsAppMessages: WhatsAppMessageRecord[];
+  conversations: WhatsAppConversation[];
+  chatMessages: WhatsAppChatMessage[];
+  rateBroadcasts: RateBroadcastRecord[];
   rateCharges: RateChargesConfig;
   rateHistory: RateHistoryRecord[];
   commonProductImages: CommonProductImage[];
@@ -192,6 +206,9 @@ export class StorageService {
       quotations: safeGet<Quotation[]>(STORAGE_KEYS.QUOTATIONS, INITIAL_QUOTATIONS),
       followUps: safeGet<FollowUp[]>(STORAGE_KEYS.FOLLOW_UPS, INITIAL_FOLLOW_UPS),
       whatsAppMessages: safeGet<WhatsAppMessageRecord[]>(STORAGE_KEYS.WHATSAPP_MESSAGES, INITIAL_WHATSAPP_MESSAGES),
+      conversations: safeGet<WhatsAppConversation[]>(STORAGE_KEYS.CONVERSATIONS, INITIAL_WHATSAPP_CONVERSATIONS),
+      chatMessages: safeGet<WhatsAppChatMessage[]>(STORAGE_KEYS.CHAT_MESSAGES, INITIAL_CHAT_MESSAGES),
+      rateBroadcasts: safeGet<RateBroadcastRecord[]>(STORAGE_KEYS.RATE_BROADCASTS, INITIAL_RATE_BROADCASTS),
       rateCharges: safeGet<RateChargesConfig>(STORAGE_KEYS.RATE_CHARGES, INITIAL_RATE_CHARGES),
       rateHistory: safeGet<RateHistoryRecord[]>(STORAGE_KEYS.RATE_HISTORY, INITIAL_RATE_HISTORY),
       commonProductImages,
@@ -213,6 +230,9 @@ export class StorageService {
     safeSet(STORAGE_KEYS.QUOTATIONS, state.quotations);
     safeSet(STORAGE_KEYS.FOLLOW_UPS, state.followUps);
     safeSet(STORAGE_KEYS.WHATSAPP_MESSAGES, state.whatsAppMessages);
+    safeSet(STORAGE_KEYS.CONVERSATIONS, state.conversations);
+    safeSet(STORAGE_KEYS.CHAT_MESSAGES, state.chatMessages);
+    safeSet(STORAGE_KEYS.RATE_BROADCASTS, state.rateBroadcasts);
     safeSet(STORAGE_KEYS.RATE_CHARGES, state.rateCharges);
     safeSet(STORAGE_KEYS.RATE_HISTORY, state.rateHistory);
     safeSet(STORAGE_KEYS.COMMON_PRODUCT_IMAGES, state.commonProductImages);
@@ -463,6 +483,52 @@ export class StorageService {
     this.setUserFestivals(updated);
   }
 
+  // --- FIRESTORE PERSISTENCE FOR WHATSAPP (Permanent Database Storage) ---
+  static async saveConversationToFirestore(conv: WhatsAppConversation): Promise<void> {
+    try {
+      const convRef = doc(db, 'whatsapp_conversations', conv.id);
+      await setDoc(convRef, conv, { merge: true });
+    } catch (err) {
+      console.warn('[Firestore] Could not persist conversation to cloud (offline fallback active):', err);
+    }
+  }
+
+  static async saveChatMessageToFirestore(msg: WhatsAppChatMessage): Promise<void> {
+    try {
+      const msgRef = doc(db, 'whatsapp_messages', msg.id);
+      await setDoc(msgRef, msg);
+    } catch (err) {
+      console.warn('[Firestore] Could not persist chat message to cloud (offline fallback active):', err);
+    }
+  }
+
+  static async saveRateBroadcastToFirestore(record: RateBroadcastRecord): Promise<void> {
+    try {
+      const broadcastRef = doc(db, 'rate_broadcasts', record.id);
+      await setDoc(broadcastRef, record);
+    } catch (err) {
+      console.warn('[Firestore] Could not persist rate broadcast to cloud (offline fallback active):', err);
+    }
+  }
+
+  static async loadConversationsFromFirestore(): Promise<WhatsAppConversation[] | null> {
+    try {
+      const snap = await getDocs(collection(db, 'whatsapp_conversations'));
+      if (!snap.empty) {
+        const list: WhatsAppConversation[] = [];
+        snap.forEach((d) => list.push(d.data() as WhatsAppConversation));
+        return list;
+      }
+    } catch (err) {
+      console.warn('[Firestore] Failed to load conversations from cloud, using local store:', err);
+    }
+    return null;
+  }
+
+  static saveUsers(users: AppUser[]): void {
+    safeSet(STORAGE_KEYS.USERS, users);
+  }
+
   static resetToFactoryDefaults(): void {
     this.resetToDemoData();
   }
@@ -479,6 +545,9 @@ export class StorageService {
     safeSet(STORAGE_KEYS.QUOTATIONS, INITIAL_QUOTATIONS);
     safeSet(STORAGE_KEYS.FOLLOW_UPS, INITIAL_FOLLOW_UPS);
     safeSet(STORAGE_KEYS.WHATSAPP_MESSAGES, INITIAL_WHATSAPP_MESSAGES);
+    safeSet(STORAGE_KEYS.CONVERSATIONS, INITIAL_WHATSAPP_CONVERSATIONS);
+    safeSet(STORAGE_KEYS.CHAT_MESSAGES, INITIAL_CHAT_MESSAGES);
+    safeSet(STORAGE_KEYS.RATE_BROADCASTS, INITIAL_RATE_BROADCASTS);
     safeSet(STORAGE_KEYS.COMMON_PRODUCT_IMAGES, INITIAL_COMMON_PRODUCT_IMAGES);
   }
 }

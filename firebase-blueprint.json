@@ -87,6 +87,66 @@
         "createdAt": { "type": "string", "maxLength": 100 }
       },
       "required": ["promptText", "headline", "generationId"]
+    },
+    "WhatsAppConversation": {
+      "title": "WhatsAppConversation",
+      "description": "Customer WhatsApp chat thread with status (New, Open, Snoozed, Closed) and team assignment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 200 },
+        "phoneNumber": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["New", "Open", "Snoozed", "Closed"] },
+        "assignedToUserId": { "type": "string", "maxLength": 128 },
+        "assignedToName": { "type": "string", "maxLength": 200 },
+        "lastMessage": { "type": "string", "maxLength": 5000 },
+        "lastMessageTime": { "type": "string", "maxLength": 100 },
+        "lastSenderType": { "type": "string", "enum": ["customer", "team"] },
+        "unreadCount": { "type": "number" },
+        "internalNotes": { "type": "string", "maxLength": 5000 },
+        "followUpDate": { "type": "string", "maxLength": 100 },
+        "optedInForBroadcast": { "type": "boolean" }
+      },
+      "required": ["customerId", "customerName", "phoneNumber", "status"]
+    },
+    "WhatsAppMessage": {
+      "title": "WhatsAppMessage",
+      "description": "Direct human-to-human WhatsApp chat message record with delivery and failure tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "senderType": { "type": "string", "enum": ["customer", "team"] },
+        "senderName": { "type": "string", "maxLength": 200 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "text": { "type": "string", "maxLength": 5000 },
+        "mediaUrl": { "type": "string", "maxLength": 2000 },
+        "timestamp": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["sent", "delivered", "read", "failed", "pending"] },
+        "failureReason": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["conversationId", "customerId", "senderType", "text", "status"]
+    },
+    "RateBroadcast": {
+      "title": "RateBroadcast",
+      "description": "Approved Medium & SL daily steel rate or revision broadcast record with retry logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "date": { "type": "string", "maxLength": 50 },
+        "timestamp": { "type": "string", "maxLength": 100 },
+        "broadcastType": { "type": "string", "enum": ["daily_rates", "revised_rates"] },
+        "title": { "type": "string", "maxLength": 200 },
+        "mediumSectionRate": { "type": "number" },
+        "slSectionRate": { "type": "number" },
+        "messageText": { "type": "string", "maxLength": 5000 },
+        "sentBy": { "type": "string", "maxLength": 200 },
+        "recipientsCount": { "type": "number" },
+        "failedCount": { "type": "number" }
+      },
+      "required": ["date", "broadcastType", "title", "mediumSectionRate", "slSectionRate"]
     }
   },
   "firestore": {
@@ -109,6 +169,18 @@
     "/ai_promotional_graphics/{graphicId}": {
       "schema": { "$ref": "#/entities/AIGeneratedGraphic" },
       "description": "AI generated promotional graphics history"
+    },
+    "/whatsapp_conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/WhatsAppConversation" },
+      "description": "Customer WhatsApp conversations with status (New, Open, Snoozed, Closed) and team assignment"
+    },
+    "/whatsapp_messages/{messageId}": {
+      "schema": { "$ref": "#/entities/WhatsAppMessage" },
+      "description": "Chat messages between customers and staff"
+    },
+    "/rate_broadcasts/{broadcastId}": {
+      "schema": { "$ref": "#/entities/RateBroadcast" },
+      "description": "Rate broadcast history with previous rate lists, revision alerts, and delivery logs"
     }
   }
 }

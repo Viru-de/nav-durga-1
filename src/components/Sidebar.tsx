@@ -25,6 +25,7 @@ interface SidebarProps {
   pendingEnquiriesCount: number;
   pendingFollowUpsCount: number;
   todayOrdersCount: number;
+  pendingWhatsAppCount?: number;
 }
 
 interface NavItemConfig {
@@ -43,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   pendingEnquiriesCount,
   pendingFollowUpsCount,
   todayOrdersCount,
+  pendingWhatsAppCount = 0,
 }) => {
   const navItems: NavItemConfig[] = [
     {
@@ -93,9 +95,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'whatsapp-center',
-      label: 'WhatsApp Center',
+      label: 'WhatsApp Inbox & Rates',
       icon: MessageSquare,
-      badge: 1,
+      badge: pendingWhatsAppCount,
       badgeColor: 'bg-emerald-100 text-emerald-800 font-bold',
       category: 'MARKETING & COMM',
     },

@@ -160,6 +160,71 @@ export interface Customer {
   status: 'Active' | 'Inactive' | 'Prospect';
   createdDate: string;
   creditDays?: number;
+  optedInForBroadcast?: boolean;
+  broadcastRecipient?: boolean;
+}
+
+export type WhatsAppChatStatus = 'New' | 'Open' | 'Snoozed' | 'Closed';
+
+export interface WhatsAppConversation {
+  id: string;
+  customerId: string;
+  customerName: string;
+  phoneNumber: string;
+  status: WhatsAppChatStatus;
+  assignedToUserId?: string;
+  assignedToName?: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  lastSenderType: 'customer' | 'team';
+  unreadCount: number;
+  internalNotes?: string;
+  followUpDate?: string;
+  followUpReminder?: string;
+  optedInForBroadcast?: boolean;
+}
+
+export interface WhatsAppChatMessage {
+  id: string;
+  conversationId: string;
+  customerId: string;
+  senderType: 'customer' | 'team';
+  senderName: string;
+  senderId?: string;
+  text: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'document' | 'none';
+  timestamp: string;
+  status: 'sent' | 'delivered' | 'read' | 'failed' | 'pending';
+  failureReason?: string;
+}
+
+export interface RateBroadcastRecipient {
+  customerId: string;
+  customerName: string;
+  phoneNumber: string;
+  status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
+  failureReason?: string;
+  sentAt?: string;
+}
+
+export interface RateBroadcastRecord {
+  id: string;
+  date: string;
+  timestamp: string;
+  broadcastType: 'daily_rates' | 'revised_rates';
+  title: string;
+  mediumSectionRate: number;
+  slSectionRate: number;
+  messageText: string;
+  imageUrl?: string;
+  sentBy: string;
+  sentById?: string;
+  recipientsCount: number;
+  sentCount: number;
+  deliveredCount: number;
+  failedCount: number;
+  recipients: RateBroadcastRecipient[];
 }
 
 export interface WhatsAppTestActivity {
@@ -202,9 +267,10 @@ export interface WhatsAppMessageRecord {
   message: string;
   imageUrl?: string;
   timestamp: string;
-  status: 'sent' | 'delivered' | 'read' | 'inbound' | 'pending';
+  status: 'sent' | 'delivered' | 'read' | 'inbound' | 'pending' | 'failed';
   source: 'manual' | 'api' | 'simulated';
   context?: string;
+  failureReason?: string;
 }
 
 export interface SalesEnquiry {

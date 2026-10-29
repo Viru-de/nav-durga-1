@@ -25,6 +25,9 @@ import {
   Quotation,
   FollowUp,
   WhatsAppMessageRecord,
+  WhatsAppConversation,
+  WhatsAppChatMessage,
+  WhatsAppChatStatus,
 } from '../types';
 import { WhatsAppService } from '../services/whatsappService';
 
@@ -35,6 +38,8 @@ interface CustomerDetailViewProps {
   quotations: Quotation[];
   followUps: FollowUp[];
   whatsAppMessages: WhatsAppMessageRecord[];
+  conversations?: WhatsAppConversation[];
+  chatMessages?: WhatsAppChatMessage[];
   onBack: () => void;
   onEditCustomer: (customer: Customer) => void;
   onCreateEnquiryForCustomer: (customer: Customer) => void;
@@ -42,6 +47,8 @@ interface CustomerDetailViewProps {
   onCreateOrderForCustomer: (customer: Customer) => void;
   onScheduleFollowUp: (customer: Customer) => void;
   onSendCustomWhatsApp: (customer: Customer, message: string) => void;
+  onUpdateConversationStatus?: (convId: string, status: WhatsAppChatStatus) => void;
+  onToggleBroadcastOptIn?: (customerId: string, optedIn: boolean) => void;
 }
 
 export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
@@ -51,6 +58,8 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
   quotations,
   followUps,
   whatsAppMessages,
+  conversations = [],
+  chatMessages = [],
   onBack,
   onEditCustomer,
   onCreateEnquiryForCustomer,
@@ -58,6 +67,8 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
   onCreateOrderForCustomer,
   onScheduleFollowUp,
   onSendCustomWhatsApp,
+  onUpdateConversationStatus,
+  onToggleBroadcastOptIn,
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'enquiries' | 'orders' | 'whatsapp' | 'followups'>('overview');
   const [quickMsg, setQuickMsg] = useState('');
@@ -537,88 +548,216 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
       )}
 
       {/* WhatsApp History Tab */}
-      {activeTab === 'whatsapp' && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">
-                WhatsApp Communication Logs ({customerMessages.length})
-              </h3>
-              <p className="text-xs text-slate-500">
-                Audit trail of price broadcasts sent and incoming customer responses
-              </p>
-            </div>
-            <a
-              href={WhatsAppService.buildWhatsAppWebUrl(customer.whatsapp, '')}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Chat in WhatsApp</span>
-            </a>
-          </div>
+      {activeTab === 'whatsapp' && (() => {
+        const phoneDigits = (customer.whatsapp || customer.mobile || '').replace(/\D/g, '');
+        const matchedConv = conversations.find(
+          (c) => c.customerId === customer.id || (c.phoneNumber && c.phoneNumber.replace(/\D/g, '').endsWith(phoneDigits.slice(-10)))
+        );
+        const threadMessages = matchedConv
+          ? chatMessages.filter((m) => m.conversationId === matchedConv.id)
+          : [];
 
-          {/* Timeline of messages */}
-          <div className="space-y-3 max-h-96 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200">
-            {customerMessages.length > 0 ? (
-              customerMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${
-                    msg.type === 'sent' ? 'items-end' : 'items-start'
-                  }`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-xl p-3 text-xs whitespace-pre-wrap leading-relaxed shadow-2xs ${
-                      msg.type === 'sent'
-                        ? 'bg-blue-600 text-white rounded-tr-none'
-                        : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
-                    }`}
-                  >
-                    <div className="text-[10px] font-bold opacity-75 mb-1">
-                      {msg.type === 'sent' ? 'Nav Durga Broadcast / Staff' : customer.companyName}
-                    </div>
-                    {msg.message}
-                    <div
-                      className={`text-[9px] mt-1 text-right ${
-                        msg.type === 'sent' ? 'text-blue-100' : 'text-slate-400'
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    WhatsApp Chat & Rates ({threadMessages.length || customerMessages.length} messages)
+                  </h3>
+                  {matchedConv && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        matchedConv.status === 'New'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : matchedConv.status === 'Open'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : matchedConv.status === 'Snoozed'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-slate-100 text-slate-700 border-slate-200'
                       }`}
                     >
-                      {new Date(msg.timestamp).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
-                  </div>
+                      Status: {matchedConv.status}
+                    </span>
+                  )}
                 </div>
-              ))
-            ) : (
-              <div className="py-8 text-center text-slate-400 text-xs">
-                No WhatsApp conversations logged yet.
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Direct human chat history, rate broadcasts, and customer replies.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Rate Broadcast Opt-in / Opt-out toggle */}
+                {onToggleBroadcastOptIn && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleBroadcastOptIn(customer.id, customer.optedInForBroadcast === false)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      customer.optedInForBroadcast !== false
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
+                    }`}
+                    title="Click to toggle inclusion in WhatsApp Daily Rate Broadcasts"
+                  >
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${customer.optedInForBroadcast !== false ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span>{customer.optedInForBroadcast !== false ? 'Rate Broadcast: Opted-In' : 'Rate Broadcast: Opted-Out'}</span>
+                  </button>
+                )}
+
+                <a
+                  href={WhatsAppService.buildWhatsAppWebUrl(customer.whatsapp || customer.mobile, '')}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Open WhatsApp</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Conversation meta banner if available */}
+            {matchedConv && (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <span className="text-slate-400 text-[11px] block">Assigned Staff</span>
+                    <span className="font-semibold text-slate-700">{matchedConv.assignedToName || 'Unassigned'}</span>
+                  </div>
+                  {matchedConv.followUpDate && (
+                    <div>
+                      <span className="text-slate-400 text-[11px] block">Follow-up Reminder</span>
+                      <span className="font-semibold text-amber-700">📅 {matchedConv.followUpDate}</span>
+                    </div>
+                  )}
+                  {matchedConv.internalNotes && (
+                    <div className="max-w-xs">
+                      <span className="text-slate-400 text-[11px] block">Internal Notes</span>
+                      <span className="text-slate-600 truncate block">{matchedConv.internalNotes}</span>
+                    </div>
+                  )}
+                </div>
+
+                {onUpdateConversationStatus && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-500 text-[11px]">Change Status:</span>
+                    {(['New', 'Open', 'Snoozed', 'Closed'] as WhatsAppChatStatus[]).map((st) => (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => onUpdateConversationStatus(matchedConv.id, st)}
+                        className={`px-2 py-1 rounded text-[11px] font-bold border transition-colors ${
+                          matchedConv.status === st
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
 
-          {/* Quick Message Input */}
-          <form onSubmit={handleSendQuickMessage} className="flex gap-2 pt-2">
-            <input
-              type="text"
-              value={quickMsg}
-              onChange={(e) => setQuickMsg(e.target.value)}
-              placeholder={`Send message to ${customer.name} via WhatsApp...`}
-              className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 bg-white"
-            />
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Send & Open</span>
-            </button>
-          </form>
-        </div>
-      )}
+            {/* Timeline of messages */}
+            <div className="space-y-3 max-h-96 overflow-y-auto p-3 bg-slate-50 rounded-xl border border-slate-200">
+              {threadMessages.length > 0 ? (
+                threadMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${
+                      msg.senderType === 'team' ? 'items-end' : 'items-start'
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-xl p-3 text-xs whitespace-pre-wrap leading-relaxed shadow-2xs ${
+                        msg.senderType === 'team'
+                          ? 'bg-blue-600 text-white rounded-tr-none'
+                          : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
+                      }`}
+                    >
+                      <div className="text-[10px] font-bold opacity-75 mb-1 flex items-center justify-between gap-3">
+                        <span>{msg.senderType === 'team' ? (msg.senderName || 'Nav Durga Staff') : customer.companyName}</span>
+                        {msg.status && (
+                          <span className="text-[9px] uppercase tracking-wider opacity-80">
+                            ✓ {msg.status}
+                          </span>
+                        )}
+                      </div>
+                      {msg.text}
+                      <div
+                        className={`text-[9px] mt-1 text-right ${
+                          msg.senderType === 'team' ? 'text-blue-100' : 'text-slate-400'
+                        }`}
+                      >
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : customerMessages.length > 0 ? (
+                customerMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${
+                      msg.type === 'sent' ? 'items-end' : 'items-start'
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-xl p-3 text-xs whitespace-pre-wrap leading-relaxed shadow-2xs ${
+                        msg.type === 'sent'
+                          ? 'bg-blue-600 text-white rounded-tr-none'
+                          : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
+                      }`}
+                    >
+                      <div className="text-[10px] font-bold opacity-75 mb-1">
+                        {msg.type === 'sent' ? 'Nav Durga Broadcast / Staff' : customer.companyName}
+                      </div>
+                      {msg.message}
+                      <div
+                        className={`text-[9px] mt-1 text-right ${
+                          msg.type === 'sent' ? 'text-blue-100' : 'text-slate-400'
+                        }`}
+                      >
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  No WhatsApp conversations logged yet. Type a message below to start chatting directly.
+                </div>
+              )}
+            </div>
+
+            {/* Quick Message Input */}
+            <form onSubmit={handleSendQuickMessage} className="flex gap-2 pt-2">
+              <input
+                type="text"
+                value={quickMsg}
+                onChange={(e) => setQuickMsg(e.target.value)}
+                placeholder={`Type direct message to ${customer.name || customer.companyName}...`}
+                className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-xs transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Send Reply</span>
+              </button>
+            </form>
+          </div>
+        );
+      })()}
 
       {/* Follow-ups Tab */}
       {activeTab === 'followups' && (

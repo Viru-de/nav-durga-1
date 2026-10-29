@@ -11,8 +11,15 @@ import {
   WhatsAppMessageRecord,
   CompanySettings,
   WhatsAppConfig,
+  WhatsAppConversation,
+  WhatsAppChatMessage,
+  RateBroadcastRecord,
+  WhatsAppChatStatus,
+  AppUser,
 } from './types';
 import { StorageService, AppFullState } from './services/storageService';
+import { WhatsAppService } from './services/whatsappService';
+import { INITIAL_USERS } from './data/demoData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MobileNav } from './components/MobileNav';
@@ -100,12 +107,18 @@ export default function App() {
     }
   };
 
+  // Active Team User session for WhatsApp ERP communications
+  const [activeAppUser, setActiveAppUser] = useState<AppUser>(() => {
+    return appState.users && appState.users.length > 0 ? appState.users[0] : INITIAL_USERS[0];
+  });
+
   // Derived counts for badges
   const newEnquiriesCount = appState.enquiries.filter((e) => e.status === 'New').length;
   const pendingOrdersCount = appState.orders.filter(
     (o) => o.orderStatus === 'Confirmed' || o.orderStatus === 'Processing'
   ).length;
   const pendingFollowUpsCount = appState.followUps.filter((f) => f.status === 'Pending').length;
+  const pendingWhatsAppCount = (appState.conversations || []).filter((c) => c.status === 'New').length;
 
   // Handlers for Navigation
   const handleTabChange = (tab: ActiveTab) => {
@@ -652,6 +665,153 @@ export default function App() {
     setActiveTab('dashboard');
   };
 
+  // WhatsApp Chat System Handlers
+  const handleSendChatMessage = async (conversationId: string, text: string) => {
+    if (!text.trim()) return;
+    const conv = (appState.conversations || []).find((c) => c.id === conversationId);
+    if (!conv) return;
+
+    const newMsg: WhatsAppChatMessage = {
+      id: `wamsg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      conversationId,
+      customerId: conv.customerId,
+      senderType: 'team',
+      senderName: activeAppUser.name,
+      senderId: activeAppUser.id,
+      text,
+      timestamp: new Date().toISOString(),
+      status: 'delivered',
+    };
+
+    const updatedConv: WhatsAppConversation = {
+      ...conv,
+      lastMessage: text,
+      lastMessageTime: new Date().toISOString(),
+      lastSenderType: 'team',
+      unreadCount: 0,
+      status: conv.status === 'New' ? 'Open' : conv.status,
+    };
+
+    const updatedConvs = (appState.conversations || []).map((c) => (c.id === conversationId ? updatedConv : c));
+    const updatedMsgs = [...(appState.chatMessages || []), newMsg];
+
+    setAppState((prev) => ({
+      ...prev,
+      conversations: updatedConvs,
+      chatMessages: updatedMsgs,
+    }));
+
+    StorageService.saveChatMessageToFirestore(newMsg);
+    StorageService.saveConversationToFirestore(updatedConv);
+
+    try {
+      await WhatsAppService.sendDirectReply({
+        conversationId: conv.id,
+        customerId: conv.customerId,
+        customerPhone: conv.phoneNumber,
+        messageText: text,
+        sender: activeAppUser,
+      });
+    } catch (e) {
+      console.warn('Direct reply delivery queued/logged:', e);
+    }
+  };
+
+  const handleUpdateConversationStatus = (conversationId: string, status: WhatsAppChatStatus) => {
+    const updatedConvs = (appState.conversations || []).map((c) => {
+      if (c.id === conversationId) {
+        const updated = { ...c, status };
+        StorageService.saveConversationToFirestore(updated);
+        return updated;
+      }
+      return c;
+    });
+    setAppState((prev) => ({ ...prev, conversations: updatedConvs }));
+  };
+
+  const handleAssignConversation = (conversationId: string, userId: string, userName: string) => {
+    const updatedConvs = (appState.conversations || []).map((c) => {
+      if (c.id === conversationId) {
+        const updated = { ...c, assignedToUserId: userId, assignedToName: userName };
+        StorageService.saveConversationToFirestore(updated);
+        return updated;
+      }
+      return c;
+    });
+    setAppState((prev) => ({ ...prev, conversations: updatedConvs }));
+  };
+
+  const handleUpdateConversationNotes = (conversationId: string, notes: string, followUpDate?: string) => {
+    const updatedConvs = (appState.conversations || []).map((c) => {
+      if (c.id === conversationId) {
+        const updated = { ...c, internalNotes: notes, followUpDate: followUpDate || c.followUpDate };
+        StorageService.saveConversationToFirestore(updated);
+        return updated;
+      }
+      return c;
+    });
+    setAppState((prev) => ({ ...prev, conversations: updatedConvs }));
+  };
+
+  const handleBroadcastRates = async (params: {
+    recipients: Customer[];
+    isRevision: boolean;
+    customNote?: string;
+    includeImage?: boolean;
+  }) => {
+    const mediumBase =
+      appState.categoryBasicRates?.['MEDIUM SECTION'] ??
+      appState.gradeBasicRates?.['NAV DURGA ISPAT PVT. LTD.']?.['Medium'] ??
+      49711;
+    const slBase =
+      appState.categoryBasicRates?.['LIGHT SECTION'] ??
+      appState.gradeBasicRates?.['NS ISPAT (INDIA) PVT. LTD. UNIT-II']?.['Medium'] ??
+      42211;
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    const record = await WhatsAppService.broadcastApprovedRates({
+      recipients: params.recipients,
+      mediumRate: mediumBase,
+      slRate: slBase,
+      dateStr,
+      sender: activeAppUser,
+      isRevision: params.isRevision,
+      customNote: params.customNote,
+      imageUrl: params.includeImage ? '/market_opening_template.jpg' : undefined,
+    });
+
+    const updatedBroadcasts = [record, ...(appState.rateBroadcasts || [])];
+    setAppState((prev) => ({ ...prev, rateBroadcasts: updatedBroadcasts }));
+    StorageService.saveRateBroadcastToFirestore(record);
+  };
+
+  const handleRetryBroadcast = async (broadcastId: string) => {
+    const existing = (appState.rateBroadcasts || []).find((b) => b.id === broadcastId);
+    if (!existing) return;
+
+    const updated = await WhatsAppService.retryFailedRecipients(existing);
+    const updatedBroadcasts = (appState.rateBroadcasts || []).map((b) => (b.id === broadcastId ? updated : b));
+    setAppState((prev) => ({ ...prev, rateBroadcasts: updatedBroadcasts }));
+    StorageService.saveRateBroadcastToFirestore(updated);
+  };
+
+  const handleAddTeamMember = (userData: Omit<AppUser, 'id'>) => {
+    const newUser: AppUser = {
+      ...userData,
+      id: `usr-${Date.now()}`,
+    };
+    const updatedUsers = [...(appState.users || []), newUser];
+    setAppState((prev) => ({ ...prev, users: updatedUsers }));
+    StorageService.saveUsers(updatedUsers);
+  };
+
+  const handleToggleBroadcastOptIn = (customerId: string, optedIn: boolean) => {
+    const updatedCustomers = appState.customers.map((c) =>
+      c.id === customerId ? { ...c, optedInForBroadcast: optedIn, broadcastRecipient: optedIn } : c
+    );
+    setAppState((prev) => ({ ...prev, customers: updatedCustomers }));
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased selection:bg-blue-600 selection:text-white overflow-x-hidden">
       {/* Global Header */}
@@ -676,6 +836,7 @@ export default function App() {
           pendingEnquiriesCount={newEnquiriesCount}
           pendingFollowUpsCount={pendingFollowUpsCount}
           todayOrdersCount={pendingOrdersCount}
+          pendingWhatsAppCount={pendingWhatsAppCount}
         />
 
         {/* Main Content Area */}
@@ -801,8 +962,12 @@ export default function App() {
                 quotations={appState.quotations}
                 followUps={appState.followUps}
                 whatsAppMessages={appState.whatsAppMessages}
+                conversations={appState.conversations || []}
+                chatMessages={appState.chatMessages || []}
                 onBack={() => setSelectedCustomer(null)}
                 onEditCustomer={handleEditCustomer}
+                onUpdateConversationStatus={handleUpdateConversationStatus}
+                onToggleBroadcastOptIn={handleToggleBroadcastOptIn}
                 onCreateEnquiryForCustomer={(c) => {
                   handleAddEnquiry({
                     customerId: c.id,
@@ -819,19 +984,27 @@ export default function App() {
                 onScheduleFollowUp={(c) => {
                   alert(`Follow-up scheduled for ${c.companyName}. Recorded in audit timeline.`);
                 }}
-                onSendCustomWhatsApp={(c, msg) => {
-                  handleLogWhatsAppMessage({
-                    id: `msg-${Date.now()}`,
-                    customerId: c.id,
-                    customerName: c.companyName,
-                    whatsappNumber: c.whatsapp || c.mobile,
-                    type: 'sent',
-                    message: msg,
-                    timestamp: new Date().toISOString(),
-                    status: 'sent',
-                    source: 'manual',
-                    context: 'Customer Direct Chat',
-                  });
+                onSendCustomWhatsApp={async (c, msg) => {
+                  const phoneDigits = (c.whatsapp || c.mobile || '').replace(/\D/g, '');
+                  const conv = (appState.conversations || []).find(
+                    (cv) => cv.customerId === c.id || (cv.phoneNumber && cv.phoneNumber.replace(/\D/g, '').endsWith(phoneDigits.slice(-10)))
+                  );
+                  if (conv) {
+                    await handleSendChatMessage(conv.id, msg);
+                  } else {
+                    handleLogWhatsAppMessage({
+                      id: `msg-${Date.now()}`,
+                      customerId: c.id,
+                      customerName: c.companyName,
+                      whatsappNumber: c.whatsapp || c.mobile,
+                      type: 'sent',
+                      message: msg,
+                      timestamp: new Date().toISOString(),
+                      status: 'sent',
+                      source: 'manual',
+                      context: 'Customer Direct Chat',
+                    });
+                  }
                 }}
               />
             ) : (
@@ -869,6 +1042,19 @@ export default function App() {
               whatsAppConfig={appState.whatsAppConfig}
               categoryBasicRates={appState.categoryBasicRates}
               gradeBasicRates={appState.gradeBasicRates}
+              conversations={appState.conversations || []}
+              chatMessages={appState.chatMessages || []}
+              rateBroadcasts={appState.rateBroadcasts || []}
+              users={appState.users || []}
+              activeUser={activeAppUser}
+              onChangeActiveUser={setActiveAppUser}
+              onAddTeamMember={handleAddTeamMember}
+              onSendMessage={handleSendChatMessage}
+              onUpdateConversationStatus={handleUpdateConversationStatus}
+              onAssignConversation={handleAssignConversation}
+              onUpdateConversationNotes={handleUpdateConversationNotes}
+              onBroadcastRates={handleBroadcastRates}
+              onRetryBroadcast={handleRetryBroadcast}
               onLogMessage={handleLogWhatsAppMessage}
               onCreateEnquiryFromWebhook={(enq) => {
                 setAppState((prev: AppFullState) => ({
