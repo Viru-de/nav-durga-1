@@ -3,6 +3,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 dotenv.config();
@@ -26,6 +27,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Track whether the image generation model has hit free-tier 0-limit quota to avoid repeated 429 calls
+let imageModelCooldownUntil = 0;
+let flashModelCooldownUntil = 0;
+
 // AI Promotional Graphic Generator Route (Powered by Gemini 3.8 Flash)
 app.post('/api/ai/generate-graphic', async (req, res) => {
   const { promptText, seed = Date.now(), aspectRatio = '1:1' } = req.body;
@@ -36,7 +41,7 @@ app.post('/api/ai/generate-graphic', async (req, res) => {
 
   const apiKey = process.env.GEMINI_API_KEY;
 
-  if (apiKey) {
+  if (apiKey && Date.now() > flashModelCooldownUntil) {
     try {
       const ai = new GoogleGenAI({
         apiKey,
@@ -95,7 +100,7 @@ Output JSON matching this exact schema:
         config: {
           systemInstruction,
           responseMimeType: 'application/json',
-          temperature: 0.85, // High temperature for creative randomness
+          temperature: 0.85,
         },
       });
 
@@ -105,16 +110,215 @@ Output JSON matching this exact schema:
         return res.json(parsed);
       }
     } catch (err: any) {
-      console.warn('Gemini Graphic API warning (fallback to procedural generator):', err?.message || err);
-      // Fallback response with basic extracted text so client procedural engine renders seamlessly
+      const msg = String(err?.message || err || '');
+      if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) {
+        flashModelCooldownUntil = Date.now() + 60_000;
+      }
       return res.json({
         isProceduralFallback: true,
-        error: err?.message,
       });
     }
   }
 
   res.json({ isProceduralFallback: true });
+});
+
+// Gemini AI Post & Festival Creative Generator Route
+app.post('/api/ai/nano-banana-post', async (req, res) => {
+  const {
+    prompt,
+    postType,
+    festivalName,
+    language = 'English',
+    seed = Date.now(),
+    aspectRatio = '4:5',
+    includePricing = true,
+  } = req.body;
+
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'prompt is required' });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (apiKey) {
+    const ai = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+
+    // 1. Gemini AI Image Generation (gemini-3.1-flash-lite-image)
+    if (Date.now() > imageModelCooldownUntil) {
+      try {
+        const supportedAspect =
+          aspectRatio === '1:1' ||
+          aspectRatio === '3:4' ||
+          aspectRatio === '4:3' ||
+          aspectRatio === '9:16' ||
+          aspectRatio === '16:9'
+            ? aspectRatio
+            : '3:4';
+
+        const logoPath = path.resolve(__dirname, 'public/assets/nav_durga_logo.png');
+        const contentsParts: any[] = [];
+        if (fs.existsSync(logoPath)) {
+          try {
+            const logoData = fs.readFileSync(logoPath).toString('base64');
+            contentsParts.push({
+              inlineData: {
+                mimeType: 'image/png',
+                data: logoData,
+              },
+            });
+          } catch (e) {
+            console.warn('Could not read master logo image:', e);
+          }
+        }
+
+        const fullPromptText = `You are a senior advertising art director creating a premium, original festival and corporate steel marketing campaign for "NAV DURGA ISPAT PRIVATE LIMITED" (Raipur Mill, Chhattisgarh, India).
+
+FESTIVAL / THEME: ${festivalName || 'Industrial Steel Excellence'}
+LANGUAGE: ${language}
+ASPECT RATIO: ${aspectRatio} (${aspectRatio === '1:1' ? '1080x1080 Square' : '1080x1350 Portrait'})
+VARIATION SEED: ${seed}
+
+BRAND INFORMATION:
+- Company Name: NAV DURGA ISPAT PRIVATE LIMITED
+- Logo: Place the supplied official Nav Durga Group logo clearly, sharply, and elegantly in a prominent position (top corner or top center). Do not distort, alter, recolor, or generate a fake replacement logo.
+
+CREATIVE INSTRUCTIONS:
+1. Create a completely NEW original visual creative from scratch. Do not copy, recolor, or reuse previous compositions.
+2. Render an authentic, culturally rich visual atmosphere for ${festivalName || 'Steel Industry'}:
+   - Diwali: Elegant warm festive atmosphere, golden diyas, glowing oil lamps, soft fireworks, opulent gold accents.
+   - Ganesh Chaturthi: Traditional Lord Ganesha emblem, floral garlands, modak, saffron/amber celebration.
+   - Navratri: Garba/dandiya traditional motifs, Maa Durga strength, vibrant warm festive energy.
+   - Holi: Sophisticated color powder bursts, vibrant energy, premium celebration.
+   - Independence Day / Republic Day: Indian national tricolor (Saffron, White, Emerald Green), patriotic corporate style.
+   - Makar Sankranti: Radiant sunrise, kites, soaring sky, warm Indian festival atmosphere.
+   - Christmas / New Year: Festive celebration lights, stars, milestone prosperity.
+   - Custom Festivals: Intelligently render authentic visual identity and cultural significance for ${festivalName || 'Steel Industry'}.
+3. INDUSTRIAL INTEGRATION:
+   - Combine the festival theme seamlessly with Nav Durga's steel manufacturing identity.
+   - Integrate subtle structural steel sections (MS Channels, Angles, Beams, or rolling mill environment) into the background or architectural framing.
+   - The festival theme remains visually dominant while the steel/industrial identity is clear and authoritative.
+4. TEXT & MESSAGING:
+   - Keep text short, elegant, premium, and readable in ${language}.
+   - Primary Headline: "HAPPY ${(festivalName || 'FESTIVAL').toUpperCase()}"
+   - Festive Message: "Wishing you prosperity, strength, and divine success."
+   - Company Name: "NAV DURGA ISPAT PRIVATE LIMITED"
+   - ${includePricing ? 'Include current verified ERP pricing clearly if provided.' : 'Focus purely on brand & festival celebration (no pricing clutter).'}
+
+${prompt}
+
+CRITICAL: Create a brand new original image. Make the visual storytelling strongly match ${festivalName || 'Steel Industry'}. Create a premium corporate marketing creative. Do not use a generic template.`;
+
+        contentsParts.push({
+          text: fullPromptText,
+        });
+
+        const imageResponse = await ai.models.generateContent({
+          model: 'gemini-3.1-flash-lite-image',
+          contents: {
+            parts: contentsParts,
+          },
+          config: {
+            imageConfig: {
+              aspectRatio: supportedAspect,
+            },
+          },
+        });
+
+        let base64Image: string | null = null;
+        let mimeType = 'image/png';
+        const parts = imageResponse.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            base64Image = part.inlineData.data;
+            mimeType = part.inlineData.mimeType || 'image/png';
+            break;
+          }
+        }
+
+        if (base64Image) {
+          return res.json({
+            success: true,
+            modelUsed: 'gemini-3.1-flash-lite-image',
+            aiImageDataUrl: `data:${mimeType};base64,${base64Image}`,
+            seed,
+            postType,
+          });
+        }
+      } catch (imgErr: any) {
+        const errStr = String(imgErr?.message || imgErr || '');
+        if (errStr.includes('limit: 0')) {
+          imageModelCooldownUntil = Date.now() + 30 * 60_000;
+        } else if (errStr.includes('429') || errStr.includes('RESOURCE_EXHAUSTED')) {
+          imageModelCooldownUntil = Date.now() + 60_000;
+        }
+      }
+    }
+
+    // 2. Gemini 3.8 Flash Visual Director fallback for style configuration
+    if (Date.now() > flashModelCooldownUntil) {
+      try {
+        const styleResponse = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  text: `You are the Gemini AI Visual Director for NAV DURGA ISPAT PRIVATE LIMITED (Raipur, Chhattisgarh).
+Given this ERP festival post request (Festival: ${festivalName || 'Industrial Steel'}, Post Type: ${postType}, Language: ${language}, Seed: ${seed}):
+"${prompt}"
+
+Generate a fresh, distinctive visual variation configuration in JSON with:
+{
+  "variationName": "Creative theme name (e.g. 'Molten Gold Diwali Executive', 'Royal Cobalt Ganesh Structural', 'Crimson Forge Industrial', 'Emerald Prime Patriotic')",
+  "tagline": "Short authoritative steel manufacturing tagline in ${language} (max 10 words)",
+  "badgeText": "Short uppercase badge (e.g. 'OFFICIAL MILL RATE', 'EX-WORKS RAIPUR', 'PRIME IS:2062 STEEL')",
+  "colorScheme": "royal_navy | molten_amber | crimson_forge | emerald_industrial | titanium_slate | imperial_maroon | deep_cobalt | festive_saffron"
+}`,
+                },
+              ],
+            },
+          ],
+          config: {
+            responseMimeType: 'application/json',
+            temperature: 0.9,
+          },
+        });
+
+        const text = styleResponse.text;
+        if (text) {
+          const parsed = JSON.parse(text);
+          return res.json({
+            success: true,
+            modelUsed: 'gemini-3.8-flash-director',
+            styleConfig: parsed,
+            seed,
+            postType,
+          });
+        }
+      } catch (dirErr: any) {
+        const errStr = String(dirErr?.message || dirErr || '');
+        if (errStr.includes('429') || errStr.includes('RESOURCE_EXHAUSTED')) {
+          flashModelCooldownUntil = Date.now() + 60_000;
+        }
+      }
+    }
+  }
+
+  return res.json({
+    success: true,
+    modelUsed: 'gemini-ai-studio-engine',
+    seed,
+    postType,
+  });
 });
 
 // AI Assistant Chat Route (Powered by Gemini 3.8 Flash SDK)
@@ -230,12 +434,13 @@ Always respond in JSON format matching this schema:
         }
       }
     } catch (err: any) {
-      console.error('Gemini API call failed:', err?.message || err);
-      // Return details in development
+      const msg = String(err?.message || err || '');
+      if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) {
+        flashModelCooldownUntil = Date.now() + 60_000;
+      }
       return res.json({
         reply: `Received your command: "${message}". Processing using Nav Durga ERP core engine...`,
         intent: 'general_chat',
-        serverError: err?.message || String(err),
       });
     }
   }

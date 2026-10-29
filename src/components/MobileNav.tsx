@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ActiveTab, CompanySettings } from '../types';
+import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface MobileNavProps {
   currentTab: ActiveTab;
@@ -42,6 +43,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { id: 'daily-rates', label: 'Daily Rate Management', icon: Calendar },
     { id: 'gauge-master', label: 'Gauge Difference Master', icon: Layers },
     { id: 'daily-updates', label: 'Daily Price Updates', icon: TrendingUp },
+    { id: 'ai-post-generator', label: 'AI Post Generator', icon: Sparkles },
     { id: 'whatsapp-center', label: 'WhatsApp Center', icon: MessageSquare },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'enquiries', label: 'Enquiries', icon: HelpCircle, badge: pendingEnquiriesCount },
@@ -79,10 +81,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         }`}
       >
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-              ND
-            </div>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <NavDurgaLogo size="sm" withCard className="shrink-0" />
             <div className="min-w-0">
               <h2 className="font-bold text-slate-900 text-sm truncate">{company.companyName}</h2>
               <p className="text-[10px] text-slate-500 truncate">Nav Durga Business ERP</p>

@@ -60,12 +60,17 @@ export const MarketOpeningGraphicSection: React.FC<MarketOpeningGraphicSectionPr
 
   // Canvas Reference & Template Load State
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isTemplateLoaded, setIsTemplateLoaded] = useState(false);
+  const [hasCustomBg, setHasCustomBg] = useState<boolean>(() =>
+    MarketOpeningRenderer.hasCustomTemplate()
+  );
 
   // Preload base template image on component mount
   useEffect(() => {
     MarketOpeningRenderer.preloadImage(() => {
       setIsTemplateLoaded(true);
+      setHasCustomBg(MarketOpeningRenderer.hasCustomTemplate());
       if (canvasRef.current) {
         MarketOpeningRenderer.renderToCanvas(canvasRef.current, rates);
       }
@@ -84,6 +89,34 @@ export const MarketOpeningGraphicSection: React.FC<MarketOpeningGraphicSectionPr
   useEffect(() => {
     renderGraphic();
   }, [renderGraphic]);
+
+  const handleCustomTemplateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === 'string' ? reader.result : null;
+      if (dataUrl) {
+        MarketOpeningRenderer.setCustomTemplateDataUrl(dataUrl, () => {
+          setHasCustomBg(true);
+          renderGraphic();
+          setStatusMessage('Custom base template image applied! Live rates overlaid automatically.');
+          setTimeout(() => setStatusMessage(null), 4000);
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleResetCustomTemplate = () => {
+    MarketOpeningRenderer.setCustomTemplateDataUrl(null, () => {
+      setHasCustomBg(false);
+      renderGraphic();
+      setStatusMessage('Restored built-in Nav Durga Market Openings template.');
+      setTimeout(() => setStatusMessage(null), 3500);
+    });
+  };
 
   // Open Edit Modal with current values
   const handleOpenEditModal = () => {
@@ -484,24 +517,55 @@ export const MarketOpeningGraphicSection: React.FC<MarketOpeningGraphicSectionPr
                 <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                   <span>Market Opening Graphic Live Preview</span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-mono">
-                    1264 × 848 px • Base Template
+                    1536 × 1024 px • Base Template
                   </span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Fixed base template design with dynamically updated rates
+                  Fixed Nav Durga Group Market Openings design with dynamically updated rates
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleCustomTemplateUpload}
+                  className="hidden"
+                />
+
                 {isAdmin && (
-                  <button
-                    type="button"
-                    onClick={handleOpenEditModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition-colors cursor-pointer"
-                  >
-                    <Edit3 className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Edit Rates</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                      title="Upload custom base poster PNG/JPG to overlay live rates"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+                      <span>{hasCustomBg ? 'Change Base Image' : 'Upload Base Image'}</span>
+                    </button>
+
+                    {hasCustomBg && (
+                      <button
+                        type="button"
+                        onClick={handleResetCustomTemplate}
+                        className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-colors cursor-pointer"
+                        title="Reset to built-in template"
+                      >
+                        <span>Reset</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleOpenEditModal}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Edit Rates</span>
+                    </button>
+                  </>
                 )}
 
                 <button
@@ -526,7 +590,7 @@ export const MarketOpeningGraphicSection: React.FC<MarketOpeningGraphicSectionPr
 
             {/* Canvas Preview Container */}
             <div className="w-full flex items-center justify-center bg-slate-900/5 rounded-2xl border border-slate-200/80 p-2 sm:p-4 overflow-hidden relative">
-              <div className="w-full max-w-[760px] aspect-[1264/848] shadow-lg rounded-xl overflow-hidden bg-white border border-slate-300 relative">
+              <div className="w-full max-w-[760px] aspect-[1536/1024] shadow-lg rounded-xl overflow-hidden bg-white border border-slate-300 relative">
                 <canvas
                   ref={canvasRef}
                   className="w-full h-full object-contain block"

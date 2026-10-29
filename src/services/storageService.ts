@@ -16,6 +16,7 @@ import {
   CompanyGradeBasicRates,
   CategoryBasicRates,
   MarketOpeningRates,
+  UserFestival,
 } from '../types';
 import {
   INITIAL_COMPANY_SETTINGS,
@@ -57,12 +58,15 @@ const STORAGE_KEYS = {
   GRADE_BASIC_RATES: 'navdurga_grade_basic_rates_v1',
   CATEGORY_BASIC_RATES: 'navdurga_category_basic_rates_v1',
   MARKET_OPENING_RATES: 'navdurga_market_opening_rates_v1',
+  USER_FESTIVALS: 'navdurga_user_festivals_v2',
 };
+
+export const DEFAULT_SYSTEM_FESTIVALS: string[] = [];
 
 export const DEFAULT_MARKET_OPENING_RATES: MarketOpeningRates = {
   mediumSectionName: 'MEDIUM SECTION',
   mediumSectionRate: 49711,
-  lightSectionName: 'LIGHT SECTION',
+  lightSectionName: 'SUPER LIGHT',
   lightSectionRate: 42211,
 };
 
@@ -193,7 +197,7 @@ export class StorageService {
       commonProductImages,
       gradeBasicRates,
       categoryBasicRates,
-      marketOpeningRates: safeGet<MarketOpeningRates>(STORAGE_KEYS.MARKET_OPENING_RATES, DEFAULT_MARKET_OPENING_RATES),
+      marketOpeningRates: this.getMarketOpeningRates(),
     };
   }
 
@@ -214,19 +218,39 @@ export class StorageService {
     safeSet(STORAGE_KEYS.COMMON_PRODUCT_IMAGES, state.commonProductImages);
     safeSet(STORAGE_KEYS.GRADE_BASIC_RATES, state.gradeBasicRates);
     safeSet(STORAGE_KEYS.CATEGORY_BASIC_RATES, state.categoryBasicRates);
-    safeSet(STORAGE_KEYS.MARKET_OPENING_RATES, state.marketOpeningRates);
+    if (state.marketOpeningRates) {
+      safeSet(STORAGE_KEYS.MARKET_OPENING_RATES, {
+        ...state.marketOpeningRates,
+        mediumSectionName: 'MEDIUM SECTION',
+        lightSectionName: 'SUPER LIGHT',
+      });
+    }
   }
 
   static getMarketOpeningRates(): MarketOpeningRates {
-    return safeGet<MarketOpeningRates>(STORAGE_KEYS.MARKET_OPENING_RATES, DEFAULT_MARKET_OPENING_RATES);
+    const saved = safeGet<MarketOpeningRates>(STORAGE_KEYS.MARKET_OPENING_RATES, DEFAULT_MARKET_OPENING_RATES);
+    return {
+      ...saved,
+      mediumSectionName: 'MEDIUM SECTION',
+      mediumSectionRate: Number(saved?.mediumSectionRate) || 49711,
+      lightSectionName: 'SUPER LIGHT',
+      lightSectionRate: Number(saved?.lightSectionRate) || 42211,
+    };
   }
 
   static saveMarketOpeningRates(rates: MarketOpeningRates): void {
-    safeSet(STORAGE_KEYS.MARKET_OPENING_RATES, rates);
+    const normalized: MarketOpeningRates = {
+      ...rates,
+      mediumSectionName: 'MEDIUM SECTION',
+      mediumSectionRate: Number(rates.mediumSectionRate) || 49711,
+      lightSectionName: 'SUPER LIGHT',
+      lightSectionRate: Number(rates.lightSectionRate) || 42211,
+    };
+    safeSet(STORAGE_KEYS.MARKET_OPENING_RATES, normalized);
     // Also sync categoryBasicRates
     const catRates = safeGet<CategoryBasicRates>(STORAGE_KEYS.CATEGORY_BASIC_RATES, INITIAL_CATEGORY_BASIC_RATES);
-    catRates['MEDIUM SECTION'] = rates.mediumSectionRate;
-    catRates['LIGHT SECTION'] = rates.lightSectionRate;
+    catRates['MEDIUM SECTION'] = normalized.mediumSectionRate;
+    catRates['LIGHT SECTION'] = normalized.lightSectionRate;
     safeSet(STORAGE_KEYS.CATEGORY_BASIC_RATES, catRates);
   }
 
@@ -353,6 +377,90 @@ export class StorageService {
 
   static saveCommonProductImages(images: CommonProductImage[]): void {
     safeSet(STORAGE_KEYS.COMMON_PRODUCT_IMAGES, images);
+  }
+
+  static getUserFestivals(): UserFestival[] {
+    const defaultDiwaliAsset = '/assets/diwali_festival_asset.svg';
+    const defaultList: UserFestival[] = [
+      {
+        id: 'fest-diwali-official-3x1',
+        title: 'Happy Diwali',
+        logoDataUrl: defaultDiwaliAsset,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    const stored = safeGet<UserFestival[]>(STORAGE_KEYS.USER_FESTIVALS, defaultList);
+    if (!stored || stored.length === 0) {
+      safeSet(STORAGE_KEYS.USER_FESTIVALS, defaultList);
+      return defaultList;
+    }
+
+    // Ensure any Diwali entry automatically has the saved official 3:1 Diwali Festival Asset
+    let hasDiwali = false;
+    const updated = stored.map((f) => {
+      if (f.title.toLowerCase().includes('diwali')) {
+        hasDiwali = true;
+        if (!f.logoDataUrl) {
+          return { ...f, logoDataUrl: defaultDiwaliAsset };
+        }
+      }
+      return f;
+    });
+
+    if (!hasDiwali) {
+      updated.unshift(defaultList[0]);
+    }
+
+    return updated;
+  }
+
+  static setUserFestivals(festivals: UserFestival[]): void {
+    safeSet(STORAGE_KEYS.USER_FESTIVALS, festivals);
+  }
+
+  static addUserFestival(title: string, logoDataUrl?: string): UserFestival {
+    const list = this.getUserFestivals();
+    const newFest: UserFestival = {
+      id: `fest-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      title: title.trim(),
+      logoDataUrl,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newFest, ...list];
+    this.setUserFestivals(updated);
+    return newFest;
+  }
+
+  static updateUserFestival(id: string, updates: Partial<UserFestival>): void {
+    const list = this.getUserFestivals();
+    const updated = list.map((f) => (f.id === id ? { ...f, ...updates } : f));
+    this.setUserFestivals(updated);
+  }
+
+  static deleteUserFestival(id: string): void {
+    const list = this.getUserFestivals();
+    const updated = list.filter((f) => f.id !== id);
+    this.setUserFestivals(updated);
+  }
+
+  static getCustomFestivals(): string[] {
+    return this.getUserFestivals().map((f) => f.title);
+  }
+
+  static setCustomFestivals(titles: string[]): void {
+    const existing = this.getUserFestivals();
+    const updated = titles.map((t) => {
+      const found = existing.find((f) => f.title === t);
+      return (
+        found || {
+          id: `fest-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          title: t,
+          createdAt: new Date().toISOString(),
+        }
+      );
+    });
+    this.setUserFestivals(updated);
   }
 
   static resetToFactoryDefaults(): void {

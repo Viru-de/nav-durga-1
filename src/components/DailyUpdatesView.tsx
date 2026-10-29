@@ -289,7 +289,9 @@ export const DailyUpdatesView: React.FC<DailyUpdatesViewProps> = ({
         return prod;
       }
 
-      const diff = numPrice - prod.currentPrice;
+      const gaugeDiff = prod.gaugeDifference || 0;
+      const finalRate = numPrice + gaugeDiff;
+      const diff = finalRate - prod.currentPrice;
 
       // Create price history record
       newHistoryRecords.push({
@@ -305,13 +307,13 @@ export const DailyUpdatesView: React.FC<DailyUpdatesViewProps> = ({
         gaugeType: prod.gaugeType || prod.grade || 'Medium',
         grade: prod.grade || prod.gaugeType || 'Medium',
         section: prod.section,
-        baseRate: prod.baseRate || numPrice,
-        gaugeDifference: prod.gaugeDifference || 0,
-        loadingCharge: prod.loadingCharge || 365,
-        insuranceCharge: prod.insuranceCharge || 30,
+        baseRate: numPrice,
+        gaugeDifference: gaugeDiff,
+        loadingCharge: prod.loadingCharge || 0,
+        insuranceCharge: prod.insuranceCharge || 0,
         otherCharges: prod.otherCharges || 0,
         previousRate: prod.currentPrice,
-        finalRate: numPrice,
+        finalRate: finalRate,
         priceDifference: diff,
         updatedBy: 'Admin',
         timestamp,
@@ -319,16 +321,18 @@ export const DailyUpdatesView: React.FC<DailyUpdatesViewProps> = ({
 
       return {
         ...prod,
+        baseRate: numPrice,
+        gaugeDifference: gaugeDiff,
         previousPrice: prod.currentPrice,
-        currentPrice: numPrice,
-        finalRate: numPrice,
+        currentPrice: finalRate,
+        finalRate: finalRate,
         priceChange: diff,
         effectiveFrom: updateDate,
         priceHistory: [
           {
             date: updateDate,
-            price: numPrice,
-            changeReason: `Direct rate update (${diff >= 0 ? '+' : ''}₹${diff})`,
+            price: finalRate,
+            changeReason: `Basic rate updated to ₹${numPrice.toLocaleString('en-IN')} + Gauge ₹${gaugeDiff.toLocaleString('en-IN')} = ₹${finalRate.toLocaleString('en-IN')}`,
           },
           ...(prod.priceHistory || []),
         ],
@@ -341,8 +345,8 @@ export const DailyUpdatesView: React.FC<DailyUpdatesViewProps> = ({
 
     // Dynamic Success Message
     setSuccessMessage({
-      title: 'Rate updated successfully.',
-      details: `${targetProducts.length} product(s) updated to ₹${numPrice.toLocaleString('en-IN')}.`,
+      title: 'Rate updated successfully (Final Rate = Basic Rate + Gauge Difference).',
+      details: `${targetProducts.length} product(s) updated with Basic Rate ₹${numPrice.toLocaleString('en-IN')}/MT.`,
     });
 
     // Clear entered rate

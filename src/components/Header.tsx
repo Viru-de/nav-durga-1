@@ -7,6 +7,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { ActiveTab, CompanySettings } from '../types';
+import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface HeaderProps {
   company: CompanySettings;
@@ -73,9 +74,12 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('dashboard')}
               className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-lg sm:text-xl shadow-xs tracking-tight group-hover:bg-blue-700 transition-colors shrink-0">
-                ND
-              </div>
+              <NavDurgaLogo
+                size="md"
+                withCard
+                className="shrink-0 group-hover:scale-105 transition-transform"
+                priority
+              />
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                   <span className="font-bold text-slate-900 text-sm sm:text-base md:text-lg tracking-tight leading-tight truncate">

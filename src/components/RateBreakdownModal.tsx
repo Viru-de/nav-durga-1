@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Calculator, ArrowRight, CheckCircle, Info } from 'lucide-react';
 import { Product, RateChargesConfig } from '../types';
 import { calculateFinalRate, getGaugeBadgeStyles, normalizeGaugeType } from '../utils/rateCalculator';
+import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface RateBreakdownModalProps {
   isOpen: boolean;
@@ -55,9 +56,7 @@ export const RateBreakdownModal: React.FC<RateBreakdownModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
-              <Calculator className="w-5 h-5 text-blue-600" />
-            </div>
+            <NavDurgaLogo size="sm" withCard className="shrink-0" />
             <div>
               <h2 className="text-base font-bold text-slate-900">
                 Rate Calculation Breakdown

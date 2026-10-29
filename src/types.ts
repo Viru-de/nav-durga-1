@@ -386,6 +386,13 @@ export interface CompanyGradeBasicRates {
   };
 }
 
+export interface UserFestival {
+  id: string;
+  title: string;
+  logoDataUrl?: string;
+  createdAt: string;
+}
+
 export interface CategoryBasicRates {
   'MEDIUM SECTION'?: number;
   'LIGHT SECTION'?: number;
@@ -395,6 +402,7 @@ export interface CategoryBasicRates {
 export type ActiveTab =
   | 'dashboard'
   | 'ai-assistant'
+  | 'ai-post-generator'
   | 'products'
   | 'daily-rates'
   | 'gauge-master'
@@ -408,6 +416,84 @@ export type ActiveTab =
   | 'follow-ups'
   | 'reports'
   | 'settings';
+
+export type NanoBananaPostType =
+  | 'base-rate'
+  | 'all-product'
+  | 'festival-price-update'
+  | 'medium-price-update'
+  | 'sl-price-update'
+  | 'all-products-price-update'
+  | 'product-update'
+  | 'custom-product-post';
+
+export interface NanoBananaVerifiedItem {
+  id: string;
+  productName: string;
+  code: string;
+  size: string;
+  gauge: string;
+  grade: string;
+  section: string;
+  rateSource: string;
+  basicRate: number;
+  gaugeDifference: number;
+  finalRate: number;
+  previousRate: number;
+  priceChange: number;
+  effectiveDate: string;
+  unit: string;
+}
+
+export interface NanoBananaGeneratedPost {
+  id: string;
+  postType: NanoBananaPostType;
+  postTypeLabel: string;
+  title: string;
+  subtitle: string;
+  effectiveDate: string;
+  timestamp: string;
+  prompt: string;
+  seed: number;
+  variationIndex: number;
+  variationName: string;
+  colorScheme: string;
+  imageDataUrl: string;
+  rawAiImageDataUrl?: string;
+  whatsappCaption: string;
+  verifiedItems: NanoBananaVerifiedItem[];
+  mediumBasicRate: number;
+  slBasicRate: number;
+  lightBasicRate: number;
+  festivalName?: string;
+  customHeadline?: string;
+  customNote?: string;
+  modelUsed?: string;
+  aspectRatio?: '1:1' | '4:5';
+  pages?: {
+    pageIndex: number;
+    totalPages: number;
+    imageDataUrl: string;
+  }[];
+  currentPageIndex?: number;
+  logoValidationStatus?: {
+    positionPassed: boolean;
+    alignmentPassed: boolean;
+    sizePassed: boolean;
+    spacingPassed: boolean;
+    integrityPassed: boolean;
+    overlapPassed: boolean;
+    allPassed: boolean;
+  };
+  dataValidationStatus?: {
+    mediumRateMatches: boolean;
+    slRateMatches: boolean;
+    productRatesMatches: boolean;
+    companyNameMatches: boolean;
+    dateMatches: boolean;
+    allPassed: boolean;
+  };
+}
 
 export type SmartDropdownCategory = 'MEDIUM' | 'SL' | 'LIGHT' | '5 KG' | '8 KG';
 

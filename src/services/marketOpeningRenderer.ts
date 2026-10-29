@@ -1,21 +1,83 @@
 import { MarketOpeningRates } from '../types';
-import marketOpeningTemplateImg from '../assets/images/market_opening_template_1790859180670.jpg';
+import maaDurgaPortraitUrl from '../assets/images/maa_durga_lion_portrait_1790863911321.jpg';
+import steelBuildingUrl from '../assets/images/steel_building_construction_1790863925525.jpg';
+import steelPipesUrl from '../assets/images/steel_square_pipes_1790863937734.jpg';
+import steelTmtBarsUrl from '../assets/images/steel_tmt_bars_1790863948524.jpg';
+
+const CUSTOM_TEMPLATE_STORAGE_KEY = 'navdurga_custom_market_opening_bg_v1';
 
 export class MarketOpeningRenderer {
-  // Native dimensions of the uploaded Nav Durga base template
-  public static readonly TEMPLATE_WIDTH = 1264;
-  public static readonly TEMPLATE_HEIGHT = 848;
+  // Exact 3:2 high-resolution dimensions matching the Nav Durga Market Openings poster
+  public static readonly TEMPLATE_WIDTH = 1536;
+  public static readonly TEMPLATE_HEIGHT = 1024;
 
-  private static templateImg: HTMLImageElement | null = null;
-  private static isImgLoaded = false;
-  private static isImgLoading = false;
+  private static assets: {
+    durga: HTMLImageElement | null;
+    building: HTMLImageElement | null;
+    pipes: HTMLImageElement | null;
+    tmt: HTMLImageElement | null;
+    customBg: HTMLImageElement | null;
+  } = {
+    durga: null,
+    building: null,
+    pipes: null,
+    tmt: null,
+    customBg: null,
+  };
+
+  private static isLoaded = false;
+  private static isLoading = false;
   private static loadListeners: Array<() => void> = [];
 
   /**
-   * Preload the base template image so it is immediately ready when rendering to canvas
+   * Optional custom full-poster background image (if user uploads the raw PNG directly)
+   */
+  public static setCustomTemplateDataUrl(dataUrl: string | null, onComplete?: () => void): void {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        if (dataUrl) {
+          localStorage.setItem(CUSTOM_TEMPLATE_STORAGE_KEY, dataUrl);
+        } else {
+          localStorage.removeItem(CUSTOM_TEMPLATE_STORAGE_KEY);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not save custom template to localStorage:', e);
+    }
+
+    if (!dataUrl) {
+      this.assets.customBg = null;
+      onComplete?.();
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      this.assets.customBg = img;
+      onComplete?.();
+    };
+    img.onerror = () => {
+      this.assets.customBg = null;
+      onComplete?.();
+    };
+    img.src = dataUrl;
+  }
+
+  public static hasCustomTemplate(): boolean {
+    if (this.assets.customBg) return true;
+    try {
+      return typeof localStorage !== 'undefined' && Boolean(localStorage.getItem(CUSTOM_TEMPLATE_STORAGE_KEY));
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Preload all photographic & devotional graphic assets
    */
   public static preloadImage(onLoad?: () => void): void {
-    if (this.isImgLoaded && this.templateImg) {
+    if (this.isLoaded) {
       onLoad?.();
       return;
     }
@@ -24,38 +86,55 @@ export class MarketOpeningRenderer {
       this.loadListeners.push(onLoad);
     }
 
-    if (this.isImgLoading) return;
-    this.isImgLoading = true;
+    if (this.isLoading) return;
+    this.isLoading = true;
 
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      this.templateImg = img;
-      this.isImgLoaded = true;
-      this.isImgLoading = false;
+    const loadSingle = (src: string): Promise<HTMLImageElement | null> =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+
+    let storedCustomBg: string | null = null;
+    try {
+      if (typeof localStorage !== 'undefined') {
+        storedCustomBg = localStorage.getItem(CUSTOM_TEMPLATE_STORAGE_KEY);
+      }
+    } catch {
+      storedCustomBg = null;
+    }
+
+    Promise.all([
+      loadSingle(maaDurgaPortraitUrl),
+      loadSingle(steelBuildingUrl),
+      loadSingle(steelPipesUrl),
+      loadSingle(steelTmtBarsUrl),
+      storedCustomBg ? loadSingle(storedCustomBg) : Promise.resolve(null),
+    ]).then(([durga, building, pipes, tmt, customBg]) => {
+      this.assets.durga = durga;
+      this.assets.building = building;
+      this.assets.pipes = pipes;
+      this.assets.tmt = tmt;
+      if (customBg) {
+        this.assets.customBg = customBg;
+      }
+      this.isLoaded = true;
+      this.isLoading = false;
       const listeners = [...this.loadListeners];
       this.loadListeners = [];
       listeners.forEach((fn) => fn());
-    };
-    img.onerror = () => {
-      // Fallback: try root public URL if bundled asset path had any issue
-      if (img.src !== '/market_opening_template.jpg') {
-        img.src = '/market_opening_template.jpg';
-      } else {
-        this.isImgLoading = false;
-      }
-    };
-    img.src = marketOpeningTemplateImg;
+    });
   }
 
   /**
-   * Renders the exact Nav Durga Market Opening graphic onto an HTML5 Canvas.
-   * Uses the uploaded Nav Durga promotional image as the fixed base template.
-   * Only the two price rows inside the boxed area are dynamically bound to the passed rates.
-   * All other visual elements, logos, Maa Durga illustration, colors, layout, and contact numbers
-   * remain completely preserved and faithful to the reference image.
+   * Renders the Nav Durga Market Opening graphic onto an HTML5 Canvas (1536 × 1024).
+   * Matches the uploaded "NAV DURGA GROUP - MARKET OPENINGS" poster design,
+   * dynamically binding the Medium Section and Light Section rates inside the golden rate box.
    */
-  static renderToCanvas(
+  public static renderToCanvas(
     canvas: HTMLCanvasElement,
     rates: MarketOpeningRates,
     onReady?: () => void
@@ -69,1204 +148,1477 @@ export class MarketOpeningRenderer {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Check if the uploaded base template image is ready
-    if (this.isImgLoaded && this.templateImg) {
-      ctx.save();
-      // 1. Draw the exact base template image (preserving 100% of Durga, logos, branding, borders, terms & hotlines)
-      ctx.drawImage(this.templateImg, 0, 0, width, height);
+    // Draw current state immediately
+    this.drawFullPoster(ctx, width, height, rates);
 
-      // 2. Draw ONLY the two price rows inside the boxed area with live rates
-      this.drawTemplateBoxedRates(ctx, rates);
-      ctx.restore();
+    if (this.isLoaded) {
       onReady?.();
-      return;
-    }
-
-    // If template image is still loading: draw the high-fidelity fallback
-    // and queue an immediate re-render once loaded
-    this.renderSyntheticFallback(ctx, width, height, rates);
-
-    this.preloadImage(() => {
-      if (canvas.isConnected) {
-        this.renderToCanvas(canvas, rates, onReady);
-      }
-    });
-  }
-
-  /**
-   * Overlays the two price rows inside the golden boxed rates area
-   * on top of the base template image.
-   * Positioned with aesthetic harmony between "NAV DURGA MARKET" above and
-   * "FLEXIBLE PAYMENT TERMS" below, with guaranteed zero-overlap right-aligned pricing.
-   */
-  private static drawTemplateBoxedRates(
-    ctx: CanvasRenderingContext2D,
-    rates: MarketOpeningRates
-  ): void {
-    ctx.save();
-
-    // Exact bounding coordinates:
-    // Placed between "NAV DURGA MARKET" (ends y≈590) and "FLEXIBLE PAYMENT TERMS" (starts y≈712)
-    const boxX = 394;
-    const boxY = 592;
-    const boxW = 476;
-    const boxH = 118;
-    const radius = 12;
-
-    // 1. Royal Plaque Outer Shadow & Warm Golden Ambient Glow
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetY = 4;
-
-    // Multi-stop warm royal ivory parchment gradient
-    const plaqueGrad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
-    plaqueGrad.addColorStop(0, '#ffffff');
-    plaqueGrad.addColorStop(0.4, '#fffefb');
-    plaqueGrad.addColorStop(1, '#fbf4e6');
-    ctx.fillStyle = plaqueGrad;
-
-    this.roundRect(ctx, boxX, boxY, boxW, boxH, radius);
-    ctx.fill();
-    ctx.restore();
-
-    // 2. Metallic 24K Gold Outer Rim (2.5px) matching Nav Durga temple frame
-    const goldGrad = ctx.createLinearGradient(boxX, boxY, boxX + boxW, boxY + boxH);
-    goldGrad.addColorStop(0, '#d4af37');
-    goldGrad.addColorStop(0.3, '#fde68a');
-    goldGrad.addColorStop(0.7, '#d4af37');
-    goldGrad.addColorStop(1, '#b45309');
-    ctx.strokeStyle = goldGrad;
-    ctx.lineWidth = 2.5;
-    this.roundRect(ctx, boxX, boxY, boxW, boxH, radius);
-    ctx.stroke();
-
-    // 3. Inner Delicate Golden Inset Line
-    ctx.strokeStyle = 'rgba(254, 243, 199, 0.9)';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, boxX + 1.5, boxY + 1.5, boxW - 3, boxH - 3, radius - 1);
-    ctx.stroke();
-
-    // 4. Four Corner Golden Diamond Florets
-    this.drawCornerFloret(ctx, boxX + 7, boxY + 7);
-    this.drawCornerFloret(ctx, boxX + boxW - 7, boxY + 7);
-    this.drawCornerFloret(ctx, boxX + 7, boxY + boxH - 7);
-    this.drawCornerFloret(ctx, boxX + boxW - 7, boxY + boxH - 7);
-
-    // =========================================================================
-    // ROW 1: MEDIUM SECTION
-    // =========================================================================
-    const row1Y = boxY + 31;
-    const rowCardX = boxX + 7;
-    const rowCardW = boxW - 14;
-    const rowCardH = 48;
-
-    // Row 1 Card Enamel Background
-    ctx.save();
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.05)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetY = 1;
-    this.roundRect(ctx, rowCardX, boxY + 7, rowCardW, rowCardH, 8);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, rowCardX, boxY + 7, rowCardW, rowCardH, 8);
-    ctx.stroke();
-
-    // Left Steel Section Circular Emblem
-    this.drawSmallSteelIcon(ctx, rowCardX + 20, row1Y, 'round');
-
-    // Section 1 Display Name
-    const mediumName = (rates.mediumSectionName || 'MEDIUM SECTION').toUpperCase();
-    let labelFont1 = 16;
-    ctx.fillStyle = '#0f2744';
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'left';
-    ctx.font = `800 ${labelFont1}px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif`;
-    while (ctx.measureText(mediumName).width > 165 && labelFont1 > 12) {
-      labelFont1 -= 1;
-      ctx.font = `800 ${labelFont1}px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif`;
-    }
-    ctx.fillText(mediumName, rowCardX + 38, row1Y);
-
-    // Mini "EX-WORKS" tag pill next to section name
-    const name1W = ctx.measureText(mediumName).width;
-    if (name1W < 135) {
-      this.drawMiniTagPill(ctx, rowCardX + 38 + name1W + 8, row1Y, 'EX-WORKS');
-    }
-
-    // Right-Aligned Price Callout (Mathematically Guaranteed Zero Overlap)
-    const rightMargin1 = rowCardX + rowCardW - 14;
-    this.drawRightAlignedPrice(
-      ctx,
-      rates.mediumSectionRate,
-      rightMargin1,
-      row1Y
-    );
-
-    // =========================================================================
-    // CENTER DIVIDER BETWEEN ROWS
-    // =========================================================================
-    const divY = boxY + 59;
-    ctx.save();
-    const divGrad = ctx.createLinearGradient(boxX + 24, divY, boxX + boxW - 24, divY);
-    divGrad.addColorStop(0, 'rgba(212, 175, 55, 0.1)');
-    divGrad.addColorStop(0.5, 'rgba(212, 175, 55, 0.6)');
-    divGrad.addColorStop(1, 'rgba(212, 175, 55, 0.1)');
-    ctx.strokeStyle = divGrad;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(boxX + 24, divY);
-    ctx.lineTo(boxX + boxW - 24, divY);
-    ctx.stroke();
-
-    // Center Gold Diamond
-    ctx.fillStyle = '#d4af37';
-    ctx.beginPath();
-    ctx.arc(boxX + boxW / 2, divY, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // =========================================================================
-    // ROW 2: LIGHT SECTION
-    // =========================================================================
-    const row2Y = boxY + 87;
-
-    // Row 2 Card Enamel Background
-    ctx.save();
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.05)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetY = 1;
-    this.roundRect(ctx, rowCardX, boxY + 63, rowCardW, rowCardH, 8);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, rowCardX, boxY + 63, rowCardW, rowCardH, 8);
-    ctx.stroke();
-
-    // Left Steel Section Circular Emblem
-    this.drawSmallSteelIcon(ctx, rowCardX + 20, row2Y, 'flat');
-
-    // Section 2 Display Name
-    const lightName = (rates.lightSectionName || 'LIGHT SECTION').toUpperCase();
-    let labelFont2 = 16;
-    ctx.fillStyle = '#0f2744';
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'left';
-    ctx.font = `800 ${labelFont2}px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif`;
-    while (ctx.measureText(lightName).width > 165 && labelFont2 > 12) {
-      labelFont2 -= 1;
-      ctx.font = `800 ${labelFont2}px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif`;
-    }
-    ctx.fillText(lightName, rowCardX + 38, row2Y);
-
-    // Mini "EX-WORKS" tag pill
-    const name2W = ctx.measureText(lightName).width;
-    if (name2W < 135) {
-      this.drawMiniTagPill(ctx, rowCardX + 38 + name2W + 8, row2Y, 'EX-WORKS');
-    }
-
-    // Right-Aligned Price Callout (Mathematically Guaranteed Zero Overlap)
-    const rightMargin2 = rowCardX + rowCardW - 14;
-    this.drawRightAlignedPrice(
-      ctx,
-      rates.lightSectionRate,
-      rightMargin2,
-      row2Y
-    );
-
-    ctx.restore();
-  }
-
-  /**
-   * Renders the price value and unit with right-alignment to guarantee
-   * mathematically zero overlap between the numbers and "/ MT".
-   */
-  private static drawRightAlignedPrice(
-    ctx: CanvasRenderingContext2D,
-    rateValue: number,
-    rightX: number,
-    centerY: number
-  ): void {
-    ctx.save();
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-
-    // 1. Draw Unit "/ MT" in refined emerald-green
-    ctx.font = '700 13px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = '#059669';
-    ctx.fillText('/ MT', rightX, centerY + 0.5);
-    const unitWidth = ctx.measureText('/ MT').width;
-
-    // 2. Draw Price Number e.g. "₹52,711" stopping cleanly 6px before "/ MT"
-    const priceStr = `₹${Number(rateValue || 0).toLocaleString('en-IN')}`;
-    ctx.font = '900 20px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = '#047857';
-    ctx.fillText(priceStr, rightX - unitWidth - 6, centerY);
-
-    ctx.restore();
-  }
-
-  /**
-   * Draws four corner florets on the plaque border
-   */
-  private static drawCornerFloret(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-    ctx.save();
-    ctx.fillStyle = '#d4af37';
-    ctx.beginPath();
-    ctx.arc(x, y, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  /**
-   * Draws a miniature tag pill like "EX-WORKS"
-   */
-  private static drawMiniTagPill(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    centerY: number,
-    label: string
-  ): void {
-    ctx.save();
-    ctx.font = '800 9px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
-    const tagW = ctx.measureText(label).width + 8;
-    const tagH = 15;
-    const tagY = centerY - tagH / 2;
-
-    ctx.fillStyle = '#fffbeb';
-    this.roundRect(ctx, x, tagY, tagW, tagH, 4);
-    ctx.fill();
-
-    ctx.strokeStyle = '#fde68a';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, x, tagY, tagW, tagH, 4);
-    ctx.stroke();
-
-    ctx.fillStyle = '#b45309';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, x + tagW / 2, centerY);
-    ctx.restore();
-  }
-
-  /**
-   * Draws a miniature industrial steel icon bullet for section rows
-   */
-  private static drawSmallSteelIcon(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    type: 'round' | 'flat'
-  ): void {
-    ctx.save();
-    // Circular Metallic Emblem
-    const grad = ctx.createLinearGradient(x - 13, y - 13, x + 13, y + 13);
-    grad.addColorStop(0, '#1e293b');
-    grad.addColorStop(1, '#0f172a');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(x, y, 13, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 1.4;
-    ctx.stroke();
-
-    // Miniature steel icon inside
-    ctx.fillStyle = '#ffffff';
-    if (type === 'round') {
-      // 3 Steel rebar cross sections
-      ctx.beginPath();
-      ctx.arc(x - 3.5, y - 3, 2.5, 0, Math.PI * 2);
-      ctx.arc(x + 3.5, y - 3, 2.5, 0, Math.PI * 2);
-      ctx.arc(x, y + 3.5, 2.5, 0, Math.PI * 2);
-      ctx.fill();
     } else {
-      // 3 Steel flat structural strips
-      ctx.fillRect(x - 6, y - 5, 12, 2.2);
-      ctx.fillRect(x - 6, y - 1, 12, 2.2);
-      ctx.fillRect(x - 6, y + 3, 12, 2.2);
+      this.preloadImage(() => {
+        if (canvas.isConnected) {
+          const freshCtx = canvas.getContext('2d');
+          if (freshCtx) {
+            this.drawFullPoster(freshCtx, width, height, rates);
+          }
+          onReady?.();
+        }
+      });
     }
-    ctx.restore();
   }
 
-  /**
-   * Fallback renderer while the template image loads
-   */
-  private static renderSyntheticFallback(
+  private static drawFullPoster(
     ctx: CanvasRenderingContext2D,
     width: number,
     height: number,
     rates: MarketOpeningRates
   ): void {
     ctx.save();
+
+    // If the user uploaded a custom full background image, draw it first and overlay the live rates box
+    if (this.assets.customBg) {
+      ctx.drawImage(this.assets.customBg, 0, 0, width, height);
+      this.drawGoldenBoxedRates(ctx, rates);
+      this.drawBestRatesBluePill(ctx);
+      ctx.restore();
+      return;
+    }
+
+    // 1. Base Pearl-Ivory & Warm Golden Aura Background
     this.drawBackground(ctx, width, height);
+
+    // 2. Top-Right: Maa Durga & Lion Artwork + "जय माता दी" Red Brush Badge
+    this.drawMaaDurgaSection(ctx, width);
+
+    // 3. Top-Left: Indian Tricolor Corner Wave & NAV DURGA GROUP Logo
     this.drawTopLeftBranding(ctx);
-    this.drawTopCenterBlessings(ctx, width);
-    this.drawMaaDurgaArtwork(ctx, width);
-    this.drawMarketOpeningsHeader(ctx);
-    this.drawBoxedRatesArea(ctx, rates);
-    this.drawFourCircularBadges(ctx);
-    this.drawCitySkylineAndWish(ctx);
-    this.drawRightColumnContent(ctx, width);
+
+    // 4. Top-Center: Trishul, "Shubh NAV DURGA", Blessings & Floral Divider
+    this.drawTopCenterBlessings(ctx);
+
+    // 5. Right Column: Slanted Steel Building Photo, Pipes & TMT Photos, Payment Terms, Extra Charge & Notice
+    this.drawRightColumnContent(ctx);
+
+    // 6. Center-Left: Golden-Bordered Boxed Rates Area (DYNAMICALLY BOUND TO `rates`)
+    this.drawGoldenBoxedRates(ctx, rates);
+
+    // 7. Center-Left Header: 3D Red "MARKET OPENINGS" Banner, Megaphone & "BEST RATES (EX-WORKS)" Blue Pill
+    this.drawMarketOpeningsBanner(ctx);
+    this.drawBestRatesBluePill(ctx);
+
+    // 8. Mid-Left: 4 Horizontal Trust Badges (Quality, Trusted Supply, On Time Delivery, Customer Satisfaction)
+    this.drawFourTrustBadges(ctx);
+
+    // 9. Lower-Left: City Skyline Silhouette, Indian Flag Waves & "Wishing you a very HAPPY AND PRODUCTIVE DAY!"
+    this.drawSkylineAndWishBanner(ctx);
+
+    // 10. Bottom Full-Width Dark Navy Footer with "CONTACT FOR ORDERS" & 3 WhatsApp Hotlines
     this.drawBottomFooter(ctx, width, height);
+
     ctx.restore();
   }
 
   /**
-   * Base canvas background
+   * 1. Base Pearl-Ivory Background with Warm Golden Glow on Top-Right
    */
   private static drawBackground(ctx: CanvasRenderingContext2D, width: number, height: number): void {
-    const bgGrad = ctx.createRadialGradient(
-      width * 0.45,
-      height * 0.45,
-      50,
-      width * 0.5,
-      height * 0.5,
-      width * 0.8
-    );
-    bgGrad.addColorStop(0, '#ffffff');
-    bgGrad.addColorStop(0.6, '#fcfaf6');
-    bgGrad.addColorStop(1, '#f7f2ea');
-    ctx.fillStyle = bgGrad;
+    ctx.save();
+
+    const baseGrad = ctx.createLinearGradient(0, 0, width, height);
+    baseGrad.addColorStop(0, '#fffefb');
+    baseGrad.addColorStop(0.55, '#fcf9f2');
+    baseGrad.addColorStop(1, '#f7f2e7');
+    ctx.fillStyle = baseGrad;
     ctx.fillRect(0, 0, width, height);
+
+    // Warm golden-saffron aura in the top-right quarter behind Maa Durga
+    const auraGrad = ctx.createRadialGradient(1140, 150, 30, 1140, 150, 480);
+    auraGrad.addColorStop(0, 'rgba(251, 191, 36, 0.55)');
+    auraGrad.addColorStop(0.45, 'rgba(245, 158, 11, 0.32)');
+    auraGrad.addColorStop(0.75, 'rgba(253, 224, 71, 0.14)');
+    auraGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = auraGrad;
+    ctx.fillRect(650, 0, width - 650, 460);
+
+    ctx.restore();
   }
 
   /**
-   * Top-Left: Indian Flag Swoosh & Nav Durga Group Branding
+   * 2. Top-Right: Maa Durga & Lion Portrait + "जय माता दी" Brush Badge
+   */
+  private static drawMaaDurgaSection(ctx: CanvasRenderingContext2D, width: number): void {
+    ctx.save();
+
+    if (this.assets.durga) {
+      // Create an offscreen canvas to feather the edges of the Maa Durga & Lion portrait
+      const offW = 680;
+      const offH = 380;
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = offW;
+      offCanvas.height = offH;
+      const offCtx = offCanvas.getContext('2d');
+
+      if (offCtx) {
+        offCtx.drawImage(this.assets.durga, 0, 0, offW, offH);
+
+        // Soft radial/linear alpha mask so it blends seamlessly into the poster background
+        offCtx.globalCompositeOperation = 'destination-in';
+        const maskGrad = offCtx.createRadialGradient(
+          offW * 0.48,
+          offH * 0.44,
+          offH * 0.24,
+          offW * 0.48,
+          offH * 0.46,
+          offW * 0.52
+        );
+        maskGrad.addColorStop(0, 'rgba(0,0,0,1)');
+        maskGrad.addColorStop(0.68, 'rgba(0,0,0,0.94)');
+        maskGrad.addColorStop(0.88, 'rgba(0,0,0,0.45)');
+        maskGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        offCtx.fillStyle = maskGrad;
+        offCtx.fillRect(0, 0, offW, offH);
+
+        ctx.drawImage(offCanvas, 790, -8, offW, offH);
+      }
+    } else {
+      // Vector devotional fallback while image asset loads
+      const durgaX = 1080;
+      const durgaY = 145;
+      const halo = ctx.createRadialGradient(durgaX, durgaY, 20, durgaX, durgaY, 210);
+      halo.addColorStop(0, 'rgba(251, 191, 36, 0.85)');
+      halo.addColorStop(0.6, 'rgba(245, 158, 11, 0.4)');
+      halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(durgaX, durgaY, 210, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Top-Right Red Brush-Stroke Splash Badge: "जय माता दी"
+    ctx.save();
+    ctx.translate(width - 112, 136);
+    ctx.rotate(-0.22);
+
+    // Brush-stroke jagged artistic polygon
+    const brushGrad = ctx.createLinearGradient(-95, -75, 95, 75);
+    brushGrad.addColorStop(0, '#ef4444');
+    brushGrad.addColorStop(0.5, '#dc2626');
+    brushGrad.addColorStop(1, '#991b1b');
+    ctx.fillStyle = brushGrad;
+
+    ctx.shadowColor = 'rgba(127, 29, 29, 0.35)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+
+    ctx.beginPath();
+    const pts = [
+      [-78, -42], [-52, -58], [-15, -66], [35, -68], [82, -58],
+      [96, -36], [84, -14], [94, 8], [78, 32], [88, 52],
+      [54, 68], [10, 74], [-38, 70], [-74, 56], [-88, 32],
+      [-76, 8], [-90, -16],
+    ];
+    pts.forEach(([px, py], idx) => {
+      if (idx === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '900 34px "Plus Jakarta Sans", "Noto Sans Devanagari", sans-serif';
+    ctx.fillText('जय', 0, -34);
+    ctx.fillText('माता', 0, 4);
+    ctx.fillText('दी', 2, 42);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  /**
+   * 3. Top-Left: Indian Tricolor Wave & NAV DURGA GROUP Logo
    */
   private static drawTopLeftBranding(ctx: CanvasRenderingContext2D): void {
     ctx.save();
 
-    // Indian Flag Swoosh in Top-Left Corner
+    // Top-left corner Indian Flag Tricolor Ribbon Sweep
     ctx.save();
-    ctx.lineWidth = 14;
-
-    // Saffron arc
-    ctx.strokeStyle = '#ff9933';
+    // Green outer corner wedge
+    ctx.fillStyle = '#15803d';
     ctx.beginPath();
-    ctx.arc(-20, -20, 220, 0.1, 1.25);
-    ctx.stroke();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(145, 0);
+    ctx.quadraticCurveTo(60, 48, 0, 125);
+    ctx.closePath();
+    ctx.fill();
 
-    // White arc
-    ctx.strokeStyle = '#f8fafc';
-    ctx.lineWidth = 12;
+    // White middle ribbon
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(-20, -20, 206, 0.1, 1.25);
-    ctx.stroke();
+    ctx.moveTo(145, 0);
+    ctx.lineTo(185, 0);
+    ctx.quadraticCurveTo(82, 66, 0, 155);
+    ctx.lineTo(0, 125);
+    ctx.quadraticCurveTo(60, 48, 145, 0);
+    ctx.closePath();
+    ctx.fill();
 
-    // Green arc
-    ctx.strokeStyle = '#138808';
-    ctx.lineWidth = 14;
+    // Saffron inner ribbon
+    const safGrad = ctx.createLinearGradient(0, 160, 210, 0);
+    safGrad.addColorStop(0, '#ea580c');
+    safGrad.addColorStop(0.5, '#f97316');
+    safGrad.addColorStop(1, '#fb923c');
+    ctx.fillStyle = safGrad;
     ctx.beginPath();
-    ctx.arc(-20, -20, 192, 0.1, 1.25);
-    ctx.stroke();
+    ctx.moveTo(185, 0);
+    ctx.lineTo(228, 0);
+    ctx.quadraticCurveTo(105, 80, 0, 188);
+    ctx.lineTo(0, 155);
+    ctx.quadraticCurveTo(82, 66, 185, 0);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
 
-    // Brand Logo Container
-    const logoX = 64;
-    const logoY = 46;
-
-    // Diamond Logo Mark
+    // Double Diamond Peak Icon above "V" of NAV (x ≈ 262, y ≈ 18..115)
     ctx.save();
-    ctx.translate(logoX + 185, logoY + 18);
-    ctx.rotate(Math.PI / 4);
-    ctx.fillStyle = '#ea580c';
-    ctx.fillRect(-18, -18, 36, 36);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(-18, -18, 36, 36);
-    ctx.restore();
+    const peakX = 264;
+    const peakY = 50;
 
-    // "NAV" text
+    // Top Orange Chevron/Diamond
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.moveTo(peakX, peakY - 34);
+    ctx.lineTo(peakX + 34, peakY);
+    ctx.lineTo(peakX + 20, peakY + 14);
+    ctx.lineTo(peakX, peakY - 6);
+    ctx.lineTo(peakX - 20, peakY + 14);
+    ctx.lineTo(peakX - 34, peakY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Lower Black Diamond with Cutout
     ctx.fillStyle = '#0f172a';
-    ctx.font = '900 62px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('NAV', logoX, logoY + 62);
+    ctx.beginPath();
+    ctx.moveTo(peakX, peakY + 6);
+    ctx.lineTo(peakX + 30, peakY + 36);
+    ctx.lineTo(peakX, peakY + 66);
+    ctx.lineTo(peakX - 30, peakY + 36);
+    ctx.closePath();
+    ctx.fill();
 
-    // "DURGA" text
+    // Inner white diamond + black core dot
+    ctx.fillStyle = '#fdfbf7';
+    ctx.beginPath();
+    ctx.moveTo(peakX, peakY + 21);
+    ctx.lineTo(peakX + 15, peakY + 36);
+    ctx.lineTo(peakX, peakY + 51);
+    ctx.lineTo(peakX - 15, peakY + 36);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.moveTo(peakX, peakY + 28);
+    ctx.lineTo(peakX + 8, peakY + 36);
+    ctx.lineTo(peakX, peakY + 44);
+    ctx.lineTo(peakX - 8, peakY + 36);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // "NAV" in wide geometric black lettering
+    ctx.fillStyle = '#0f172a';
     ctx.font = '900 58px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('DURGA', logoX, logoY + 124);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('N A V', 72, 118);
+
+    // "DURGA" in wide blocky industrial green font
+    ctx.save();
+    ctx.fillStyle = '#15803d';
+    ctx.font = '900 62px "Plus Jakarta Sans", sans-serif';
+    ctx.scale(1.12, 0.92);
+    ctx.fillText('DURGA', 64, 190);
+    ctx.restore();
 
     // "— GROUP —"
-    ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#0f172a';
-    ctx.fillText('—  GROUP  —', logoX + 16, logoY + 164);
+    ctx.font = '800 34px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('G R O U P', 218, 214);
+
+    // Horizontal lines flanking GROUP
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(68, 202);
+    ctx.lineTo(114, 202);
+    ctx.moveTo(322, 202);
+    ctx.lineTo(368, 202);
+    ctx.stroke();
 
     // "🇮🇳 We build the nation 🇮🇳"
-    ctx.font = '700 22px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#b91c1c';
-    ctx.fillText('We build the nation', logoX + 38, logoY + 196);
-
-    // Mini flags beside "We build the nation"
-    this.drawMiniFlag(ctx, logoX, logoY + 180);
-    this.drawMiniFlag(ctx, logoX + 275, logoY + 180);
-
-    ctx.restore();
-  }
-
-  private static drawMiniFlag(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-    ctx.save();
-    ctx.fillStyle = '#ff9933';
-    ctx.fillRect(x, y, 28, 6);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x, y + 6, 28, 6);
-    ctx.fillStyle = '#138808';
-    ctx.fillRect(x, y + 12, 28, 6);
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 0.8;
-    ctx.strokeRect(x, y, 28, 18);
-    // Chakra dot
-    ctx.fillStyle = '#000080';
-    ctx.beginPath();
-    ctx.arc(x + 14, y + 9, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  /**
-   * Top-Center: Shubh Nav Durga Header with Golden Trishul & Blessings
-   */
-  private static drawTopCenterBlessings(ctx: CanvasRenderingContext2D, width: number): void {
-    ctx.save();
-    const centerX = width * 0.44;
-
-    // Golden Trishul Icon 🔱
-    ctx.fillStyle = '#b91c1c';
-    ctx.font = 'bold 36px sans-serif';
+    this.drawWavingMiniFlag(ctx, 54, 232, 48, 30);
+    ctx.fillStyle = '#dc2626';
+    ctx.font = '800 23px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🔱', centerX, 52);
-
-    // "— Shubh —"
-    ctx.font = 'italic 700 28px "Playfair Display", Georgia, serif';
-    ctx.fillStyle = '#b91c1c';
-    ctx.fillText('— Shubh —', centerX, 86);
-
-    // "NAV DURGA" in crimson red serif
-    ctx.font = '900 64px "Cinzel", "Times New Roman", serif';
-    ctx.fillStyle = '#7f1d1d';
-    ctx.fillText('NAV DURGA', centerX, 146);
-
-    // Blessings Subtitle
-    ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#334155';
-    ctx.fillText('May Maa Durga bless you with', centerX, 178);
-    ctx.fillText('prosperity, success and new beginnings.', centerX, 204);
-
-    // Decorative golden floral ornament
-    ctx.strokeStyle = '#d97706';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(centerX - 90, 222);
-    ctx.lineTo(centerX - 24, 222);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(centerX + 24, 222);
-    ctx.lineTo(centerX + 90, 222);
-    ctx.stroke();
-
-    ctx.fillStyle = '#d97706';
-    ctx.font = '18px sans-serif';
-    ctx.fillText('❖', centerX, 227);
+    ctx.fillText('We build the nation', 218, 255);
+    this.drawWavingMiniFlag(ctx, 334, 232, 48, 30);
 
     ctx.restore();
   }
 
-  /**
-   * Top-Right: Maa Durga Divine Portrait & "जय माता दी" Sunburst
-   */
-  private static drawMaaDurgaArtwork(ctx: CanvasRenderingContext2D, width: number): void {
+  private static drawWavingMiniFlag(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number
+  ): void {
     ctx.save();
+    const stripeH = h / 3;
 
-    const durgaX = width * 0.72;
-    const durgaY = 135;
-
-    // Warm radiant sunburst halo behind Maa Durga
-    const halo = ctx.createRadialGradient(durgaX + 30, durgaY, 20, durgaX + 30, durgaY, 220);
-    halo.addColorStop(0, 'rgba(251, 191, 36, 0.7)');
-    halo.addColorStop(0.5, 'rgba(245, 158, 11, 0.45)');
-    halo.addColorStop(0.85, 'rgba(234, 88, 12, 0.2)');
-    halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(durgaX + 30, durgaY, 220, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Divine Golden Crown (Mukut) Rays
-    ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
-    ctx.lineWidth = 2.5;
-    for (let a = -Math.PI * 0.9; a < -Math.PI * 0.1; a += 0.08) {
+    const drawBand = (by: number, color: string) => {
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.moveTo(durgaX + 30 + Math.cos(a) * 90, durgaY + Math.sin(a) * 90);
-      ctx.lineTo(durgaX + 30 + Math.cos(a) * 190, durgaY + Math.sin(a) * 190);
-      ctx.stroke();
-    }
-
-    // Sacred Maa Durga Face & Golden Mukut Silhouette
-    // Golden Mukut (Crown)
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.moveTo(durgaX - 50, durgaY - 30);
-    ctx.lineTo(durgaX + 30, durgaY - 120);
-    ctx.lineTo(durgaX + 110, durgaY - 30);
-    ctx.quadraticCurveTo(durgaX + 30, durgaY - 50, durgaX - 50, durgaY - 30);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = '#b45309';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Mukut Jewels
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.arc(durgaX + 30, durgaY - 80, 8, 0, Math.PI * 2);
-    ctx.arc(durgaX, durgaY - 55, 6, 0, Math.PI * 2);
-    ctx.arc(durgaX + 60, durgaY - 55, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Maa Durga Divine Face Oval
-    const faceGrad = ctx.createLinearGradient(durgaX, durgaY - 30, durgaX + 60, durgaY + 70);
-    faceGrad.addColorStop(0, '#fef3c7');
-    faceGrad.addColorStop(0.5, '#fde68a');
-    faceGrad.addColorStop(1, '#fcd34d');
-    ctx.fillStyle = faceGrad;
-    ctx.beginPath();
-    ctx.ellipse(durgaX + 30, durgaY + 25, 46, 56, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Red Vermilion Tilak & Third Eye on Forehead
-    ctx.fillStyle = '#dc2626';
-    ctx.beginPath();
-    ctx.ellipse(durgaX + 30, durgaY + 8, 5, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Divine Lotus Eyes
-    ctx.fillStyle = '#1e1b4b';
-    ctx.beginPath();
-    ctx.ellipse(durgaX + 12, durgaY + 28, 12, 6, -0.15, 0, Math.PI * 2);
-    ctx.ellipse(durgaX + 48, durgaY + 28, 12, 6, 0.15, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Golden Nose Ring (Nath)
-    ctx.strokeStyle = '#b45309';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(durgaX + 22, durgaY + 44, 9, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Divine Smile
-    ctx.strokeStyle = '#b91c1c';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(durgaX + 30, durgaY + 54, 12, 0.2, Math.PI - 0.2);
-    ctx.stroke();
-
-    // Golden Lion (Sher) Vahana Head on Right
-    ctx.fillStyle = '#d97706';
-    ctx.beginPath();
-    ctx.arc(durgaX + 115, durgaY + 75, 34, 0, Math.PI * 2);
-    ctx.fill();
-    // Lion Mane
-    ctx.fillStyle = '#b45309';
-    for (let la = 0; la < Math.PI * 2; la += 0.4) {
-      ctx.beginPath();
-      ctx.arc(durgaX + 115 + Math.cos(la) * 38, durgaY + 75 + Math.sin(la) * 38, 14, 0, Math.PI * 2);
+      ctx.moveTo(x, by);
+      ctx.bezierCurveTo(x + w * 0.33, by - 3, x + w * 0.66, by + 3, x + w, by);
+      ctx.lineTo(x + w, by + stripeH);
+      ctx.bezierCurveTo(
+        x + w * 0.66,
+        by + stripeH + 3,
+        x + w * 0.33,
+        by + stripeH - 3,
+        x,
+        by + stripeH
+      );
+      ctx.closePath();
       ctx.fill();
-    }
-    // Lion Face
-    ctx.fillStyle = '#f59e0b';
+    };
+
+    drawBand(y, '#f97316');
+    drawBand(y + stripeH, '#ffffff');
+    drawBand(y + stripeH * 2, '#15803d');
+
+    // Ashoka Chakra
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.arc(durgaX + 115, durgaY + 75, 26, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.arc(x + w / 2, y + h / 2, stripeH * 0.38, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
 
-    // Red Sunburst Badge "जय माता दी" in Top Right
-    const badgeX = width - 110;
-    const badgeY = 120;
-
+  /**
+   * 4. Top-Center: Ornate Trishul, "Shubh NAV DURGA" & Blessings
+   */
+  private static drawTopCenterBlessings(ctx: CanvasRenderingContext2D): void {
     ctx.save();
-    ctx.translate(badgeX, badgeY);
-    ctx.fillStyle = '#dc2626';
-    const points = 16;
+    const centerX = 654;
+
+    // Ornate Crimson/Copper Trishul Icon at top center (y: 12..68)
+    ctx.save();
+    ctx.translate(centerX, 42);
+    ctx.strokeStyle = '#b45309';
+    ctx.fillStyle = '#b45309';
+    ctx.lineWidth = 3.5;
+
+    // Center spear
     ctx.beginPath();
-    for (let i = 0; i < points * 2; i++) {
-      const r = i % 2 === 0 ? 68 : 55;
-      const a = (Math.PI / points) * i;
-      const px = Math.cos(a) * r;
-      const py = Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    }
+    ctx.moveTo(0, -30);
+    ctx.lineTo(-5, -14);
+    ctx.lineTo(0, -18);
+    ctx.lineTo(5, -14);
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = '#fef08a';
-    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(0, 26);
     ctx.stroke();
 
-    // Hindi Text: "जय माता दी"
-    ctx.fillStyle = '#ffffff';
+    // Left & Right prongs
+    ctx.beginPath();
+    ctx.moveTo(0, 4);
+    ctx.bezierCurveTo(-22, 4, -22, -16, -12, -24);
+    ctx.moveTo(0, 4);
+    ctx.bezierCurveTo(22, 4, 22, -16, 12, -24);
+    ctx.stroke();
+
+    // Damaru / Horizontal crossbars
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-10, 12);
+    ctx.lineTo(10, 12);
+    ctx.moveTo(-7, 17);
+    ctx.lineTo(7, 17);
+    ctx.stroke();
+    ctx.restore();
+
+    // "—> Shubh <—"
+    ctx.fillStyle = '#b91c1c';
+    ctx.font = 'italic 700 36px Georgia, "Times New Roman", serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '900 24px "Noto Sans Devanagari", sans-serif';
-    ctx.fillText('जय', 0, -22);
-    ctx.fillText('माता', 0, 2);
-    ctx.fillText('दी', 0, 26);
+    ctx.fillText('Shubh', centerX, 92);
+
+    // Ornate inward arrows flanking "Shubh"
+    ctx.strokeStyle = '#c2410c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    // Left arrow
+    ctx.moveTo(centerX - 135, 92);
+    ctx.lineTo(centerX - 66, 92);
+    ctx.moveTo(centerX - 76, 86);
+    ctx.lineTo(centerX - 64, 92);
+    ctx.lineTo(centerX - 76, 98);
+    // Right arrow
+    ctx.moveTo(centerX + 135, 92);
+    ctx.lineTo(centerX + 66, 92);
+    ctx.moveTo(centerX + 76, 86);
+    ctx.lineTo(centerX + 64, 92);
+    ctx.lineTo(centerX + 76, 98);
+    ctx.stroke();
+
+    // "NAV DURGA" in large crimson-maroon serif
+    ctx.save();
+    ctx.font = '900 72px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.fillText('NAV DURGA', centerX + 2, 158);
+
+    const navGrad = ctx.createLinearGradient(centerX, 110, centerX, 180);
+    navGrad.addColorStop(0, '#991b1b');
+    navGrad.addColorStop(0.5, '#7f1d1d');
+    navGrad.addColorStop(1, '#450a0a');
+    ctx.fillStyle = navGrad;
+    ctx.fillText('NAV DURGA', centerX, 156);
     ctx.restore();
+
+    // Blessings two-line subtitle
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '500 23px Georgia, "Times New Roman", serif';
+    ctx.fillText('May Maa Durga bless you with', centerX, 203);
+    ctx.fillText('prosperity, success and new beginnings.', centerX, 233);
+
+    // Decorative crimson-gold floral divider at y = 264
+    ctx.strokeStyle = '#c2410c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 160, 263);
+    ctx.lineTo(centerX - 28, 263);
+    ctx.moveTo(centerX + 28, 263);
+    ctx.lineTo(centerX + 160, 263);
+    ctx.stroke();
+
+    ctx.fillStyle = '#b91c1c';
+    ctx.font = '24px serif';
+    ctx.fillText('❈', centerX, 264);
 
     ctx.restore();
   }
 
   /**
-   * Center-Left: 3D Red Ribbon "MARKET OPENINGS" with Megaphone & "BEST RATES" Pill
+   * 6. Center-Left: The Golden-Bordered Boxed Rates Area (ONLY EDITABLE DATA REGION)
+   * Coordinates match the uploaded image: x=38, y=454, w=1034, h=244
    */
-  private static drawMarketOpeningsHeader(ctx: CanvasRenderingContext2D): void {
+  private static drawGoldenBoxedRates(
+    ctx: CanvasRenderingContext2D,
+    rates: MarketOpeningRates
+  ): void {
     ctx.save();
 
-    const bannerX = 70;
-    const bannerY = 285;
-    const bannerW = 860;
-    const bannerH = 105;
+    const boxX = 38;
+    const boxY = 454;
+    const boxW = 1034;
+    const boxH = 244;
+    const radius = 24;
 
-    // 3D Red Ribbon Background
-    const ribbonGrad = ctx.createLinearGradient(bannerX, bannerY, bannerX + bannerW, bannerY);
-    ribbonGrad.addColorStop(0, '#b91c1c');
-    ribbonGrad.addColorStop(0.4, '#dc2626');
-    ribbonGrad.addColorStop(0.8, '#ef4444');
-    ribbonGrad.addColorStop(1, '#b91c1c');
+    // Soft warm drop shadow
+    ctx.save();
+    ctx.shadowColor = 'rgba(180, 83, 9, 0.18)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 4;
 
-    ctx.fillStyle = ribbonGrad;
-    this.roundRect(ctx, bannerX + 80, bannerY, bannerW - 80, bannerH, 22);
+    const boxGrad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
+    boxGrad.addColorStop(0, '#fffefb');
+    boxGrad.addColorStop(0.5, '#ffffff');
+    boxGrad.addColorStop(1, '#fdfaf3');
+    ctx.fillStyle = boxGrad;
+    this.roundRect(ctx, boxX, boxY, boxW, boxH, radius);
     ctx.fill();
+    ctx.restore();
 
-    // Gold outline
-    ctx.strokeStyle = '#fbbf24';
+    // Metallic Gold Border (3.5px)
+    const goldBorder = ctx.createLinearGradient(boxX, boxY, boxX + boxW, boxY + boxH);
+    goldBorder.addColorStop(0, '#ca8a04');
+    goldBorder.addColorStop(0.35, '#eab308');
+    goldBorder.addColorStop(0.7, '#ca8a04');
+    goldBorder.addColorStop(1, '#a16207');
+    ctx.strokeStyle = goldBorder;
     ctx.lineWidth = 3.5;
-    this.roundRect(ctx, bannerX + 80, bannerY, bannerW - 80, bannerH, 22);
+    this.roundRect(ctx, boxX, boxY, boxW, boxH, radius);
     ctx.stroke();
 
-    // Megaphone / Loudspeaker on the left
-    const megaX = bannerX + 60;
-    const megaY = bannerY + bannerH / 2;
+    // =========================================================================
+    // ROW 1: MEDIUM SECTION (y = 526)
+    // =========================================================================
+    const row1Y = 526;
+    this.draw3DSteelRoundIcon(ctx, 122, row1Y, 48);
 
-    ctx.save();
-    ctx.translate(megaX, megaY);
-    ctx.rotate(-0.2);
+    const mediumName = (rates.mediumSectionName || 'MEDIUM SECTION').toUpperCase();
+    ctx.fillStyle = '#0c2340';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    let font1 = 46;
+    ctx.font = `900 ${font1}px "Plus Jakarta Sans", sans-serif`;
+    while (ctx.measureText(mediumName).width > 435 && font1 > 28) {
+      font1 -= 2;
+      ctx.font = `900 ${font1}px "Plus Jakarta Sans", sans-serif`;
+    }
+    ctx.fillText(mediumName, 214, row1Y + 2);
 
-    // Megaphone body
-    ctx.fillStyle = '#dc2626';
+    // Vertical separator bar "|" at x = 677
+    ctx.strokeStyle = '#0c2340';
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
-    ctx.moveTo(25, -34);
-    ctx.lineTo(-30, -12);
-    ctx.lineTo(-30, 12);
-    ctx.lineTo(25, 34);
+    ctx.moveTo(677, row1Y - 32);
+    ctx.lineTo(677, row1Y + 32);
+    ctx.stroke();
+
+    // Dynamic Medium Section Rate: ₹49711/MT
+    this.drawSectionPriceValue(ctx, rates.mediumSectionRate, 704, row1Y, 1052);
+
+    // =========================================================================
+    // HORIZONTAL GOLD DIVIDER LINE (y = 583)
+    // =========================================================================
+    ctx.strokeStyle = 'rgba(217, 167, 42, 0.55)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(184, 583);
+    ctx.lineTo(1042, 583);
+    ctx.stroke();
+
+    // =========================================================================
+    // ROW 2: LIGHT SECTION (y = 640)
+    // =========================================================================
+    const row2Y = 640;
+    this.draw3DSteelFlatIcon(ctx, 122, row2Y, 48);
+
+    const lightName = (rates.lightSectionName || 'LIGHT SECTION').toUpperCase();
+    ctx.fillStyle = '#0c2340';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    let font2 = 46;
+    ctx.font = `900 ${font2}px "Plus Jakarta Sans", sans-serif`;
+    while (ctx.measureText(lightName).width > 435 && font2 > 28) {
+      font2 -= 2;
+      ctx.font = `900 ${font2}px "Plus Jakarta Sans", sans-serif`;
+    }
+    ctx.fillText(lightName, 214, row2Y + 2);
+
+    // Vertical separator bar "|" at x = 677
+    ctx.strokeStyle = '#0c2340';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(677, row2Y - 32);
+    ctx.lineTo(677, row2Y + 32);
+    ctx.stroke();
+
+    // Dynamic Light Section Rate: ₹42211/MT
+    this.drawSectionPriceValue(ctx, rates.lightSectionRate, 704, row2Y, 1052);
+
+    ctx.restore();
+  }
+
+  /**
+   * Renders "₹49711/MT" in bold emerald-forest green matching the uploaded poster
+   */
+  private static drawSectionPriceValue(
+    ctx: CanvasRenderingContext2D,
+    rateValue: number,
+    startX: number,
+    centerY: number,
+    maxRightX: number
+  ): void {
+    ctx.save();
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+
+    const rawNum = String(Math.round(Number(rateValue) || 0));
+    const priceText = `₹${rawNum}`;
+    const unitText = '/MT';
+
+    let mainFontSize = 72;
+    let unitFontSize = 40;
+
+    const measureTotal = (mSize: number, uSize: number) => {
+      ctx.font = `900 ${mSize}px "Plus Jakarta Sans", sans-serif`;
+      const pw = ctx.measureText(priceText).width;
+      ctx.font = `900 ${uSize}px "Plus Jakarta Sans", sans-serif`;
+      const uw = ctx.measureText(unitText).width;
+      return { pw, uw, total: pw + 4 + uw };
+    };
+
+    let dims = measureTotal(mainFontSize, unitFontSize);
+    const maxAllowedWidth = maxRightX - startX;
+
+    while (dims.total > maxAllowedWidth && mainFontSize > 44) {
+      mainFontSize -= 2;
+      unitFontSize = Math.round(mainFontSize * 0.55);
+      dims = measureTotal(mainFontSize, unitFontSize);
+    }
+
+    const baselineY = centerY + mainFontSize * 0.36;
+
+    // Draw ₹49711
+    ctx.fillStyle = '#0f7a28';
+    ctx.font = `900 ${mainFontSize}px "Plus Jakarta Sans", sans-serif`;
+    ctx.fillText(priceText, startX, baselineY);
+
+    // Draw /MT right next to it
+    ctx.font = `900 ${unitFontSize}px "Plus Jakarta Sans", sans-serif`;
+    ctx.fillText(unitText, startX + dims.pw + 4, baselineY);
+
+    ctx.restore();
+  }
+
+  /**
+   * 3D Blue Circular Badge with Isometric Bundle of Shiny Steel Round Bars
+   */
+  private static draw3DSteelRoundIcon(
+    ctx: CanvasRenderingContext2D,
+    cx: number,
+    cy: number,
+    r: number
+  ): void {
+    ctx.save();
+
+    // Deep Navy-Blue Metallic Circle
+    const circleGrad = ctx.createRadialGradient(cx - 12, cy - 14, 6, cx, cy, r);
+    circleGrad.addColorStop(0, '#1e40af');
+    circleGrad.addColorStop(0.65, '#0f294e');
+    circleGrad.addColorStop(1, '#091931');
+    ctx.fillStyle = circleGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw isometric 3D steel cylinders (pyramid stack of 10 round bars)
+    const drawCylinder = (x: number, y: number, cr: number) => {
+      const dx = 22;
+      const dy = -13;
+
+      // Cylinder body
+      const bodyGrad = ctx.createLinearGradient(x, y - cr, x, y + cr);
+      bodyGrad.addColorStop(0, '#f8fafc');
+      bodyGrad.addColorStop(0.45, '#94a3b8');
+      bodyGrad.addColorStop(0.8, '#475569');
+      bodyGrad.addColorStop(1, '#cbd5e1');
+
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.moveTo(x - cr * 0.5, y - cr * 0.86);
+      ctx.lineTo(x + dx - cr * 0.5, y + dy - cr * 0.86);
+      ctx.lineTo(x + dx + cr * 0.5, y + dy + cr * 0.86);
+      ctx.lineTo(x + cr * 0.5, y + cr * 0.86);
+      ctx.closePath();
+      ctx.fill();
+
+      // Front circular face
+      const faceGrad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, cr);
+      faceGrad.addColorStop(0, '#ffffff');
+      faceGrad.addColorStop(0.6, '#cbd5e1');
+      faceGrad.addColorStop(1, '#475569');
+      ctx.fillStyle = faceGrad;
+      ctx.beginPath();
+      ctx.arc(x, y, cr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    };
+
+    const cr = 6.8;
+    const baseX = cx - 22;
+    const baseY = cy + 16;
+    // Row of 4 at bottom
+    for (let i = 0; i < 4; i++) drawCylinder(baseX + i * 11, baseY + i * 2, cr);
+    // Row of 3
+    for (let i = 0; i < 3; i++) drawCylinder(baseX + 5 + i * 11, baseY - 10 + i * 2, cr);
+    // Row of 2
+    for (let i = 0; i < 2; i++) drawCylinder(baseX + 10 + i * 11, baseY - 20 + i * 2, cr);
+    // Top 1
+    drawCylinder(baseX + 15, baseY - 30, cr);
+
+    ctx.restore();
+  }
+
+  /**
+   * 3D Blue Circular Badge with Isometric Stack of Flat Steel Plates/Sheets
+   */
+  private static draw3DSteelFlatIcon(
+    ctx: CanvasRenderingContext2D,
+    cx: number,
+    cy: number,
+    r: number
+  ): void {
+    ctx.save();
+
+    const circleGrad = ctx.createRadialGradient(cx - 12, cy - 14, 6, cx, cy, r);
+    circleGrad.addColorStop(0, '#1e40af');
+    circleGrad.addColorStop(0.65, '#0f294e');
+    circleGrad.addColorStop(1, '#091931');
+    ctx.fillStyle = circleGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw 3 stacked isometric metallic flat steel sheets
+    const layers = [cy + 14, cy + 4, cy - 6];
+    layers.forEach((ly) => {
+      // Top surface
+      const plateGrad = ctx.createLinearGradient(cx - 32, ly - 14, cx + 32, ly + 14);
+      plateGrad.addColorStop(0, '#f8fafc');
+      plateGrad.addColorStop(0.5, '#cbd5e1');
+      plateGrad.addColorStop(1, '#94a3b8');
+
+      ctx.fillStyle = plateGrad;
+      ctx.beginPath();
+      ctx.moveTo(cx - 32, ly);
+      ctx.lineTo(cx - 4, ly - 15);
+      ctx.lineTo(cx + 32, ly - 2);
+      ctx.lineTo(cx + 4, ly + 14);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Thickness edge
+      ctx.fillStyle = '#475569';
+      ctx.beginPath();
+      ctx.moveTo(cx - 32, ly);
+      ctx.lineTo(cx + 4, ly + 14);
+      ctx.lineTo(cx + 32, ly - 2);
+      ctx.lineTo(cx + 32, ly + 3);
+      ctx.lineTo(cx + 4, ly + 19);
+      ctx.lineTo(cx - 32, ly + 5);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  /**
+   * 7A. Center-Left Header: 3D Red "MARKET OPENINGS" Ribbon & Megaphone
+   */
+  private static drawMarketOpeningsBanner(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+
+    // Slanted Glossy Red 3D Banner (x: 150..1072, y: 294..414)
+    ctx.save();
+    ctx.shadowColor = 'rgba(127, 29, 29, 0.35)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 6;
+
+    const ribGrad = ctx.createLinearGradient(150, 294, 1072, 414);
+    ribGrad.addColorStop(0, '#991b1b');
+    ribGrad.addColorStop(0.25, '#dc2626');
+    ribGrad.addColorStop(0.6, '#b91c1c');
+    ribGrad.addColorStop(1, '#7f1d1d');
+    ctx.fillStyle = ribGrad;
+
+    ctx.beginPath();
+    ctx.moveTo(160, 304);
+    ctx.lineTo(1072, 294);
+    ctx.lineTo(1054, 410);
+    ctx.lineTo(150, 414);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.stroke();
 
-    // Front bell oval
-    ctx.fillStyle = '#f8fafc';
-    ctx.beginPath();
-    ctx.ellipse(25, 0, 10, 34, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#dc2626';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Handle
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(-22, 10, 14, 26);
-
-    // Sound waves
-    ctx.strokeStyle = '#dc2626';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(42, 0, 16, -0.6, 0.6);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(48, 0, 24, -0.6, 0.6);
+    // Subtle golden top/bottom sheen on banner
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2.5;
     ctx.stroke();
     ctx.restore();
 
-    // Bold 3D Text: "MARKET OPENINGS"
-    ctx.font = '900 68px "Plus Jakarta Sans", sans-serif';
+    // Bold 3D Extruded Text: "MARKET" (White) + "OPENINGS" (Yellow-Gold)
+    ctx.save();
+    const textY = 362;
+    ctx.font = '900 72px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
-    // Deep drop shadow
-    ctx.fillStyle = '#450a0a';
-    ctx.fillText('MARKET OPENINGS', bannerX + 172, bannerY + bannerH / 2 + 4);
+    // 3D Extrusion Layers for "MARKET"
+    for (let d = 7; d >= 1; d--) {
+      ctx.fillStyle = '#450a0a';
+      ctx.fillText('MARKET', 244 + d * 0.7, textY + d);
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('MARKET', 244, textY);
 
-    // Main 3D Text gradient
-    const textGrad = ctx.createLinearGradient(0, bannerY + 20, 0, bannerY + 90);
-    textGrad.addColorStop(0, '#ffffff');
-    textGrad.addColorStop(0.7, '#fff7ed');
-    textGrad.addColorStop(1, '#fef08a');
-    ctx.fillStyle = textGrad;
-    ctx.fillText('MARKET OPENINGS', bannerX + 170, bannerY + bannerH / 2);
+    // 3D Extrusion Layers for "OPENINGS"
+    const openingsX = 622;
+    for (let d = 7; d >= 1; d--) {
+      ctx.fillStyle = '#450a0a';
+      ctx.fillText('OPENINGS', openingsX + d * 0.7, textY + d);
+    }
+    const openGrad = ctx.createLinearGradient(openingsX, textY - 35, openingsX, textY + 35);
+    openGrad.addColorStop(0, '#fef08a');
+    openGrad.addColorStop(0.5, '#facc15');
+    openGrad.addColorStop(1, '#eab308');
+    ctx.fillStyle = openGrad;
+    ctx.fillText('OPENINGS', openingsX, textY);
+    ctx.restore();
 
-    // Golden Rounded Pill below ribbon: "★ BEST RATES (EX-WORKS) ★"
-    const pillW = 560;
-    const pillH = 50;
-    const pillX = bannerX + 180;
-    const pillY = bannerY + bannerH + 8;
+    // 3D Red & White Megaphone on Left (cx ≈ 118, cy ≈ 364)
+    ctx.save();
+    ctx.translate(118, 364);
+    ctx.rotate(-0.24);
 
-    const pillGrad = ctx.createLinearGradient(pillX, pillY, pillX + pillW, pillY);
-    pillGrad.addColorStop(0, '#0284c7');
-    pillGrad.addColorStop(0.5, '#0369a1');
-    pillGrad.addColorStop(1, '#0284c7');
+    // Handle
+    ctx.fillStyle = '#b91c1c';
+    this.roundRect(ctx, -46, 18, 22, 46, 6);
+    ctx.fill();
+    ctx.strokeStyle = '#7f1d1d';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Rear cap
+    ctx.fillStyle = '#991b1b';
+    this.roundRect(ctx, -64, -16, 22, 32, 8);
+    ctx.fill();
+
+    // Cone Body (White back + Red front)
+    const coneGrad = ctx.createLinearGradient(-46, -45, 42, 45);
+    coneGrad.addColorStop(0, '#ffffff');
+    coneGrad.addColorStop(0.45, '#f1f5f9');
+    coneGrad.addColorStop(0.46, '#ef4444');
+    coneGrad.addColorStop(1, '#b91c1c');
+    ctx.fillStyle = coneGrad;
+    ctx.beginPath();
+    ctx.moveTo(-46, -15);
+    ctx.lineTo(44, -54);
+    ctx.lineTo(44, 54);
+    ctx.lineTo(-46, 15);
+    ctx.closePath();
+    ctx.fill();
+
+    // Front White/Red Oval Mouth
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.ellipse(44, 0, 18, 54, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    // Inner Cone Shadow
+    ctx.fillStyle = '#991b1b';
+    ctx.beginPath();
+    ctx.ellipse(40, 0, 9, 32, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sound Wave Rays
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    [[-26, -38], [0, 0], [26, 38]].forEach(([sy, ey]) => {
+      ctx.beginPath();
+      ctx.moveTo(70, sy);
+      ctx.lineTo(96, ey);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  /**
+   * 7B. Deep Royal Blue Pill: "✳ BEST RATES (EX-WORKS) ✳"
+   * Overlaps the top border of the golden rate box just like the reference image
+   */
+  private static drawBestRatesBluePill(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+
+    const pillX = 270;
+    const pillY = 402;
+    const pillW = 688;
+    const pillH = 68;
+
+    ctx.shadowColor = 'rgba(15, 23, 42, 0.35)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+
+    const pillGrad = ctx.createLinearGradient(pillX, pillY, pillX, pillY + pillH);
+    pillGrad.addColorStop(0, '#1e40af');
+    pillGrad.addColorStop(0.5, '#0f2952');
+    pillGrad.addColorStop(1, '#091936');
     ctx.fillStyle = pillGrad;
-    this.roundRect(ctx, pillX, pillY, pillW, pillH, 25);
+    this.roundRect(ctx, pillX, pillY, pillW, pillH, 34);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    this.roundRect(ctx, pillX, pillY, pillW, pillH, 34);
+    ctx.stroke();
+
+    // Left & Right 8-Pointed Gold Stars
+    this.drawEightPointStar(ctx, pillX + 44, pillY + pillH / 2, 18, '#facc15');
+    this.drawEightPointStar(ctx, pillX + pillW - 44, pillY + pillH / 2, 18, '#facc15');
+
+    // Bold White Text: "BEST RATES (EX-WORKS)"
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 39px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('BEST RATES (EX-WORKS)', pillX + pillW / 2, pillY + pillH / 2 + 2);
+
+    ctx.restore();
+  }
+
+  private static drawEightPointStar(
+    ctx: CanvasRenderingContext2D,
+    cx: number,
+    cy: number,
+    r: number,
+    color: string
+  ): void {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 4; i++) {
+      const a = (Math.PI / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(-Math.cos(a) * r, -Math.sin(a) * r);
+      ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /**
+   * 8. Mid-Left: 4 Horizontal Trust Badges with Dividers
+   */
+  private static drawFourTrustBadges(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+
+    const centerY = 750;
+    const badges = [
+      {
+        x: 68,
+        pillW: 216,
+        circleColor: '#15803d',
+        title1: 'QUALITY',
+        title2: 'MATERIAL',
+        type: 'shield' as const,
+      },
+      {
+        x: 325,
+        pillW: 208,
+        circleColor: '#0284c7',
+        title1: 'TRUSTED',
+        title2: 'SUPPLY',
+        type: 'handshake' as const,
+      },
+      {
+        x: 575,
+        pillW: 212,
+        circleColor: '#15803d',
+        title1: 'ON TIME',
+        title2: 'DELIVERY',
+        type: 'truck' as const,
+      },
+      {
+        x: 828,
+        pillW: 228,
+        circleColor: '#581c87',
+        title1: 'CUSTOMER',
+        title2: 'SATISFACTION',
+        type: 'customer' as const,
+      },
+    ];
+
+    badges.forEach((b, idx) => {
+      // Dark Navy Rounded Pill on Right
+      const pillX = b.x + 36;
+      const pillY = centerY - 32;
+      const pillH = 64;
+      const pillGrad = ctx.createLinearGradient(pillX, pillY, pillX, pillY + pillH);
+      pillGrad.addColorStop(0, '#1e3a8a');
+      pillGrad.addColorStop(1, '#0c2340');
+      ctx.fillStyle = pillGrad;
+      this.roundRect(ctx, pillX, pillY, b.pillW - 36, pillH, 24);
+      ctx.fill();
+
+      // Left Colored Circle Icon
+      const cx = b.x + 40;
+      ctx.fillStyle = b.circleColor;
+      ctx.beginPath();
+      ctx.arc(cx, centerY, 39, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Vector Icon Inside Circle
+      ctx.save();
+      ctx.strokeStyle = '#ffffff';
+      ctx.fillStyle = '#ffffff';
+      ctx.lineWidth = 2.8;
+      if (b.type === 'shield') {
+        ctx.beginPath();
+        ctx.moveTo(cx, centerY - 20);
+        ctx.lineTo(cx + 16, centerY - 13);
+        ctx.lineTo(cx + 16, centerY + 2);
+        ctx.quadraticCurveTo(cx + 16, centerY + 16, cx, centerY + 22);
+        ctx.quadraticCurveTo(cx - 16, centerY + 16, cx - 16, centerY + 2);
+        ctx.lineTo(cx - 16, centerY - 13);
+        ctx.closePath();
+        ctx.stroke();
+        // Checkmark
+        ctx.beginPath();
+        ctx.moveTo(cx - 7, centerY + 1);
+        ctx.lineTo(cx - 2, centerY + 7);
+        ctx.lineTo(cx + 8, centerY - 5);
+        ctx.stroke();
+      } else if (b.type === 'handshake') {
+        ctx.beginPath();
+        ctx.roundRect(cx - 16, centerY - 8, 32, 16, 6);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx - 6, centerY);
+        ctx.lineTo(cx + 6, centerY);
+        ctx.stroke();
+      } else if (b.type === 'truck') {
+        ctx.strokeRect(cx - 18, centerY - 12, 22, 16);
+        ctx.strokeRect(cx + 4, centerY - 5, 12, 9);
+        ctx.beginPath();
+        ctx.arc(cx - 10, centerY + 9, 4, 0, Math.PI * 2);
+        ctx.arc(cx + 10, centerY + 9, 4, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (b.type === 'customer') {
+        ctx.beginPath();
+        ctx.arc(cx, centerY - 6, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx, centerY + 18, 14, Math.PI, 0);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Pill Text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 19px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.title1, b.x + 90, centerY - 11);
+      ctx.fillText(b.title2, b.x + 90, centerY + 12);
+
+      // Divider "|" between badges
+      if (idx < badges.length - 1) {
+        const divX = b.x + b.pillW + 20;
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(divX, centerY - 26);
+        ctx.lineTo(divX, centerY + 26);
+        ctx.stroke();
+      }
+    });
+
+    ctx.restore();
+  }
+
+  /**
+   * 9. Lower-Left: City Skyline Silhouette, Indian Tricolor Waves & Wish Banner
+   */
+  private static drawSkylineAndWishBanner(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+
+    // City Skyline & Cranes Silhouette (x: 130..940, base y = 855)
+    ctx.fillStyle = '#1e3a8a';
+    const baseSkyY = 852;
+    const buildings = [
+      [140, 22, 48], [168, 18, 32], [192, 26, 56], [224, 20, 36],
+      [252, 28, 42], [290, 24, 30], [325, 20, 46], [360, 28, 38],
+      [710, 26, 40], [744, 22, 54], [774, 30, 35], [812, 24, 62],
+      [845, 22, 38], [875, 28, 48],
+    ];
+    buildings.forEach(([bx, bw, bh]) => {
+      ctx.fillRect(bx, baseSkyY - bh, bw, bh);
+    });
+
+    // Construction Cranes
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.lineWidth = 2.5;
+    [130, 275, 760, 895].forEach((craneX) => {
+      ctx.beginPath();
+      ctx.moveTo(craneX, baseSkyY);
+      ctx.lineTo(craneX, baseSkyY - 58);
+      ctx.moveTo(craneX - 24, baseSkyY - 52);
+      ctx.lineTo(craneX + 36, baseSkyY - 52);
+      ctx.stroke();
+    });
+
+    // Curved Dark Blue Hill / Wave Banner (x: 0..1080, y: 792..904)
+    const hillGrad = ctx.createLinearGradient(0, 792, 0, 904);
+    hillGrad.addColorStop(0, '#0284c7');
+    hillGrad.addColorStop(0.35, '#0f2952');
+    hillGrad.addColorStop(1, '#06152d');
+    ctx.fillStyle = hillGrad;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 904);
+    ctx.lineTo(0, 845);
+    ctx.quadraticCurveTo(540, 770, 1080, 845);
+    ctx.lineTo(1080, 904);
+    ctx.closePath();
+    ctx.fill();
+
+    // Left Indian Flag Tricolor Wave Sweep (x: 0..255, y: 715..904)
+    ctx.save();
+    // Saffron wave
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.moveTo(0, 710);
+    ctx.quadraticCurveTo(75, 815, 230, 882);
+    ctx.lineTo(0, 904);
+    ctx.closePath();
+    ctx.fill();
+
+    // White wave
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(0, 755);
+    ctx.quadraticCurveTo(75, 838, 240, 892);
+    ctx.lineTo(0, 904);
+    ctx.closePath();
+    ctx.fill();
+
+    // Green wave
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath();
+    ctx.moveTo(0, 795);
+    ctx.quadraticCurveTo(80, 860, 250, 904);
+    ctx.lineTo(0, 904);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Right Indian Flag Tricolor Wave Sweep (x: 840..1080, y: 790..904)
+    ctx.save();
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.moveTo(1080, 785);
+    ctx.quadraticCurveTo(990, 855, 855, 904);
+    ctx.lineTo(1080, 904);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(1080, 815);
+    ctx.quadraticCurveTo(1000, 868, 885, 904);
+    ctx.lineTo(1080, 904);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath();
+    ctx.moveTo(1080, 842);
+    ctx.quadraticCurveTo(1010, 880, 915, 904);
+    ctx.lineTo(1080, 904);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // "Wishing you a very" in white script
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'italic 700 35px Georgia, "Times New Roman", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Wishing you a very', 565, 818);
+
+    // "= HAPPY AND PRODUCTIVE DAY! =" in bold yellow
+    ctx.fillStyle = '#facc15';
+    ctx.font = '900 40px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('HAPPY AND PRODUCTIVE DAY!', 565, 868);
+
+    // Double gold bars on left & right of HAPPY AND PRODUCTIVE DAY!
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(242, 863);
+    ctx.lineTo(278, 863);
+    ctx.moveTo(234, 871);
+    ctx.lineTo(278, 871);
+
+    ctx.moveTo(852, 863);
+    ctx.lineTo(888, 863);
+    ctx.moveTo(852, 871);
+    ctx.lineTo(896, 871);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /**
+   * 5. Right Column: Slanted Building Photo, Pipes & TMT Photos, Payment Terms, Extra Charge & Notice
+   */
+  private static drawRightColumnContent(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+
+    // -------------------------------------------------------------------------
+    // A. Top Slanted Photo Card: Steel Building Construction (x: 1105..1536, y: 272..514)
+    // -------------------------------------------------------------------------
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(1135, 345);
+    ctx.lineTo(1312, 272);
+    ctx.lineTo(1536, 362);
+    ctx.lineTo(1536, 514);
+    ctx.lineTo(1108, 514);
+    ctx.closePath();
+    ctx.clip();
+
+    if (this.assets.building) {
+      ctx.drawImage(this.assets.building, 1105, 270, 435, 246);
+    } else {
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(1105, 270, 435, 246);
+    }
+    ctx.restore();
+
+    // White/Blue Angled Frame Lines on Building Photo
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(1108, 514);
+    ctx.lineTo(1135, 345);
+    ctx.lineTo(1312, 272);
+    ctx.lineTo(1536, 362);
+    ctx.stroke();
+
+    // Dark Blue Trapezoidal Banner at Bottom of Building: "STRONGER STEEL / FOR A BRIGHTER TOMORROW"
+    ctx.save();
+    const trapGrad = ctx.createLinearGradient(1108, 452, 1490, 514);
+    trapGrad.addColorStop(0, '#0c2340');
+    trapGrad.addColorStop(0.5, '#1e3a8a');
+    trapGrad.addColorStop(1, '#0c2340');
+    ctx.fillStyle = trapGrad;
+    ctx.beginPath();
+    ctx.moveTo(1118, 452);
+    ctx.lineTo(1474, 452);
+    ctx.lineTo(1492, 514);
+    ctx.lineTo(1104, 514);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('STRONGER STEEL', 1300, 471);
+
+    ctx.fillStyle = '#facc15';
+    ctx.font = '900 21px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('FOR A BRIGHTER TOMORROW', 1300, 496);
+    ctx.restore();
+
+    // -------------------------------------------------------------------------
+    // B. Middle Two Product Photos: Square Steel Pipes & TMT Bars (y: 522..634)
+    // -------------------------------------------------------------------------
+    // Left Photo: Square Steel Pipes (x: 1084..1294, y: 522..634)
+    ctx.save();
+    this.roundRect(ctx, 1084, 522, 210, 112, 12);
+    ctx.clip();
+    if (this.assets.pipes) {
+      ctx.drawImage(this.assets.pipes, 1084, 522, 210, 112);
+    } else {
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(1084, 522, 210, 112);
+    }
+    ctx.restore();
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2.5;
+    this.roundRect(ctx, 1084, 522, 210, 112, 12);
+    ctx.stroke();
+
+    // Right Photo: TMT Steel Bars (x: 1302..1516, y: 522..634)
+    ctx.save();
+    this.roundRect(ctx, 1302, 522, 214, 112, 12);
+    ctx.clip();
+    if (this.assets.tmt) {
+      ctx.drawImage(this.assets.tmt, 1302, 522, 214, 112);
+    } else {
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(1302, 522, 214, 112);
+    }
+    ctx.restore();
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2.5;
+    this.roundRect(ctx, 1302, 522, 214, 112, 12);
+    ctx.stroke();
+
+    // -------------------------------------------------------------------------
+    // C. PAYMENT TERMS Card (x: 1098..1504, y: 646..706)
+    // -------------------------------------------------------------------------
+    const cardX = 1098;
+    const cardW = 406;
+    const payY = 646;
+    const payH = 60;
+
+    // White rounded base
+    ctx.fillStyle = '#f8fafc';
+    this.roundRect(ctx, cardX, payY, cardW, payH, 14);
+    ctx.fill();
+
+    // Dark blue top header band + left icon block
+    ctx.fillStyle = '#0f3b6e';
+    this.roundRect(ctx, cardX, payY, cardW, 28, 12);
+    ctx.fill();
+    this.roundRect(ctx, cardX, payY, 68, payH, 14);
+    ctx.fill();
+
+    ctx.strokeStyle = '#0f3b6e';
+    ctx.lineWidth = 1.5;
+    this.roundRect(ctx, cardX, payY, cardW, payH, 14);
+    ctx.stroke();
+
+    // Invoice/Checklist Icon on Left
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cardX + 20, payY + 14, 24, 32);
+    ctx.beginPath();
+    ctx.moveTo(cardX + 25, payY + 22);
+    ctx.lineTo(cardX + 39, payY + 22);
+    ctx.moveTo(cardX + 25, payY + 30);
+    ctx.lineTo(cardX + 39, payY + 30);
+    ctx.moveTo(cardX + 25, payY + 38);
+    ctx.lineTo(cardX + 33, payY + 38);
+    ctx.stroke();
+
+    // Header & Body Text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 19px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('PAYMENT TERMS', cardX + 82, payY + 15);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '700 19px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Advance Payment Basis', cardX + 88, payY + 44);
+
+    // -------------------------------------------------------------------------
+    // D. Red Pill Box: "₹ 300/MT extra — for next - day payment" (y: 714..776)
+    // -------------------------------------------------------------------------
+    const redY = 714;
+    const redH = 62;
+    const redGrad = ctx.createLinearGradient(cardX, redY, cardX + cardW, redY);
+    redGrad.addColorStop(0, '#dc2626');
+    redGrad.addColorStop(1, '#b91c1c');
+    ctx.fillStyle = redGrad;
+    this.roundRect(ctx, cardX, redY, cardW, redH, 14);
+    ctx.fill();
+
+    // Left White Circle with ₹ symbol
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cardX + 36, redY + redH / 2, 21, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('₹', cardX + 36, redY + redH / 2 + 1);
+
+    // Right Two-Line Text
+    ctx.textAlign = 'left';
+    ctx.font = '900 25px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('₹  300/MT extra', cardX + 78, redY + 21);
+
+    ctx.font = '600 19px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('— for next - day payment', cardX + 78, redY + 46);
+
+    // -------------------------------------------------------------------------
+    // E. Yellow Caution Box: "IMPORTANT NOTICE" (y: 784..890)
+    // -------------------------------------------------------------------------
+    const notY = 784;
+    const notH = 106;
+
+    // Cream Body
+    ctx.fillStyle = '#fef9c3';
+    this.roundRect(ctx, cardX, notY, cardW, notH, 14);
+    ctx.fill();
+
+    // Yellow Header Bar
+    ctx.fillStyle = '#eab308';
+    this.roundRect(ctx, cardX, notY, cardW, 34, 12);
     ctx.fill();
 
     ctx.strokeStyle = '#eab308';
-    ctx.lineWidth = 3;
-    this.roundRect(ctx, pillX, pillY, pillW, pillH, 25);
-    ctx.stroke();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '900 24px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('✦  BEST RATES (EX-WORKS)  ✦', pillX + pillW / 2, pillY + pillH / 2 + 1);
-
-    ctx.restore();
-  }
-
-  /**
-   * Center-Left: The Boxed Rates Area (ONLY EDITABLE AREA)
-   * Exactly matches the golden boxed area in the uploaded image.
-   */
-  private static drawBoxedRatesArea(ctx: CanvasRenderingContext2D, rates: MarketOpeningRates): void {
-    ctx.save();
-
-    const boxX = 40;
-    const boxY = 460;
-    const boxW = 1000;
-    const boxH = 220;
-
-    // Golden-Bordered Rounded Container
-    ctx.shadowColor = 'rgba(234, 179, 8, 0.25)';
-    ctx.shadowBlur = 18;
-
-    ctx.fillStyle = '#ffffff';
-    this.roundRect(ctx, boxX, boxY, boxW, boxH, 24);
-    ctx.fill();
-
-    // Metallic Golden Border (3.5px)
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 3.5;
-    this.roundRect(ctx, boxX, boxY, boxW, boxH, 24);
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
-
-    // Inner subtle cream tint
-    const innerGrad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
-    innerGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-    innerGrad.addColorStop(1, 'rgba(254, 252, 248, 0.9)');
-    ctx.fillStyle = innerGrad;
-    this.roundRect(ctx, boxX + 3, boxY + 3, boxW - 6, boxH - 6, 21);
-    ctx.fill();
-
-    // Row 1: Medium Section
-    const row1Y = boxY + 60;
-
-    // Blue Circular Icon on Left (Round bars stack)
-    this.drawSteelRoundIcon(ctx, boxX + 65, row1Y);
-
-    // Section 1 Title: "MEDIUM SECTION"
-    ctx.fillStyle = '#0f2744';
-    ctx.font = '900 38px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(rates.mediumSectionName || 'MEDIUM SECTION', boxX + 130, row1Y);
-
-    // Divider "|"
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '300 42px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('|', boxX + 590, row1Y - 2);
-
-    // Price: "₹49711/MT" in bold green
-    ctx.fillStyle = '#047857';
-    ctx.font = '900 52px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(`₹${rates.mediumSectionRate}`, boxX + 620, row1Y);
-
-    ctx.font = '900 32px "Plus Jakarta Sans", sans-serif';
-    const numWidth = ctx.measureText(`₹${rates.mediumSectionRate}`).width;
-    ctx.fillStyle = '#047857';
-    ctx.fillText('/MT', boxX + 620 + numWidth + 4, row1Y + 3);
-
-    // Horizontal Divider between rows
-    ctx.strokeStyle = '#f1f5f9';
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(boxX + 24, boxY + boxH / 2);
-    ctx.lineTo(boxX + boxW - 24, boxY + boxH / 2);
+    this.roundRect(ctx, cardX, notY, cardW, notH, 14);
     ctx.stroke();
 
-    // Row 2: Light Section
-    const row2Y = boxY + 160;
-
-    // Blue Circular Icon on Left (Flat plates stack)
-    this.drawSteelFlatIcon(ctx, boxX + 65, row2Y);
-
-    // Section 2 Title: "LIGHT SECTION"
-    ctx.fillStyle = '#0f2744';
-    ctx.font = '900 38px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(rates.lightSectionName || 'LIGHT SECTION', boxX + 130, row2Y);
-
-    // Divider "|"
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '300 42px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('|', boxX + 590, row2Y - 2);
-
-    // Price: "₹42211/MT" in bold green
-    ctx.fillStyle = '#047857';
-    ctx.font = '900 52px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(`₹${rates.lightSectionRate}`, boxX + 620, row2Y);
-
-    ctx.font = '900 32px "Plus Jakarta Sans", sans-serif';
-    const numWidth2 = ctx.measureText(`₹${rates.lightSectionRate}`).width;
-    ctx.fillStyle = '#047857';
-    ctx.fillText('/MT', boxX + 620 + numWidth2 + 4, row2Y + 3);
-
-    ctx.restore();
-  }
-
-  private static drawSteelRoundIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+    // Warning Triangle Icon on Left
     ctx.save();
-    ctx.fillStyle = '#1d4ed8';
-    ctx.beginPath();
-    ctx.arc(x, y, 40, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Stack of round bars
-    ctx.fillStyle = '#e2e8f0';
-    const r = 8;
-    const bars = [
-      { bx: x - 14, by: y - 10 },
-      { bx: x, by: y - 10 },
-      { bx: x + 14, by: y - 10 },
-      { bx: x - 7, by: y + 4 },
-      { bx: x + 7, by: y + 4 },
-      { bx: x, by: y + 18 },
-    ];
-    bars.forEach((b) => {
-      ctx.beginPath();
-      ctx.arc(b.bx, b.by, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    });
-    ctx.restore();
-  }
-
-  private static drawSteelFlatIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-    ctx.save();
-    ctx.fillStyle = '#1d4ed8';
-    ctx.beginPath();
-    ctx.arc(x, y, 40, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Stack of isometric flat plates
-    ctx.fillStyle = '#e2e8f0';
+    const triX = cardX + 34;
+    const triY = notY + 24;
+    ctx.fillStyle = '#facc15';
     ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 1.5;
-
-    const layers = [y - 12, y - 2, y + 8, y + 18];
-    layers.forEach((ly) => {
-      ctx.beginPath();
-      ctx.moveTo(x - 22, ly);
-      ctx.lineTo(x, ly - 8);
-      ctx.lineTo(x + 22, ly);
-      ctx.lineTo(x, ly + 8);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    });
-    ctx.restore();
-  }
-
-  /**
-   * Mid-Left: 4 Circular Badges (Quality, Trusted Supply, On Time Delivery, Satisfaction)
-   */
-  private static drawFourCircularBadges(ctx: CanvasRenderingContext2D): void {
-    ctx.save();
-
-    const startX = 60;
-    const startY = 745;
-    const badgeGap = 245;
-
-    const badges = [
-      {
-        icon: '🛡️',
-        bg: '#059669',
-        title: 'QUALITY',
-        sub: 'MATERIAL',
-      },
-      {
-        icon: '🤝',
-        bg: '#1d4ed8',
-        title: 'TRUSTED',
-        sub: 'SUPPLY',
-      },
-      {
-        icon: '🚚',
-        bg: '#0d9488',
-        title: 'ON TIME',
-        sub: 'DELIVERY',
-      },
-      {
-        icon: '👥',
-        bg: '#7c3aed',
-        title: 'CUSTOMER',
-        sub: 'SATISFACTION',
-      },
-    ];
-
-    badges.forEach((b, i) => {
-      const bx = startX + i * badgeGap;
-
-      // Circle Icon
-      ctx.fillStyle = b.bg;
-      ctx.beginPath();
-      ctx.arc(bx + 35, startY, 32, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '24px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(b.icon, bx + 35, startY);
-
-      // Title & Subtitle text
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '900 17px "Plus Jakarta Sans", sans-serif';
-      ctx.fillText(b.title, bx + 78, startY - 8);
-      ctx.fillText(b.sub, bx + 78, startY + 12);
-    });
-
-    ctx.restore();
-  }
-
-  /**
-   * Lower-Left: City Skyline Silhouette & "Wishing you a very HAPPY AND PRODUCTIVE DAY!"
-   */
-  private static drawCitySkylineAndWish(ctx: CanvasRenderingContext2D): void {
-    ctx.save();
-
-    const startX = 60;
-    const startY = 825;
-    const endX = 1040;
-
-    // Dark blue city skyline silhouette
-    ctx.fillStyle = '#1e3a8a';
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
-    ctx.moveTo(startX, startY + 50);
-
-    // Towers & Crane silhouette
-    const buildings = [
-      { w: 25, h: 45 },
-      { w: 30, h: 30 },
-      { w: 20, h: 60 },
-      { w: 35, h: 25 },
-      { w: 40, h: 55 },
-      { w: 25, h: 40 },
-      { w: 30, h: 65 },
-      { w: 45, h: 35 },
-      { w: 20, h: 50 },
-      { w: 35, h: 30 },
-      { w: 40, h: 60 },
-      { w: 30, h: 40 },
-      { w: 50, h: 70 },
-      { w: 35, h: 30 },
-      { w: 25, h: 50 },
-      { w: 40, h: 35 },
-      { w: 30, h: 55 },
-      { w: 45, h: 30 },
-    ];
-
-    let cx = startX;
-    buildings.forEach((b) => {
-      ctx.lineTo(cx, startY + 50 - b.h);
-      ctx.lineTo(cx + b.w, startY + 50 - b.h);
-      cx += b.w;
-    });
-
-    ctx.lineTo(endX, startY + 50);
+    ctx.moveTo(triX, triY - 20);
+    ctx.lineTo(triX + 22, triY + 16);
+    ctx.lineTo(triX - 22, triY + 16);
     ctx.closePath();
     ctx.fill();
-
-    // Wishing you a very
-    ctx.font = 'italic 700 28px "Playfair Display", Georgia, serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.fillText('Wishing you a very', startX + (endX - startX) / 2, startY + 22);
-
-    // "— HAPPY AND PRODUCTIVE DAY! —"
-    ctx.font = '900 36px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#facc15';
-    ctx.fillText('— HAPPY AND PRODUCTIVE DAY! —', startX + (endX - startX) / 2, startY + 62);
-
-    ctx.restore();
-  }
-
-  /**
-   * Right Column: Steel Framing, Photos, Payment Terms, Extra Notice, Caution Box
-   */
-  private static drawRightColumnContent(ctx: CanvasRenderingContext2D, width: number): void {
-    ctx.save();
-
-    const colX = 1065;
-    const colW = 425;
-    const startY = 285;
-
-    // 1. High-Rise Steel Framing Graphic
-    ctx.fillStyle = '#1e293b';
-    this.roundRect(ctx, colX, startY, colW, 160, 16);
-    ctx.fill();
-
-    // Steel structure grid visual
-    ctx.strokeStyle = '#64748b';
-    ctx.lineWidth = 2;
-    for (let x = colX + 20; x < colX + colW - 10; x += 45) {
-      ctx.beginPath();
-      ctx.moveTo(x, startY + 10);
-      ctx.lineTo(x, startY + 150);
-      ctx.stroke();
-    }
-    for (let y = startY + 20; y < startY + 150; y += 30) {
-      ctx.beginPath();
-      ctx.moveTo(colX + 10, y);
-      ctx.lineTo(colX + colW - 10, y);
-      ctx.stroke();
-    }
-
-    // Blue Pill on top of building: "STRONGER STEEL FOR A BRIGHTER TOMORROW"
-    const stW = colW - 30;
-    ctx.fillStyle = '#0f2744';
-    this.roundRect(ctx, colX + 15, startY + 120, stW, 32, 16);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '800 13px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('STRONGER STEEL FOR A BRIGHTER TOMORROW', colX + colW / 2, startY + 140);
-
-    // 2. Middle Two Photo Boxes (Pipes & Rebars)
-    const photoY = startY + 172;
-    const pW = (colW - 14) / 2;
-    const pH = 95;
-
-    // Left Photo: Square Steel Pipes
-    ctx.fillStyle = '#334155';
-    this.roundRect(ctx, colX, photoY, pW, pH, 12);
-    ctx.fill();
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 1.5;
-    for (let py = photoY + 15; py < photoY + pH - 15; py += 24) {
-      for (let px = colX + 15; px < colX + pW - 15; px += 24) {
-        ctx.strokeRect(px, py, 18, 18);
-      }
-    }
-
-    // Right Photo: Bundles of TMT rebars
-    ctx.fillStyle = '#1e293b';
-    this.roundRect(ctx, colX + pW + 14, photoY, pW, pH, 12);
-    ctx.fill();
-    ctx.fillStyle = '#94a3b8';
-    for (let rby = photoY + 12; rby < photoY + pH - 10; rby += 16) {
-      for (let rbx = colX + pW + 24; rbx < colX + colW - 20; rbx += 16) {
-        ctx.beginPath();
-        ctx.arc(rbx, rby, 6, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // 3. Payment Terms Box
-    const payY = photoY + pH + 14;
-    ctx.fillStyle = '#0284c7';
-    this.roundRect(ctx, colX, payY, colW, 64, 14);
-    ctx.fill();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '900 16px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('📄  PAYMENT TERMS', colX + 16, payY + 24);
-
-    // White Pill: "Advance Payment Basis"
-    ctx.fillStyle = '#ffffff';
-    this.roundRect(ctx, colX + 16, payY + 34, colW - 32, 24, 12);
-    ctx.fill();
-    ctx.fillStyle = '#0f172a';
-    ctx.font = '800 13px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Advance Payment Basis', colX + colW / 2, payY + 50);
-
-    // 4. Red Box: "₹ 300/MT extra — for next - day payment"
-    const redY = payY + 74;
-    ctx.fillStyle = '#dc2626';
-    this.roundRect(ctx, colX, redY, colW, 58, 14);
-    ctx.fill();
-
-    // Rupee Coin Icon
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(colX + 32, redY + 29, 16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#dc2626';
-    ctx.font = '900 18px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('₹', colX + 32, redY + 35);
-
-    // White text
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '900 20px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('₹ 300/MT extra', colX + 60, redY + 28);
-    ctx.font = '600 14px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('— for next - day payment', colX + 60, redY + 48);
-
-    // 5. Yellow Caution Notice Box
-    const noticeY = redY + 68;
-    ctx.fillStyle = '#fef08a';
-    this.roundRect(ctx, colX, noticeY, colW, 95, 14);
-    ctx.fill();
-
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 2.5;
-    this.roundRect(ctx, colX, noticeY, colW, 95, 14);
     ctx.stroke();
 
-    // ⚠️ Warning Icon & Header
-    ctx.fillStyle = '#d97706';
-    ctx.font = '22px sans-serif';
-    ctx.fillText('⚠️', colX + 16, noticeY + 28);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '900 22px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('!', triX, triY + 3);
+    ctx.restore();
 
-    ctx.fillStyle = '#92400e';
-    ctx.font = '900 16px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('IMPORTANT NOTICE', colX + 48, noticeY + 26);
+    // Header Title: "IMPORTANT NOTICE"
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '900 21px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('IMPORTANT NOTICE', cardX + 82, notY + 18);
 
-    ctx.fillStyle = '#451a03';
-    ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('• Rates are indicative & subject to market fluctuations.', colX + 16, noticeY + 54);
-    ctx.fillText('• Please reconfirm before booking.', colX + 16, noticeY + 76);
+    // Notice Bullets
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '600 17px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('•  Rates are indicative & subject to', cardX + 84, notY + 50);
+    ctx.fillText('    market fluctuations.', cardX + 84, notY + 70);
+    ctx.fillText('•  Please reconfirm before booking.', cardX + 84, notY + 92);
 
     ctx.restore();
   }
 
   /**
-   * Bottom Footer Banner: Navy Bar, Yellow Contact Pill, 3 WhatsApp Hotlines
+   * 10. Bottom Full-Width Dark Navy Footer Bar (y: 904..1024)
    */
   private static drawBottomFooter(
     ctx: CanvasRenderingContext2D,
@@ -1275,86 +1627,123 @@ export class MarketOpeningRenderer {
   ): void {
     ctx.save();
 
-    const footerH = 95;
-    const footerY = height - footerH;
+    const footerY = 904;
+    const footerH = height - footerY;
 
-    // Solid Deep Navy Bar
-    ctx.fillStyle = '#061325';
+    // Deep Navy Footer Background
+    const footGrad = ctx.createLinearGradient(0, footerY, 0, height);
+    footGrad.addColorStop(0, '#071936');
+    footGrad.addColorStop(1, '#040d1f');
+    ctx.fillStyle = footGrad;
     ctx.fillRect(0, footerY, width, footerH);
 
-    // Tricolor Swoosh at bottom-left
-    ctx.fillStyle = '#ff9933';
-    ctx.fillRect(0, height - 12, 180, 4);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, height - 8, 180, 4);
-    ctx.fillStyle = '#138808';
-    ctx.fillRect(0, height - 4, 180, 4);
-
-    // Yellow Contact Pill: "CONTACT FOR ORDERS"
-    const pillW = 240;
-    const pillH = 56;
-    const pillX = 40;
-    const pillY = footerY + 20;
-
-    ctx.fillStyle = '#eab308';
-    this.roundRect(ctx, pillX, pillY, pillW, pillH, 28);
-    ctx.fill();
-
-    // Telephone Icon
-    ctx.fillStyle = '#0f172a';
+    // Top subtle blue separator line
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(pillX + 30, pillY + 28, 16, 0, Math.PI * 2);
+    ctx.moveTo(0, footerY);
+    ctx.lineTo(width, footerY);
+    ctx.stroke();
+
+    const midY = footerY + footerH / 2;
+
+    // Left Yellow Circle Phone Icon
+    const phoneCx = 80;
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath();
+    ctx.arc(phoneCx, midY, 34, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#eab308';
-    ctx.font = '16px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('📞', pillX + 30, pillY + 34);
 
-    // Text
+    // Handset vector inside yellow circle
     ctx.fillStyle = '#0f172a';
-    ctx.font = '900 17px "Plus Jakarta Sans", sans-serif';
+    ctx.font = '28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('📞', phoneCx, midY + 1);
+
+    // "CONTACT FOR" (white) / "ORDERS" (yellow)
     ctx.textAlign = 'left';
-    ctx.fillText('CONTACT FOR', pillX + 58, pillY + 26);
-    ctx.fillText('ORDERS', pillX + 58, pillY + 46);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('CONTACT FOR', 128, midY - 16);
 
-    // Divider
-    ctx.fillStyle = '#475569';
-    ctx.font = '300 48px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('|', pillX + pillW + 36, footerY + 58);
+    ctx.fillStyle = '#facc15';
+    ctx.font = '900 38px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('ORDERS', 128, midY + 20);
 
-    // 3 WhatsApp Hotlines with WhatsApp icons
-    const phones = ['9009544333', '7000923464', '9713144333'];
-    let phoneX = pillX + pillW + 75;
+    // Divider 1
+    this.drawFooterDivider(ctx, 350, midY);
 
-    phones.forEach((phone, idx) => {
-      // WhatsApp Green Circle Icon
-      ctx.fillStyle = '#22c55e';
-      ctx.beginPath();
-      ctx.arc(phoneX, footerY + 48, 20, 0, Math.PI * 2);
-      ctx.fill();
+    // 3 WhatsApp Hotlines
+    const hotlines = [
+      { iconX: 448, textX: 494, number: '9009544333', divX: 786 },
+      { iconX: 860, textX: 906, number: '7000923464', divX: 1172 },
+      { iconX: 1236, textX: 1282, number: '9713144333', divX: null },
+    ];
 
+    hotlines.forEach((h) => {
+      this.drawWhatsAppBadgeIcon(ctx, h.iconX, midY, 28);
+
+      ctx.save();
       ctx.fillStyle = '#ffffff';
-      ctx.font = '20px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('💬', phoneX, footerY + 55);
-
-      // Phone Number
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 40px "Plus Jakarta Sans", sans-serif';
+      ctx.font = '900 46px "Plus Jakarta Sans", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(phone, phoneX + 28, footerY + 60);
+      ctx.textBaseline = 'middle';
+      ctx.scale(0.88, 1);
+      ctx.fillText(h.number, h.textX / 0.88, midY + 2);
+      ctx.restore();
 
-      const numW = ctx.measureText(phone).width;
-      phoneX += 28 + numW + 40;
-
-      // Divider if not last
-      if (idx < phones.length - 1) {
-        ctx.fillStyle = '#475569';
-        ctx.font = '300 48px "Plus Jakarta Sans", sans-serif';
-        ctx.fillText('|', phoneX - 20, footerY + 58);
+      if (h.divX) {
+        this.drawFooterDivider(ctx, h.divX, midY);
       }
     });
 
+    ctx.restore();
+  }
+
+  private static drawFooterDivider(ctx: CanvasRenderingContext2D, x: number, midY: number): void {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(x, midY - 26);
+    ctx.lineTo(x, midY + 26);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  private static drawWhatsAppBadgeIcon(
+    ctx: CanvasRenderingContext2D,
+    cx: number,
+    cy: number,
+    r: number
+  ): void {
+    ctx.save();
+    // Green circle with crisp white border
+    ctx.fillStyle = '#16a34a';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Speech bubble tail
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.65, cy + r * 0.45);
+    ctx.lineTo(cx - r * 0.95, cy + r * 0.95);
+    ctx.lineTo(cx - r * 0.25, cy + r * 0.75);
+    ctx.closePath();
+    ctx.fill();
+
+    // Handset icon inside
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✆', cx, cy + 1);
     ctx.restore();
   }
 

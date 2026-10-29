@@ -289,11 +289,27 @@ export const DailyRateUpdateView: React.FC<DailyRateUpdateViewProps> = ({
       };
     });
 
+    const syncedGradeBasicRates: CompanyGradeBasicRates = {
+      ...gradeBasicRates,
+      'NAVDURGA ISPAT PVT. LTD.': {
+        ...(gradeBasicRates?.['NAVDURGA ISPAT PVT. LTD.'] || {}),
+        Medium: localCategoryRates['MEDIUM SECTION'] || 49711,
+        SL: localCategoryRates['MEDIUM SECTION'] || 49711,
+      },
+      'UNIT-2 - NS ISPAT (I) PVT. LTD.': {
+        ...(gradeBasicRates?.['UNIT-2 - NS ISPAT (I) PVT. LTD.'] || {}),
+        Medium: localCategoryRates['LIGHT SECTION'] || 42211,
+        SL: localCategoryRates['LIGHT SECTION'] || 42211,
+        '5 KG': localCategoryRates['LIGHT SECTION'] || 42211,
+        '8 KG': localCategoryRates['LIGHT SECTION'] || 42211,
+      },
+    };
+
     onSaveRates(
       updatedProducts,
       newHistoryRecords,
       rateCharges,
-      gradeBasicRates,
+      syncedGradeBasicRates,
       localCategoryRates
     );
     setSuccessMsg('Daily Rate Card published and saved successfully!');

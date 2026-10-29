@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Quotation, QuotationItem, Customer, Product, CompanySettings, QuotationTerms } from '../types';
 import { WhatsAppService } from '../services/whatsappService';
+import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface QuotationsViewProps {
   quotations: Quotation[];
@@ -575,17 +576,20 @@ export const QuotationsView: React.FC<QuotationsViewProps> = ({
             <div className="p-4 sm:p-8 space-y-6 text-slate-800 bg-white overflow-y-auto flex-1">
               {/* Header Letterhead */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2 border-blue-600 pb-5">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-blue-900 tracking-tight">
-                    {company.companyName}
-                  </h1>
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
-                    {company.tagline}
-                  </p>
-                  <div className="text-xs text-slate-600 mt-2 space-y-0.5">
-                    <div>{company.address}, {company.city} - {company.state}</div>
-                    <div>Phone: {company.phone} • WhatsApp: {company.whatsapp}</div>
-                    <div>GSTIN: <strong className="font-mono text-slate-900">{company.gstin}</strong></div>
+                <div className="flex items-start gap-4">
+                  <NavDurgaLogo size="lg" withCard className="shrink-0" priority />
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-black text-blue-900 tracking-tight">
+                      {company.companyName}
+                    </h1>
+                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
+                      {company.tagline}
+                    </p>
+                    <div className="text-xs text-slate-600 mt-2 space-y-0.5">
+                      <div>{company.address}, {company.city} - {company.state}</div>
+                      <div>Phone: {company.phone} • WhatsApp: {company.whatsapp}</div>
+                      <div>GSTIN: <strong className="font-mono text-slate-900">{company.gstin}</strong></div>
+                    </div>
                   </div>
                 </div>
 

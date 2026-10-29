@@ -35,6 +35,7 @@ import { SendTestWhatsAppModal } from './components/SendTestWhatsAppModal';
 import { DailyRateUpdateView } from './components/DailyRateUpdateView';
 import { GaugeDifferenceMasterView } from './components/GaugeDifferenceMasterView';
 import { AIAssistantView } from './components/AIAssistantView';
+import { AIPostGeneratorView } from './components/AIPostGeneratorView';
 import { RateChargesConfig, RateHistoryRecord, GaugeDifferenceMasterItem, CompanyGradeBasicRates, CategoryBasicRates } from './types';
 import { calculateFinalRate } from './utils/rateCalculator';
 import { testFirestoreConnection, auth, googleProvider } from './firebase';
@@ -395,11 +396,38 @@ export default function App() {
       updatedDailyUpdates = [newDailyUpdate, ...appState.dailyUpdates];
     }
 
+    // Also synchronize categoryBasicRates & gradeBasicRates from updated products
+    const nextCategoryRates: CategoryBasicRates = { ...(appState.categoryBasicRates || {}) };
+    const nextGradeRates: CompanyGradeBasicRates = { ...(appState.gradeBasicRates || {}) };
+
+    changedProducts.forEach((p) => {
+      if (p.baseRate && p.baseRate > 0) {
+        const isLight = p.section === 'LIGHT SECTION' || p.rateSource?.includes('NS ISPAT');
+        const g = (p.grade || p.gaugeType || '').toUpperCase();
+        if (isLight) {
+          nextCategoryRates['LIGHT SECTION'] = p.baseRate;
+        } else if (g === 'SL') {
+          nextGradeRates['NAVDURGA ISPAT PVT. LTD.'] = {
+            ...(nextGradeRates['NAVDURGA ISPAT PVT. LTD.'] || {}),
+            SL: p.baseRate,
+          };
+        } else {
+          nextCategoryRates['MEDIUM SECTION'] = p.baseRate;
+          nextGradeRates['NAVDURGA ISPAT PVT. LTD.'] = {
+            ...(nextGradeRates['NAVDURGA ISPAT PVT. LTD.'] || {}),
+            Medium: p.baseRate,
+          };
+        }
+      }
+    });
+
     setAppState((prev: AppFullState) => ({
       ...prev,
       products: updatedProducts,
       rateHistory: [...newHistory, ...(prev.rateHistory || [])],
       dailyUpdates: updatedDailyUpdates,
+      categoryBasicRates: nextCategoryRates,
+      gradeBasicRates: nextGradeRates,
     }));
   };
 
@@ -816,6 +844,21 @@ export default function App() {
             )
           )}
 
+          {/* VIEW: AI POST GENERATOR (NANO BANANA AI) */}
+          {activeTab === 'ai-post-generator' && (
+            <AIPostGeneratorView
+              products={appState.products}
+              customers={appState.customers}
+              company={appState.company}
+              categoryBasicRates={appState.categoryBasicRates}
+              gradeBasicRates={appState.gradeBasicRates}
+              rateCharges={appState.rateCharges}
+              onSaveRates={handleSaveDailyRateBatch}
+              onLogWhatsAppMessage={handleLogWhatsAppMessage}
+              onNavigateTab={handleTabChange}
+            />
+          )}
+
           {/* VIEW: WHATSAPP CENTER */}
           {(activeTab === 'whatsapp' || activeTab === 'whatsapp-center') && (
             <WhatsAppCenterView
@@ -824,6 +867,8 @@ export default function App() {
               products={appState.products}
               company={appState.company}
               whatsAppConfig={appState.whatsAppConfig}
+              categoryBasicRates={appState.categoryBasicRates}
+              gradeBasicRates={appState.gradeBasicRates}
               onLogMessage={handleLogWhatsAppMessage}
               onCreateEnquiryFromWebhook={(enq) => {
                 setAppState((prev: AppFullState) => ({

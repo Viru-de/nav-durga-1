@@ -28,6 +28,7 @@ import {
   WhatsAppMessageRecord,
   ActiveTab,
 } from '../types';
+import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface DashboardViewProps {
   products: Product[];
@@ -100,19 +101,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Top Banner / Welcome with Today's Steel Market Ticker */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
-                Nav Durga Ispat Operations
-              </span>
-              <span className="text-xs text-slate-500 font-medium">{todayFormatted}</span>
+          <div className="flex items-start sm:items-center gap-3.5">
+            <NavDurgaLogo size="lg" withCard className="shrink-0 hidden sm:inline-flex" priority />
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                  Nav Durga Ispat Operations
+                </span>
+                <span className="text-xs text-slate-500 font-medium">{todayFormatted}</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">
+                Industrial Steel ERP Dashboard
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
+                Urla Mill & Raipur Market commercial operations, pricing broadcasts, and customer pipeline.
+              </p>
             </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">
-              Industrial Steel ERP Dashboard
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-              Urla Mill & Raipur Market commercial operations, pricing broadcasts, and customer pipeline.
-            </p>
           </div>
 
           {/* Quick Actions Header Toolbar */}

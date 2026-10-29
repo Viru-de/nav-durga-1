@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { SalesOrder, Customer, Product, CompanySettings, OrderProductItem } from '../types';
 import { WhatsAppService } from '../services/whatsappService';
+import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface OrdersViewProps {
   orders: SalesOrder[];
@@ -149,18 +150,21 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Orders & Dispatch Management
-            </h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
-              {orders.length} Confirmed
-            </span>
+        <div className="flex items-start sm:items-center gap-3">
+          <NavDurgaLogo size="md" withCard className="shrink-0 hidden sm:inline-flex" />
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Orders & Dispatch Management
+              </h1>
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
+                {orders.length} Confirmed
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Monitor rolling mill bookings, transport trailers, payment receipts, and dispatch confirmations.
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Monitor rolling mill bookings, transport trailers, payment receipts, and dispatch confirmations.
-          </p>
         </div>
 
         <button
