@@ -3,6 +3,8 @@ import path from 'path';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { CANONICAL_GAUGE_DIFFERENCE_RECORDS } from '../src/data/productMasterData';
+import { DEFAULT_HERO_SLIDES } from '../src/data/heroSlidesDefaults';
+import { DEFAULT_SOLUTIONS_SERVICES } from '../src/data/solutionsDefaults';
 import type {
   AppUser,
   ErpRole,
@@ -46,6 +48,7 @@ export interface StoredProductRate {
   status: 'Active' | 'Inactive';
   rateSource: string;
   description: string;
+  image?: string;
 }
 
 export interface ServerStoreState {
@@ -211,7 +214,7 @@ function buildInitialProducts(): StoredProductRate[] {
       inStock: true,
       status: 'Active',
       rateSource: rec.company,
-      description: `${rec.productName} ${rec.size} (${rec.grade}) rolled at ${rec.company}, Urla Industrial Complex, Raipur. Conforming to IS 2062 structural steel standards.`,
+      description: `${rec.productName} ${rec.size} (${rec.grade}) • ${rec.company}, Urla Industrial Area, Raipur.`,
     };
   });
 }
@@ -219,30 +222,36 @@ function buildInitialProducts(): StoredProductRate[] {
 function buildInitialCms(): WebsiteCmsContent {
   return {
     id: 'main_website',
-    heroBadge: 'IS 2062 CERTIFIED STRUCTURAL STEEL • URLA INDUSTRIAL AREA, RAIPUR',
-    heroHeadline: 'Engineering Strength. Delivering Excellence.',
+    heroBadge: 'ESTABLISHED 1988 | RAIPUR, CHHATTISGARH',
+    heroHeadline: 'STRENGTH IN STEEL. BUILT FOR TOMORROW.',
     heroSubheadline:
-      'Your Trusted Partner for Quality Steel Products and Industrial Solutions. Direct mill manufacturing of Medium & Light Section MS Channels, Joists, and Angles.',
+      'Steel products for industrial, structural and infrastructure requirements. Explore our products and connect with our team.',
+    heroSlides: DEFAULT_HERO_SLIDES.map((s) => ({ ...s })),
+    defaultHeroSlideId: DEFAULT_HERO_SLIDES[0].id,
+    solutionsServices: DEFAULT_SOLUTIONS_SERVICES.map((item) => ({ ...item })),
+    additionalLocations: [],
     announcementBanner:
-      'Live Mill Dispatch Open — Direct Ex-Plant Loading from Urla Rolling Mill & Unit-2 NS Ispat (Raipur).',
+      'Nav Durga Ispat Pvt. Ltd. — Direct Commercial Enquiries & Live Structural Steel Rates (Urla Industrial Area, Raipur)',
     showAnnouncementBanner: true,
-    aboutTitle: 'Integrated Structural Steel Rolling Excellence in Central India',
+    aboutTitle: 'Nav Durga Ispat Pvt. Ltd. — Structural Steel & Industrial Supply',
     aboutSummary:
-      'Nav Durga Ispat Pvt. Ltd. and Unit-2 NS Ispat (I) Pvt. Ltd. operate precision hot-rolling mills in Urla Industrial Complex, Raipur (Chhattisgarh). We serve infrastructure developers, PEB fabricators, power transmission contractors, and industrial OEMs with consistent dimensional accuracy, certified metallurgical strength, and transparent daily mill rates.',
+      'Nav Durga Ispat Pvt. Ltd. is an established steel industry company based in the Urla Industrial Area, Raipur, Chhattisgarh. The company serves the steel market with a focus on structural steel products and dependable customer service.',
     visionText:
-      'To be Central India’s most reliable structural steel manufacturing partner through engineering consistency, transparent pricing, and zero-compromise dispatch velocity.',
+      'To serve industrial, structural, and infrastructure requirements with dependable steel supply, clear pricing, and lasting customer relationships.',
     missionText:
-      'Deliver BIS-compliant Medium & Light Section structural steel with real-time digital rate visibility, precision rolling tolerances, and dedicated human technical sales support.',
+      'Provide structural steel products backed by responsive sales coordination, live product rate transparency, and reliable service from Urla, Raipur.',
     qualityCommitment:
-      'Every rolled heat undergoes chemical spectroscopy, tensile elongation verification, bend testing, and dimensional gauge audits before mill dispatch.',
+      'We focus on consistent product specifications, careful rolling inspection, and clear commercial documentation across every order.',
     contactPhone: '+91 771 4208900',
     contactWhatsapp: '+91 97521 83053',
     contactEmail: 'sales@navdurgasteel.com',
-    contactAddress: 'Plot No. 42-45, Phase II, Urla Industrial Complex, Raipur, Chhattisgarh 493221',
+    contactAddress: 'Plot No. 435-A, Sector-C, Urla Industrial Area, Raipur, Chhattisgarh – 493221, India',
     unit1Name: 'NAVDURGA ISPAT PVT. LTD. (Medium Section)',
     unit2Name: 'UNIT-2 — NS ISPAT (I) PVT. LTD. (Light Section)',
     dispatchHours: 'Mon – Sat: 09:00 AM to 07:30 PM IST',
-    gstNumber: '22AABCN1234F1Z8',
+    gstNumber: '',
+    cinNumber: 'U24132CT1988PTC004838',
+    establishedYear: '1988',
     updatedAt: new Date().toISOString(),
     updatedBy: 'Virendra Patel',
   };
@@ -305,6 +314,69 @@ export function loadServerStore(): ServerStoreState {
       const raw = fs.readFileSync(STORE_PATH, 'utf8');
       const parsed = JSON.parse(raw) as ServerStoreState;
       if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.products)) {
+        // Non-destructive CMS migration if legacy unverified placeholder text is still present
+        const legacyDetected =
+          parsed.cms?.contactAddress?.includes('Plot No. 42-45') ||
+          parsed.cms?.heroHeadline === 'Engineering Strength. Delivering Excellence.' ||
+          parsed.cms?.heroBadge?.includes('IS 2062 CERTIFIED') ||
+          !parsed.cms?.cinNumber;
+
+        if (legacyDetected) {
+          const approvedDefaults = buildInitialCms();
+          parsed.cms = {
+            ...approvedDefaults,
+            contactPhone: parsed.cms?.contactPhone || approvedDefaults.contactPhone,
+            contactWhatsapp: parsed.cms?.contactWhatsapp || approvedDefaults.contactWhatsapp,
+            contactEmail: parsed.cms?.contactEmail || approvedDefaults.contactEmail,
+            dispatchHours: parsed.cms?.dispatchHours || approvedDefaults.dispatchHours,
+            unit1Name: parsed.cms?.unit1Name || approvedDefaults.unit1Name,
+            unit2Name: parsed.cms?.unit2Name || approvedDefaults.unit2Name,
+            showAnnouncementBanner:
+              parsed.cms?.showAnnouncementBanner ?? approvedDefaults.showAnnouncementBanner,
+            cinNumber: 'U24132CT1988PTC004838',
+            establishedYear: '1988',
+          };
+          parsed.products = parsed.products.map((prod) =>
+            prod.description?.includes('Conforming to IS 2062 structural steel standards.')
+              ? {
+                  ...prod,
+                  description: `${prod.name} ${prod.size} (${prod.grade}) • ${prod.rateSource}, Urla Industrial Area, Raipur.`,
+                }
+              : prod
+          );
+          cachedStore = parsed;
+          saveServerStore(cachedStore);
+          return cachedStore;
+        }
+        if (!Array.isArray(parsed.cms?.heroSlides) || parsed.cms.heroSlides.length === 0) {
+          parsed.cms = {
+            ...parsed.cms,
+            heroBadge:
+              parsed.cms?.heroBadge === 'ESTABLISHED STEEL INDUSTRY | RAIPUR, CHHATTISGARH'
+                ? 'ESTABLISHED 1988 | RAIPUR, CHHATTISGARH'
+                : parsed.cms?.heroBadge || 'ESTABLISHED 1988 | RAIPUR, CHHATTISGARH',
+            heroHeadline: parsed.cms?.heroHeadline || 'STRENGTH IN STEEL. BUILT FOR TOMORROW.',
+            heroSubheadline:
+              'Steel products for industrial, structural and infrastructure requirements. Explore our products and connect with our team.',
+            heroSlides: DEFAULT_HERO_SLIDES.map((s) => ({ ...s })),
+            defaultHeroSlideId: DEFAULT_HERO_SLIDES[0].id,
+          };
+          cachedStore = parsed;
+          saveServerStore(cachedStore);
+          return cachedStore;
+        }
+        if (!Array.isArray(parsed.cms?.solutionsServices) || parsed.cms.solutionsServices.length === 0) {
+          parsed.cms = {
+            ...parsed.cms,
+            solutionsServices: DEFAULT_SOLUTIONS_SERVICES.map((item) => ({ ...item })),
+            additionalLocations: Array.isArray(parsed.cms?.additionalLocations)
+              ? parsed.cms.additionalLocations
+              : [],
+          };
+          cachedStore = parsed;
+          saveServerStore(cachedStore);
+          return cachedStore;
+        }
         cachedStore = parsed;
         return cachedStore;
       }
@@ -395,13 +467,15 @@ export function parseCookies(cookieHeader: string | undefined): Record<string, s
 export function getPublicRatesPayload(store: ServerStoreState): PublicRatesPayload {
   const medBase = Number(store.categoryBasicRates['MEDIUM SECTION']) || 0;
   const lightBase = Number(store.categoryBasicRates['LIGHT SECTION']) || 0;
+  const isPublished = store.rateStatus === 'Published';
 
   const publicProducts: PublicRateProductItem[] = store.products
     .filter((p) => p.status === 'Active')
     .map((p) => {
       const isLight = p.section === 'LIGHT SECTION' || p.rateSource.includes('NS ISPAT');
       const activeBase = isLight ? lightBase : medBase;
-      const computedFinal = activeBase > 0 ? activeBase + (Number(p.gaugeDifference) || 0) : 0;
+      const computedFinal =
+        isPublished && activeBase > 0 ? activeBase + (Number(p.gaugeDifference) || 0) : 0;
       return {
         id: p.id,
         code: p.code,
@@ -411,20 +485,21 @@ export function getPublicRatesPayload(store: ServerStoreState): PublicRatesPaylo
         size: p.size,
         grade: p.grade,
         unit: p.unit || 'MT',
-        baseRate: activeBase,
+        baseRate: isPublished ? activeBase : 0,
         gaugeDifference: Number(p.gaugeDifference) || 0,
         finalRate: computedFinal,
         priceChange: Number(p.priceChange) || 0,
         inStock: p.inStock,
         rateSource: p.rateSource,
         description: p.description,
+        image: p.image,
       };
     });
 
   return {
-    mediumSectionRate: medBase,
-    slSectionRate: lightBase,
-    lightSectionRate: lightBase,
+    mediumSectionRate: isPublished ? medBase : 0,
+    slSectionRate: isPublished ? lightBase : 0,
+    lightSectionRate: isPublished ? lightBase : 0,
     lastUpdated: store.rateLastUpdated,
     updatedBy: store.rateUpdatedBy,
     rateStatus: store.rateStatus,

@@ -56,6 +56,7 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
 export const PlatformApi = {
   async fetchPublicWebsite(): Promise<{
     cms: WebsiteCmsContent;
+    mapsApiKey?: string;
     rateSummary: {
       mediumSectionRate: number;
       lightSectionRate: number;
@@ -153,13 +154,22 @@ export const PlatformApi = {
     products?: Array<{
       id: string;
       code?: string;
+      name?: string;
+      category?: string;
+      section?: string;
+      size?: string;
+      grade?: string;
+      unit?: string;
+      rateSource?: string;
       gaugeDifference?: number;
       finalRate?: number;
       inStock?: boolean;
       status?: string;
       description?: string;
+      image?: string;
     }>;
     rateStatus?: 'Published' | 'Indicative';
+    syncCatalog?: boolean;
   }): Promise<{ success: boolean; publicRates: PublicRatesPayload }> {
     return apiFetch('/api/erp/rates', {
       method: 'POST',

@@ -115,6 +115,7 @@ app.get('/api/public/website', (req, res) => {
   const store = loadServerStore();
   res.json({
     cms: store.cms,
+    mapsApiKey: process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '',
     rateSummary: {
       mediumSectionRate: store.categoryBasicRates['MEDIUM SECTION'],
       lightSectionRate: store.categoryBasicRates['LIGHT SECTION'],
@@ -361,7 +362,7 @@ app.post('/api/erp/rates', (req, res) => {
     return res.status(403).json({ error: 'You do not have permission to modify daily steel rates.' });
   }
 
-  const { categoryBasicRates, products, rateStatus } = req.body || {};
+  const { categoryBasicRates, products, rateStatus, syncCatalog } = req.body || {};
   const store = loadServerStore();
 
   if (categoryBasicRates) {
@@ -373,33 +374,99 @@ app.post('/api/erp/rates', (req, res) => {
     }
   }
 
-  if (Array.isArray(products) && products.length > 0) {
+  if (Array.isArray(products)) {
+    const incomingIds = new Set<string>();
     for (const incoming of products) {
+      if (!incoming || (!incoming.id && !incoming.code)) continue;
+      if (incoming.id) incomingIds.add(String(incoming.id));
+
       const idx = store.products.findIndex((p) => p.id === incoming.id || p.code === incoming.code);
       if (idx >= 0) {
         const existing = store.products[idx];
+        const nextSection: 'MEDIUM SECTION' | 'LIGHT SECTION' =
+          incoming.section === 'LIGHT SECTION' ||
+          (typeof incoming.rateSource === 'string' && incoming.rateSource.includes('NS ISPAT'))
+            ? 'LIGHT SECTION'
+            : incoming.section === 'MEDIUM SECTION'
+            ? 'MEDIUM SECTION'
+            : existing.section;
         const gaugeDiff =
           incoming.gaugeDifference !== undefined ? Number(incoming.gaugeDifference) : existing.gaugeDifference;
-        const isLight = existing.section === 'LIGHT SECTION';
-        const baseRate = isLight
-          ? store.categoryBasicRates['LIGHT SECTION']
-          : store.categoryBasicRates['MEDIUM SECTION'];
+        const baseRate =
+          nextSection === 'LIGHT SECTION'
+            ? store.categoryBasicRates['LIGHT SECTION']
+            : store.categoryBasicRates['MEDIUM SECTION'];
         const nextFinal =
           typeof incoming.finalRate === 'number' && incoming.finalRate > 0
             ? incoming.finalRate
-            : baseRate + gaugeDiff;
+            : baseRate > 0
+            ? baseRate + gaugeDiff
+            : 0;
         store.products[idx] = {
           ...existing,
+          code: incoming.code || existing.code,
+          name: incoming.name || existing.name,
+          category: incoming.category || existing.category,
+          section: nextSection,
+          size: incoming.size ?? existing.size,
+          grade: incoming.grade || existing.grade,
+          unit: incoming.unit || existing.unit,
+          rateSource: incoming.rateSource || existing.rateSource,
           gaugeDifference: gaugeDiff,
           baseRate,
           previousPrice: existing.finalRate,
           finalRate: nextFinal,
           priceChange: nextFinal - existing.finalRate,
           inStock: incoming.inStock ?? existing.inStock,
-          status: incoming.status || existing.status,
-          description: incoming.description || existing.description,
+          status: incoming.status === 'Inactive' ? 'Inactive' : incoming.status === 'Active' ? 'Active' : existing.status,
+          description: incoming.description !== undefined ? incoming.description : existing.description,
+          image: incoming.image !== undefined ? incoming.image : existing.image,
         };
+        incomingIds.add(store.products[idx].id);
+      } else if (incoming.name) {
+        const nextSection: 'MEDIUM SECTION' | 'LIGHT SECTION' =
+          incoming.section === 'LIGHT SECTION' ||
+          (typeof incoming.rateSource === 'string' && incoming.rateSource.includes('NS ISPAT'))
+            ? 'LIGHT SECTION'
+            : 'MEDIUM SECTION';
+        const gaugeDiff = Number(incoming.gaugeDifference) || 0;
+        const baseRate =
+          nextSection === 'LIGHT SECTION'
+            ? store.categoryBasicRates['LIGHT SECTION']
+            : store.categoryBasicRates['MEDIUM SECTION'];
+        const nextFinal =
+          typeof incoming.finalRate === 'number' && incoming.finalRate > 0
+            ? incoming.finalRate
+            : baseRate > 0
+            ? baseRate + gaugeDiff
+            : 0;
+        const newId = String(incoming.id || `prod-${Date.now()}`);
+        store.products.unshift({
+          id: newId,
+          code: String(incoming.code || `ND-${Math.floor(100 + Math.random() * 900)}`),
+          name: String(incoming.name),
+          category: String(incoming.category || 'Structural Steel'),
+          section: nextSection,
+          size: String(incoming.size || ''),
+          grade: String(incoming.grade || 'Medium'),
+          unit: String(incoming.unit || 'MT'),
+          gaugeDifference: gaugeDiff,
+          baseRate,
+          finalRate: nextFinal,
+          previousPrice: nextFinal,
+          priceChange: 0,
+          inStock: incoming.inStock ?? true,
+          status: incoming.status === 'Inactive' ? 'Inactive' : 'Active',
+          rateSource: String(incoming.rateSource || 'NAV DURGA ISPAT PVT. LTD.'),
+          description: String(incoming.description || ''),
+          image: typeof incoming.image === 'string' ? incoming.image : undefined,
+        });
+        incomingIds.add(newId);
       }
+    }
+
+    if (syncCatalog === true && products.length > 0) {
+      store.products = store.products.filter((p) => incomingIds.has(p.id));
     }
   } else {
     // Recalculate all products from updated categoryBasicRates

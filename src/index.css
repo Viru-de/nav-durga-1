@@ -3,18 +3,26 @@
 @layer base {
   :root {
     color-scheme: light;
+    --nd-primary: #105186;
+    --nd-primary-deep: #0B3A60;
+    --nd-primary-light: #EAF2F8;
+    --nd-silver: #C7CED6;
+    --nd-metallic: #737D88;
+    --nd-offwhite: #F7F9FB;
+    --nd-white: #FFFFFF;
+    --nd-text: #263442;
   }
 
   html {
     scroll-behavior: smooth;
-    background-color: #ffffff;
-    color: #0f172a;
+    background-color: #FFFFFF;
+    color: #263442;
   }
 
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #F7F9FB;
+    color: #263442;
   }
 
   h1, h2, h3, h4, .font-display {
@@ -24,6 +32,27 @@
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes ndFadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nd-reveal {
+  animation: ndFadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nd-reveal {
+    animation: none !important;
+  }
 }
 
 @media print {

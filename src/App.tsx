@@ -25,6 +25,7 @@ import { StorageService, AppFullState } from './services/storageService';
 import { WhatsAppService } from './services/whatsappService';
 import { PlatformApi } from './services/platformApi';
 import { INITIAL_USERS } from './data/demoData';
+import { DEFAULT_HERO_SLIDES } from './data/heroSlidesDefaults';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MobileNav } from './components/MobileNav';
@@ -60,28 +61,34 @@ import { NavDurgaLogo } from './components/NavDurgaLogo';
 
 const DEFAULT_CMS_FALLBACK: WebsiteCmsContent = {
   id: 'main',
-  heroBadge: 'ISO-Grade Structural Steel Manufacturing • Urla, Raipur',
-  heroHeadline: 'Engineering Strength. Delivering Excellence.',
-  heroSubheadline: 'Your Trusted Partner for Quality Steel Products and Industrial Solutions.',
-  announcementBanner: 'Live Daily Rolling Mill Rates & Ex-Plant Urla Dispatch Open — Check Today Product Rates',
+  heroBadge: 'ESTABLISHED 1988 | RAIPUR, CHHATTISGARH',
+  heroHeadline: 'STRENGTH IN STEEL. BUILT FOR TOMORROW.',
+  heroSubheadline:
+    'Steel products for industrial, structural and infrastructure requirements. Explore our products and connect with our team.',
+  heroSlides: DEFAULT_HERO_SLIDES,
+  defaultHeroSlideId: DEFAULT_HERO_SLIDES[0].id,
+  announcementBanner:
+    'Nav Durga Ispat Pvt. Ltd. — Direct Commercial Enquiries & Live Structural Steel Rates (Urla Industrial Area, Raipur)',
   showAnnouncementBanner: true,
-  aboutTitle: 'Integrated Rolling Mill & Structural Steel Group',
+  aboutTitle: 'Nav Durga Ispat Pvt. Ltd. — Structural Steel & Industrial Supply',
   aboutSummary:
-    'Nav Durga Ispat Pvt. Ltd. and Unit-2 NS Ispat (I) Pvt. Ltd. manufacture precision-rolled Medium and Light structural steel sections in Urla Industrial Area, Raipur (Chhattisgarh).',
+    'Nav Durga Ispat Pvt. Ltd. is an established steel industry company based in the Urla Industrial Area, Raipur, Chhattisgarh. The company serves the steel market with a focus on structural steel products and dependable customer service.',
   visionText:
-    'To stand as Central India’s most reliable industrial structural steel producer through metallurgical precision, transparent pricing, and zero-defect rolling consistency.',
+    'To serve industrial, structural, and infrastructure requirements with dependable steel supply, clear pricing, and lasting customer relationships.',
   missionText:
-    'Deliver IS-grade structural steel channels, beams, angles, flats, and custom fabrication sections backed by instant live ERP pricing and dependable dispatch timelines.',
+    'Provide structural steel products backed by responsive sales coordination, live product rate transparency, and reliable service from Urla, Raipur.',
   qualityCommitment:
-    'Every heat and rolling batch undergoes optical spectrometer chemical verification, tensile load testing, and digital sectional gauge inspection.',
-  contactPhone: '+91 98261 45890',
-  contactWhatsapp: '+91 98261 45890',
+    'We focus on consistent product specifications, careful rolling inspection, and clear commercial documentation across every order.',
+  contactPhone: '+91 771 4208900',
+  contactWhatsapp: '+91 97521 83053',
   contactEmail: 'sales@navdurgasteel.com',
-  contactAddress: 'Plot 42-48, Urla Industrial Area, Raipur, Chhattisgarh 493221',
-  unit1Name: 'NAVDURGA ISPAT PVT. LTD.',
-  unit2Name: 'UNIT-2 - NS ISPAT (I) PVT. LTD.',
+  contactAddress: 'Plot No. 435-A, Sector-C, Urla Industrial Area, Raipur, Chhattisgarh – 493221, India',
+  unit1Name: 'NAVDURGA ISPAT PVT. LTD. (Medium Section)',
+  unit2Name: 'UNIT-2 — NS ISPAT (I) PVT. LTD. (Light Section)',
   dispatchHours: 'Mon - Sat: 09:00 AM - 07:30 PM IST',
-  gstNumber: '22AABCN4120F1Z5',
+  gstNumber: '',
+  cinNumber: 'U24132CT1988PTC004838',
+  establishedYear: '1988',
   updatedAt: new Date().toISOString(),
   updatedBy: 'System',
 };
@@ -151,6 +158,16 @@ export default function App() {
     }
     setRoutePath(clean);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!clean.startsWith('/erp') && clean !== '/login') {
+      PlatformApi.fetchPublicRates()
+        .then((rates) => setPublicRates(rates))
+        .catch(() => {});
+      PlatformApi.fetchPublicWebsite()
+        .then((res) => {
+          if (res?.cms) setWebsiteCms(res.cms);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   // Load Public CMS + Public Rates + Auth Session on boot
@@ -208,7 +225,7 @@ export default function App() {
     };
   }, [hydrateAuthenticatedErp]);
 
-  // Synchronize ERP rates directly to Backend Public Rate Portal (Single Source of Truth)
+  // Synchronize ERP rates & active catalog directly to Backend Public Rate Portal (Single Source of Truth)
   const syncRatesToPublicServer = useCallback(
     async (
       nextProducts: Product[],
@@ -230,16 +247,31 @@ export default function App() {
             'MEDIUM SECTION': mediumBase,
             'LIGHT SECTION': lightBase,
           },
-          products: nextProducts.map((p) => ({
-            id: p.id,
-            code: p.code,
-            gaugeDifference: p.gaugeDifference,
-            finalRate: p.finalRate ?? p.currentPrice,
-            inStock: p.inStock,
-            status: p.status,
-            description: p.description,
-          })),
+          products: nextProducts.map((p) => {
+            const section =
+              p.section === 'LIGHT SECTION' || p.rateSource?.includes('NS ISPAT')
+                ? 'LIGHT SECTION'
+                : 'MEDIUM SECTION';
+            return {
+              id: p.id,
+              code: p.code,
+              name: p.productName || p.name,
+              category: p.productCategory || p.category,
+              section,
+              size: p.size,
+              grade: p.grade || p.gaugeType,
+              unit: p.unit,
+              rateSource: p.rateSource,
+              gaugeDifference: p.gaugeDifference,
+              finalRate: p.finalRate ?? p.currentPrice,
+              inStock: p.inStock,
+              status: p.status,
+              description: p.description,
+              image: p.image,
+            };
+          }),
           rateStatus: 'Published',
+          syncCatalog: true,
         });
         if (res?.publicRates) {
           setPublicRates(res.publicRates);

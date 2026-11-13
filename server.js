@@ -456,31 +456,33 @@ function buildInitialProducts() {
       inStock: true,
       status: "Active",
       rateSource: rec.company,
-      description: `${rec.productName} ${rec.size} (${rec.grade}) rolled at ${rec.company}, Urla Industrial Complex, Raipur. Conforming to IS 2062 structural steel standards.`
+      description: `${rec.productName} ${rec.size} (${rec.grade}) \u2022 ${rec.company}, Urla Industrial Area, Raipur.`
     };
   });
 }
 function buildInitialCms() {
   return {
     id: "main_website",
-    heroBadge: "IS 2062 CERTIFIED STRUCTURAL STEEL \u2022 URLA INDUSTRIAL AREA, RAIPUR",
-    heroHeadline: "Engineering Strength. Delivering Excellence.",
-    heroSubheadline: "Your Trusted Partner for Quality Steel Products and Industrial Solutions. Direct mill manufacturing of Medium & Light Section MS Channels, Joists, and Angles.",
-    announcementBanner: "Live Mill Dispatch Open \u2014 Direct Ex-Plant Loading from Urla Rolling Mill & Unit-2 NS Ispat (Raipur).",
+    heroBadge: "ESTABLISHED STEEL INDUSTRY | RAIPUR, CHHATTISGARH",
+    heroHeadline: "Strength in Steel. Built for Tomorrow.",
+    heroSubheadline: "Delivering steel products for industrial, structural and infrastructure requirements through a commitment to quality, reliability and customer relationships.",
+    announcementBanner: "Nav Durga Ispat Pvt. Ltd. \u2014 Direct Commercial Enquiries & Live Structural Steel Rates (Urla Industrial Area, Raipur)",
     showAnnouncementBanner: true,
-    aboutTitle: "Integrated Structural Steel Rolling Excellence in Central India",
-    aboutSummary: "Nav Durga Ispat Pvt. Ltd. and Unit-2 NS Ispat (I) Pvt. Ltd. operate precision hot-rolling mills in Urla Industrial Complex, Raipur (Chhattisgarh). We serve infrastructure developers, PEB fabricators, power transmission contractors, and industrial OEMs with consistent dimensional accuracy, certified metallurgical strength, and transparent daily mill rates.",
-    visionText: "To be Central India\u2019s most reliable structural steel manufacturing partner through engineering consistency, transparent pricing, and zero-compromise dispatch velocity.",
-    missionText: "Deliver BIS-compliant Medium & Light Section structural steel with real-time digital rate visibility, precision rolling tolerances, and dedicated human technical sales support.",
-    qualityCommitment: "Every rolled heat undergoes chemical spectroscopy, tensile elongation verification, bend testing, and dimensional gauge audits before mill dispatch.",
+    aboutTitle: "Nav Durga Ispat Pvt. Ltd. \u2014 Structural Steel & Industrial Supply",
+    aboutSummary: "Nav Durga Ispat Pvt. Ltd. is an established steel industry company based in the Urla Industrial Area, Raipur, Chhattisgarh. The company serves the steel market with a focus on structural steel products and dependable customer service.",
+    visionText: "To serve industrial, structural, and infrastructure requirements with dependable steel supply, clear pricing, and lasting customer relationships.",
+    missionText: "Provide structural steel products backed by responsive sales coordination, live product rate transparency, and reliable service from Urla, Raipur.",
+    qualityCommitment: "We focus on consistent product specifications, careful rolling inspection, and clear commercial documentation across every order.",
     contactPhone: "+91 771 4208900",
     contactWhatsapp: "+91 97521 83053",
     contactEmail: "sales@navdurgasteel.com",
-    contactAddress: "Plot No. 42-45, Phase II, Urla Industrial Complex, Raipur, Chhattisgarh 493221",
+    contactAddress: "Plot No. 435-A, Sector-C, Urla Industrial Area, Raipur, Chhattisgarh \u2013 493221, India",
     unit1Name: "NAVDURGA ISPAT PVT. LTD. (Medium Section)",
     unit2Name: "UNIT-2 \u2014 NS ISPAT (I) PVT. LTD. (Light Section)",
     dispatchHours: "Mon \u2013 Sat: 09:00 AM to 07:30 PM IST",
-    gstNumber: "22AABCN1234F1Z8",
+    gstNumber: "",
+    cinNumber: "U24132CT1988PTC004838",
+    establishedYear: "1988",
     updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
     updatedBy: "Virendra Patel"
   };
@@ -540,6 +542,31 @@ function loadServerStore() {
       const raw = fs.readFileSync(STORE_PATH, "utf8");
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.products)) {
+        const legacyDetected = parsed.cms?.contactAddress?.includes("Plot No. 42-45") || parsed.cms?.heroHeadline === "Engineering Strength. Delivering Excellence." || parsed.cms?.heroBadge?.includes("IS 2062 CERTIFIED") || !parsed.cms?.cinNumber;
+        if (legacyDetected) {
+          const approvedDefaults = buildInitialCms();
+          parsed.cms = {
+            ...approvedDefaults,
+            contactPhone: parsed.cms?.contactPhone || approvedDefaults.contactPhone,
+            contactWhatsapp: parsed.cms?.contactWhatsapp || approvedDefaults.contactWhatsapp,
+            contactEmail: parsed.cms?.contactEmail || approvedDefaults.contactEmail,
+            dispatchHours: parsed.cms?.dispatchHours || approvedDefaults.dispatchHours,
+            unit1Name: parsed.cms?.unit1Name || approvedDefaults.unit1Name,
+            unit2Name: parsed.cms?.unit2Name || approvedDefaults.unit2Name,
+            showAnnouncementBanner: parsed.cms?.showAnnouncementBanner ?? approvedDefaults.showAnnouncementBanner,
+            cinNumber: "U24132CT1988PTC004838",
+            establishedYear: "1988"
+          };
+          parsed.products = parsed.products.map(
+            (prod) => prod.description?.includes("Conforming to IS 2062 structural steel standards.") ? {
+              ...prod,
+              description: `${prod.name} ${prod.size} (${prod.grade}) \u2022 ${prod.rateSource}, Urla Industrial Area, Raipur.`
+            } : prod
+          );
+          cachedStore = parsed;
+          saveServerStore(cachedStore);
+          return cachedStore;
+        }
         cachedStore = parsed;
         return cachedStore;
       }
@@ -618,10 +645,11 @@ function parseCookies(cookieHeader) {
 function getPublicRatesPayload(store) {
   const medBase = Number(store.categoryBasicRates["MEDIUM SECTION"]) || 0;
   const lightBase = Number(store.categoryBasicRates["LIGHT SECTION"]) || 0;
+  const isPublished = store.rateStatus === "Published";
   const publicProducts = store.products.filter((p) => p.status === "Active").map((p) => {
     const isLight = p.section === "LIGHT SECTION" || p.rateSource.includes("NS ISPAT");
     const activeBase = isLight ? lightBase : medBase;
-    const computedFinal = activeBase > 0 ? activeBase + (Number(p.gaugeDifference) || 0) : 0;
+    const computedFinal = isPublished && activeBase > 0 ? activeBase + (Number(p.gaugeDifference) || 0) : 0;
     return {
       id: p.id,
       code: p.code,
@@ -631,19 +659,20 @@ function getPublicRatesPayload(store) {
       size: p.size,
       grade: p.grade,
       unit: p.unit || "MT",
-      baseRate: activeBase,
+      baseRate: isPublished ? activeBase : 0,
       gaugeDifference: Number(p.gaugeDifference) || 0,
       finalRate: computedFinal,
       priceChange: Number(p.priceChange) || 0,
       inStock: p.inStock,
       rateSource: p.rateSource,
-      description: p.description
+      description: p.description,
+      image: p.image
     };
   });
   return {
-    mediumSectionRate: medBase,
-    slSectionRate: lightBase,
-    lightSectionRate: lightBase,
+    mediumSectionRate: isPublished ? medBase : 0,
+    slSectionRate: isPublished ? lightBase : 0,
+    lightSectionRate: isPublished ? lightBase : 0,
     lastUpdated: store.rateLastUpdated,
     updatedBy: store.rateUpdatedBy,
     rateStatus: store.rateStatus,
@@ -943,7 +972,7 @@ app.post("/api/erp/rates", (req, res) => {
   if (!user.permissions.manageDailyRates && !user.permissions.publishPublicRates && user.rbacRole !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "You do not have permission to modify daily steel rates." });
   }
-  const { categoryBasicRates, products, rateStatus } = req.body || {};
+  const { categoryBasicRates, products, rateStatus, syncCatalog } = req.body || {};
   const store = loadServerStore();
   if (categoryBasicRates) {
     if (typeof categoryBasicRates["MEDIUM SECTION"] === "number") {
@@ -953,27 +982,70 @@ app.post("/api/erp/rates", (req, res) => {
       store.categoryBasicRates["LIGHT SECTION"] = categoryBasicRates["LIGHT SECTION"];
     }
   }
-  if (Array.isArray(products) && products.length > 0) {
+  if (Array.isArray(products)) {
+    const incomingIds = /* @__PURE__ */ new Set();
     for (const incoming of products) {
+      if (!incoming || !incoming.id && !incoming.code) continue;
+      if (incoming.id) incomingIds.add(String(incoming.id));
       const idx = store.products.findIndex((p) => p.id === incoming.id || p.code === incoming.code);
       if (idx >= 0) {
         const existing = store.products[idx];
+        const nextSection = incoming.section === "LIGHT SECTION" || typeof incoming.rateSource === "string" && incoming.rateSource.includes("NS ISPAT") ? "LIGHT SECTION" : incoming.section === "MEDIUM SECTION" ? "MEDIUM SECTION" : existing.section;
         const gaugeDiff = incoming.gaugeDifference !== void 0 ? Number(incoming.gaugeDifference) : existing.gaugeDifference;
-        const isLight = existing.section === "LIGHT SECTION";
-        const baseRate = isLight ? store.categoryBasicRates["LIGHT SECTION"] : store.categoryBasicRates["MEDIUM SECTION"];
-        const nextFinal = typeof incoming.finalRate === "number" && incoming.finalRate > 0 ? incoming.finalRate : baseRate + gaugeDiff;
+        const baseRate = nextSection === "LIGHT SECTION" ? store.categoryBasicRates["LIGHT SECTION"] : store.categoryBasicRates["MEDIUM SECTION"];
+        const nextFinal = typeof incoming.finalRate === "number" && incoming.finalRate > 0 ? incoming.finalRate : baseRate > 0 ? baseRate + gaugeDiff : 0;
         store.products[idx] = {
           ...existing,
+          code: incoming.code || existing.code,
+          name: incoming.name || existing.name,
+          category: incoming.category || existing.category,
+          section: nextSection,
+          size: incoming.size ?? existing.size,
+          grade: incoming.grade || existing.grade,
+          unit: incoming.unit || existing.unit,
+          rateSource: incoming.rateSource || existing.rateSource,
           gaugeDifference: gaugeDiff,
           baseRate,
           previousPrice: existing.finalRate,
           finalRate: nextFinal,
           priceChange: nextFinal - existing.finalRate,
           inStock: incoming.inStock ?? existing.inStock,
-          status: incoming.status || existing.status,
-          description: incoming.description || existing.description
+          status: incoming.status === "Inactive" ? "Inactive" : incoming.status === "Active" ? "Active" : existing.status,
+          description: incoming.description !== void 0 ? incoming.description : existing.description,
+          image: incoming.image !== void 0 ? incoming.image : existing.image
         };
+        incomingIds.add(store.products[idx].id);
+      } else if (incoming.name) {
+        const nextSection = incoming.section === "LIGHT SECTION" || typeof incoming.rateSource === "string" && incoming.rateSource.includes("NS ISPAT") ? "LIGHT SECTION" : "MEDIUM SECTION";
+        const gaugeDiff = Number(incoming.gaugeDifference) || 0;
+        const baseRate = nextSection === "LIGHT SECTION" ? store.categoryBasicRates["LIGHT SECTION"] : store.categoryBasicRates["MEDIUM SECTION"];
+        const nextFinal = typeof incoming.finalRate === "number" && incoming.finalRate > 0 ? incoming.finalRate : baseRate > 0 ? baseRate + gaugeDiff : 0;
+        const newId = String(incoming.id || `prod-${Date.now()}`);
+        store.products.unshift({
+          id: newId,
+          code: String(incoming.code || `ND-${Math.floor(100 + Math.random() * 900)}`),
+          name: String(incoming.name),
+          category: String(incoming.category || "Structural Steel"),
+          section: nextSection,
+          size: String(incoming.size || ""),
+          grade: String(incoming.grade || "Medium"),
+          unit: String(incoming.unit || "MT"),
+          gaugeDifference: gaugeDiff,
+          baseRate,
+          finalRate: nextFinal,
+          previousPrice: nextFinal,
+          priceChange: 0,
+          inStock: incoming.inStock ?? true,
+          status: incoming.status === "Inactive" ? "Inactive" : "Active",
+          rateSource: String(incoming.rateSource || "NAV DURGA ISPAT PVT. LTD."),
+          description: String(incoming.description || ""),
+          image: typeof incoming.image === "string" ? incoming.image : void 0
+        });
+        incomingIds.add(newId);
       }
+    }
+    if (syncCatalog === true && products.length > 0) {
+      store.products = store.products.filter((p) => incomingIds.has(p.id));
     }
   } else {
     store.products = store.products.map((p) => {

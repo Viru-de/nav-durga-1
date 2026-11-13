@@ -24,7 +24,7 @@ interface LiveProductRatesViewProps {
 }
 
 function formatInr(amount: number): string {
-  if (!amount || amount <= 0) return 'Rate on request';
+  if (!amount || amount <= 0) return 'Request Latest Rate';
   return `₹${Math.round(amount).toLocaleString('en-IN')}`;
 }
 
@@ -136,31 +136,26 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
   const renderSectionTable = (
     title: string,
     subtitle: string,
-    accent: 'blue' | 'red',
+    accent: 'primary' | 'deep',
     basicRate: number,
     items: PublicRateProductItem[]
   ) => {
     if (items.length === 0) return null;
 
     return (
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <section className="bg-white rounded-2xl border border-[#C7CED6] shadow-xs overflow-hidden">
         <div
-          className={`px-5 sm:px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-            accent === 'blue' ? 'bg-blue-50/70' : 'bg-red-50/60'
+          className={`px-5 sm:px-6 py-4 border-b border-[#C7CED6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+            accent === 'primary' ? 'bg-[#EAF2F8]' : 'bg-[#F7F9FB]'
           }`}
         >
           <div>
             <div className="flex items-center gap-2">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  accent === 'blue' ? 'bg-blue-700' : 'bg-red-700'
-                }`}
-              />
-              <h2 className="font-display text-lg font-extrabold text-slate-900 tracking-tight">
+              <h2 className="font-display text-lg font-extrabold text-[#263442] tracking-tight">
                 {title}
               </h2>
             </div>
-            <p className="text-xs font-semibold text-slate-600 mt-0.5">{subtitle}</p>
+            <p className="text-xs font-semibold text-[#737D88] mt-0.5">{subtitle}</p>
           </div>
 
           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-2xs">
@@ -243,7 +238,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                       <button
                         type="button"
                         onClick={() => onOpenQuoteModal(`${item.name} (${item.size})`, item.grade)}
-                        className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-700 text-red-700 hover:text-white border border-red-200 text-xs font-bold transition-colors cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold transition-colors cursor-pointer"
                       >
                         Quote
                       </button>
@@ -293,26 +288,26 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
         </div>
 
         {/* Public Rate Portal Header */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-7 shadow-xs no-print">
+        <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 sm:p-7 shadow-xs no-print">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold uppercase tracking-wider">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#EAF2F8] border border-[#105186]/25 text-[#105186] text-[11px] font-bold uppercase tracking-wider">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Synced Live from ERP Daily Rate Management</span>
               </div>
-              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
                 NAV DURGA ISPAT — LIVE PRODUCT RATES
               </h1>
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600">
-                <span className="flex items-center gap-1.5 font-semibold text-slate-800">
-                  <Clock className="w-4 h-4 text-blue-700" />
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#737D88]">
+                <span className="flex items-center gap-1.5 font-semibold text-[#263442]">
+                  <Clock className="w-4 h-4 text-[#105186]" />
                   Last Updated: {formattedUpdatedAt}
                 </span>
                 <span className="flex items-center gap-1.5 font-semibold text-emerald-700">
                   <ShieldCheck className="w-4 h-4" />
                   Status: {rates?.rateStatus || 'Published'}
                 </span>
-                <span className="font-semibold text-red-700">
+                <span className="font-semibold text-[#0B3A60]">
                   {rates?.gstNote || 'GST 18% Extra • Ex-Plant Urla, Raipur'}
                 </span>
               </div>
@@ -323,7 +318,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                 type="button"
                 onClick={loadLatestRates}
                 disabled={refreshing}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-[#F7F9FB] hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
                 <span>Refresh Rates</span>
@@ -332,9 +327,9 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer"
               >
-                <Printer className="w-3.5 h-3.5 text-red-700" />
+                <Printer className="w-3.5 h-3.5 text-[#105186]" />
                 <span>Download Rate List PDF</span>
               </button>
 
@@ -351,7 +346,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenQuoteModal('Structural Steel Rate List', 'Medium / Light Section')}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Request Quotation</span>
@@ -360,48 +355,48 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
           </div>
 
           {/* Benchmark Section Rate Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-200">
-            <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50/70 via-white to-slate-50 p-4 flex items-center justify-between gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#C7CED6]">
+            <div className="rounded-xl border border-[#105186]/25 bg-gradient-to-br from-[#EAF2F8] via-white to-[#F7F9FB] p-4 flex items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-800">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#105186]">
                   <Building2 className="w-3.5 h-3.5" />
                   <span>{cms.unit1Name || 'NAVDURGA ISPAT PVT. LTD.'}</span>
                 </div>
-                <div className="font-display text-lg font-extrabold text-slate-900 mt-0.5">
+                <div className="font-display text-lg font-extrabold text-[#263442] mt-0.5">
                   MEDIUM SECTION BASIC RATE
                 </div>
-                <div className="text-xs text-slate-600 mt-0.5">
+                <div className="text-xs text-[#737D88] mt-0.5">
                   MS Channel (100mm–250mm), Heavy Beams &amp; Medium Angles • Gauge Diff Applied Per Size
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-2xl sm:text-3xl font-extrabold text-blue-800 tabular-nums">
+                <div className="text-2xl sm:text-3xl font-extrabold text-[#105186] tabular-nums">
                   {formatInr(rates?.mediumSectionRate || 0)}
                 </div>
-                <div className="text-[11px] font-bold text-slate-500">
+                <div className="text-[11px] font-bold text-[#737D88]">
                   {(rates?.mediumSectionRate || 0) > 0 ? '/ MT + GST 18%' : 'Contact Sales Desk'}
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-red-200 bg-gradient-to-br from-red-50/60 via-white to-slate-50 p-4 flex items-center justify-between gap-4">
+            <div className="rounded-xl border border-[#C7CED6] bg-gradient-to-br from-[#F7F9FB] via-white to-[#EAF2F8]/60 p-4 flex items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-red-800">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0B3A60]">
                   <Building2 className="w-3.5 h-3.5" />
                   <span>{cms.unit2Name || 'UNIT-2 - NS ISPAT (I) PVT. LTD.'}</span>
                 </div>
-                <div className="font-display text-lg font-extrabold text-slate-900 mt-0.5">
+                <div className="font-display text-lg font-extrabold text-[#263442] mt-0.5">
                   LIGHT SECTION BASIC RATE
                 </div>
-                <div className="text-xs text-slate-600 mt-0.5">
+                <div className="text-xs text-[#737D88] mt-0.5">
                   MS Channel 70×35 / 75×40, Light Angles, Flats &amp; Square Sections • SL / Light Gauge
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-2xl sm:text-3xl font-extrabold text-red-700 tabular-nums">
+                <div className="text-2xl sm:text-3xl font-extrabold text-[#0B3A60] tabular-nums">
                   {formatInr(rates?.lightSectionRate || 0)}
                 </div>
-                <div className="text-[11px] font-bold text-slate-500">
+                <div className="text-[11px] font-bold text-[#737D88]">
                   {(rates?.lightSectionRate || 0) > 0 ? '/ MT + GST 18%' : 'Contact Sales Desk'}
                 </div>
               </div>
@@ -411,13 +406,13 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
           {/* Search & Filters */}
           <div className="mt-5 flex flex-col md:flex-row items-stretch md:items-center gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <Search className="w-4 h-4 text-[#737D88] absolute left-3.5 top-3" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by product name, size (e.g. 100 x 50, 75 x 40), grade, or code..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] focus:bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
               />
             </div>
 
@@ -429,8 +424,8 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                   onClick={() => setSectionFilter(sec)}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                     sectionFilter === sec
-                      ? 'bg-blue-700 text-white border-blue-700'
-                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                      ? 'bg-[#105186] text-white border-[#105186]'
+                      : 'bg-white text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]/60'
                   }`}
                 >
                   {sec === 'ALL' ? 'All Sections' : sec}
@@ -481,14 +476,14 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
             {renderSectionTable(
               'MEDIUM SECTION',
               `${cms.unit1Name || 'NAVDURGA ISPAT PVT. LTD.'} • Heavy & Medium Structural Rolling Line`,
-              'blue',
+              'primary',
               rates?.mediumSectionRate || 0,
               mediumProducts
             )}
             {renderSectionTable(
               'LIGHT SECTION',
               `${cms.unit2Name || 'UNIT-2 - NS ISPAT (I) PVT. LTD.'} • Light Structural & Merchant Sections`,
-              'red',
+              'deep',
               rates?.lightSectionRate || 0,
               lightProducts
             )}

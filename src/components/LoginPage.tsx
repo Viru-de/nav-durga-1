@@ -104,38 +104,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToWe
         noIndex
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-[#FAF9F6] to-blue-50/40 flex flex-col justify-center py-10 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#F7F9FB] via-white to-[#EAF2F8] flex flex-col justify-center py-10 px-4">
         <div className="max-w-md w-full mx-auto space-y-5">
           <div className="flex items-center justify-between">
             <button
               type="button"
               onClick={onBackToWebsite}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#737D88] hover:text-[#105186] cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Public Website</span>
             </button>
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#105186] bg-[#EAF2F8] border border-[#105186]/25 px-2.5 py-1 rounded-lg">
               <ShieldCheck className="w-3.5 h-3.5" />
               RBAC Protected
             </span>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 sm:p-8 space-y-6">
+          <div className="bg-white rounded-2xl border border-[#C7CED6] shadow-lg p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3.5 pb-5 border-b border-slate-100">
               <NavDurgaLogo size="md" withCard priority />
               <div>
-                <h1 className="font-display text-xl font-extrabold text-slate-900">
+                <h1 className="font-display text-xl font-extrabold text-[#263442]">
                   Nav Durga ERP Login
                 </h1>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-[#737D88] font-medium">
                   Rate Management, CRM, Website CMS &amp; WhatsApp System
                 </p>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-800">
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-bold text-amber-900">
                 {error}
               </div>
             )}
@@ -216,7 +216,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToWe
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white text-sm font-bold shadow-sm cursor-pointer transition-colors"
+                  className="w-full py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] disabled:opacity-60 text-white text-sm font-bold shadow-sm cursor-pointer transition-colors"
                 >
                   {loading ? 'Signing In...' : 'Sign In to Nav Durga ERP'}
                 </button>
@@ -323,15 +323,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToWe
 
               {showRoleRef && (
                 <div className="mt-3 space-y-2 text-[11px]">
-                  <div className="p-2.5 rounded-xl bg-red-50/70 border border-red-200 flex items-center justify-between gap-2">
+                  <div className="p-2.5 rounded-xl bg-[#EAF2F8] border border-[#105186]/25 flex items-center justify-between gap-2">
                     <div>
-                      <div className="font-bold text-red-900">SUPER ADMIN — Virendra Patel</div>
-                      <div className="text-slate-600 font-mono">superadmin / NavDurga@2026</div>
+                      <div className="font-bold text-[#0B3A60]">SUPER ADMIN — Virendra Patel</div>
+                      <div className="text-[#263442] font-mono">superadmin / NavDurga@2026</div>
                     </div>
                     <button
                       type="button"
                       onClick={() => quickFillAccount('superadmin', 'NavDurga@2026')}
-                      className="px-2.5 py-1 rounded-lg bg-red-700 text-white font-bold cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-[#105186] hover:bg-[#0B3A60] text-white font-bold cursor-pointer"
                     >
                       Use
                     </button>

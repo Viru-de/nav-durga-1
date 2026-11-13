@@ -17,7 +17,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
   onClose,
   presetProduct = '',
   presetGrade = '',
-  contactWhatsapp = '919827100000',
+  contactWhatsapp = '919752183053',
   onEnquirySubmitted,
 }) => {
   const [name, setName] = useState('');
@@ -26,7 +26,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
   const [product, setProduct] = useState(presetProduct || 'MS Channel');
-  const [grade, setGrade] = useState(presetGrade || 'Medium / IS 2062');
+  const [grade, setGrade] = useState(presetGrade || 'Standard');
   const [quantity, setQuantity] = useState('25');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -83,12 +83,12 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-xl overflow-hidden">
-        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="px-6 py-4 bg-[#F7F9FB] border-b border-[#C7CED6] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-red-700">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
               Nav Durga Ispat Sales Desk
             </span>
-            <h3 className="font-display text-lg font-extrabold text-slate-900">
+            <h3 className="font-display text-lg font-extrabold text-[#263442]">
               Request Industrial Quotation
             </h3>
           </div>
@@ -153,7 +153,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-800">
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-semibold text-amber-900">
                 {error}
               </div>
             )}
@@ -295,7 +295,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white text-xs font-bold shadow-xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] disabled:opacity-60 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{submitting ? 'Submitting...' : 'Submit Enquiry'}</span>

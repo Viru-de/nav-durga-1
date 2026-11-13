@@ -461,11 +461,51 @@ export interface AppUser {
   lastLoginAt?: string;
 }
 
+export interface HeroSlideItem {
+  id: string;
+  imageUrl: string;
+  webpUrl?: string;
+  fallbackUrl?: string;
+  alt: string;
+  smallHeading?: string;
+  heading?: string;
+  description?: string;
+  primaryCtaLabel?: string;
+  primaryCtaTarget?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaTarget?: string;
+  enabled: boolean;
+  order: number;
+}
+
+export interface SolutionServiceCmsItem {
+  id: string;
+  key: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  kind: 'product' | 'service';
+  enabled: boolean;
+}
+
+export interface PresenceLocationItem {
+  id: string;
+  title: string;
+  address: string;
+  phone?: string;
+  notes?: string;
+  isHeadOffice?: boolean;
+}
+
 export interface WebsiteCmsContent {
   id: string;
   heroBadge: string;
   heroHeadline: string;
   heroSubheadline: string;
+  heroSlides?: HeroSlideItem[];
+  defaultHeroSlideId?: string;
+  solutionsServices?: SolutionServiceCmsItem[];
+  additionalLocations?: PresenceLocationItem[];
   announcementBanner: string;
   showAnnouncementBanner: boolean;
   aboutTitle: string;
@@ -481,6 +521,8 @@ export interface WebsiteCmsContent {
   unit2Name: string;
   dispatchHours: string;
   gstNumber: string;
+  cinNumber?: string;
+  establishedYear?: string;
   updatedAt: string;
   updatedBy: string;
 }
@@ -501,6 +543,7 @@ export interface PublicRateProductItem {
   inStock: boolean;
   rateSource: string;
   description: string;
+  image?: string;
 }
 
 export interface PublicRatesPayload {

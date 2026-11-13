@@ -252,7 +252,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
     fillLight.position.set(-5, 3, -3);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xfef2f2, 0.7);
+    const rimLight = new THREE.DirectionalLight(0xeaf2f8, 0.75);
     rimLight.position.set(0, 4, -6);
     scene.add(rimLight);
 
@@ -290,10 +290,10 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
       roughness: 0.36,
     });
 
-    const crimsonAccentMat = new THREE.MeshStandardMaterial({
-      color: 0xb91c1c,
-      metalness: 0.45,
-      roughness: 0.35,
+    const blueAccentMat = new THREE.MeshStandardMaterial({
+      color: 0x105186,
+      metalness: 0.48,
+      roughness: 0.34,
     });
 
     const timberSkidMat = new THREE.MeshStandardMaterial({
@@ -348,11 +348,11 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
         addPart(m, p.ex);
       });
 
-      // Crimson Nav Durga steel strap bands
+      // Primary Blue Nav Durga steel strap bands
       const bandGeo = new THREE.BoxGeometry(1.94, 0.04, 0.07);
       disposableGeos.push(bandGeo);
       [-0.95, 0.95].forEach((z) => {
-        const band = new THREE.Mesh(bandGeo, crimsonAccentMat);
+        const band = new THREE.Mesh(bandGeo, blueAccentMat);
         band.position.set(0, 0.16, z);
         addPart(band, new THREE.Vector3(0, 0.65, 0));
       });
@@ -379,7 +379,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
         [-0.38, -0.4],
         [0.38, -0.4],
       ].forEach(([bx, by]) => {
-        const bolt = new THREE.Mesh(boltGeo, crimsonAccentMat);
+        const bolt = new THREE.Mesh(boltGeo, blueAccentMat);
         bolt.position.set(bx, by, 1.94);
         addPart(bolt, new THREE.Vector3(0, 0.15, 0.8));
       });
@@ -411,7 +411,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
 
       const tagGeo = new THREE.BoxGeometry(0.45, 0.22, 0.05);
       disposableGeos.push(tagGeo);
-      const tag = new THREE.Mesh(tagGeo, crimsonAccentMat);
+      const tag = new THREE.Mesh(tagGeo, blueAccentMat);
       tag.position.set(0.68, 0.1, 1.62);
       addPart(tag, new THREE.Vector3(0.25, 0.15, 0.35));
     } else {
@@ -434,7 +434,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
         addPart(housing, new THREE.Vector3(hx * 0.3, 0.1, 0));
       });
 
-      const topCap = new THREE.Mesh(capGeo, crimsonAccentMat);
+      const topCap = new THREE.Mesh(capGeo, blueAccentMat);
       topCap.position.set(0, 1.2, 0);
       addPart(topCap, new THREE.Vector3(0, 0.48, 0));
 
@@ -538,7 +538,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
       disposableGeos.forEach((g) => g.dispose());
       steelMat.dispose();
       darkSteelEdgeMat.dispose();
-      crimsonAccentMat.dispose();
+      blueAccentMat.dispose();
       timberSkidMat.dispose();
       floorMat.dispose();
       envTarget.dispose();
@@ -550,30 +550,30 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
   const meta = PROFILE_META[mode];
 
   return (
-    <div className={`relative w-full ${heightClass} bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden shadow-xs select-none`}>
+    <div className={`relative w-full ${heightClass} bg-[#F7F9FB] rounded-2xl border border-[#C7CED6] overflow-hidden shadow-xs select-none`}>
       {/* 3D Canvas Container */}
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
       {/* Fallback when WebGL unavailable */}
       {webglError && (
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-slate-100 flex flex-col items-center justify-center p-6 text-center">
-          <Cpu className="w-10 h-10 text-red-700 mb-3" />
-          <h3 className="text-lg font-extrabold text-slate-900">{meta.label}</h3>
-          <p className="text-xs text-slate-600 mt-1 max-w-md">{meta.specs}</p>
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-[#F7F9FB] to-[#EAF2F8] flex flex-col items-center justify-center p-6 text-center">
+          <Cpu className="w-10 h-10 text-[#105186] mb-3" />
+          <h3 className="text-lg font-extrabold text-[#263442]">{meta.label}</h3>
+          <p className="text-xs text-[#737D88] mt-1 max-w-md">{meta.specs}</p>
         </div>
       )}
 
       {/* Top Left Engineering Specification Readout */}
       <div className="absolute top-3.5 left-3.5 z-10 pointer-events-none max-w-[300px]">
-        <div className="bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl px-3.5 py-2.5 shadow-xs">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-red-700">
+        <div className="bg-white/92 backdrop-blur-md border border-[#C7CED6] rounded-xl px-3.5 py-2.5 shadow-xs">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
             Interactive 3D Engineering Spec
           </div>
-          <div className="text-sm font-extrabold text-slate-900 mt-0.5">{meta.label}</div>
-          <div className="text-[11px] font-medium text-slate-600 mt-0.5">{meta.specs}</div>
-          <div className="mt-1.5 pt-1.5 border-t border-slate-200/80 flex items-center justify-between gap-3 text-[10px] font-mono text-slate-700">
+          <div className="text-sm font-extrabold text-[#263442] mt-0.5">{meta.label}</div>
+          <div className="text-[11px] font-medium text-[#737D88] mt-0.5">{meta.specs}</div>
+          <div className="mt-1.5 pt-1.5 border-t border-[#C7CED6]/80 flex items-center justify-between gap-3 text-[10px] font-mono text-[#263442]">
             <span>{meta.standard}</span>
-            <span className="font-semibold text-blue-700">{meta.section}</span>
+            <span className="font-semibold text-[#105186]">{meta.section}</span>
           </div>
         </div>
       </div>
@@ -585,8 +585,8 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
           onClick={() => setExploded((v) => !v)}
           className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
             exploded
-              ? 'bg-red-700 text-white border-red-700'
-              : 'bg-white/90 text-slate-800 border-slate-200 hover:bg-white'
+              ? 'bg-[#105186] text-white border-[#105186]'
+              : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
           }`}
           title="Toggle exploded assembly view"
         >
@@ -599,8 +599,8 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
           onClick={() => setAutoRotate((v) => !v)}
           className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
             autoRotate
-              ? 'bg-blue-700 text-white border-blue-700'
-              : 'bg-white/90 text-slate-800 border-slate-200 hover:bg-white'
+              ? 'bg-[#0B3A60] text-white border-[#0B3A60]'
+              : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
           }`}
           title="Toggle turntable rotation"
         >
@@ -611,7 +611,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
         <button
           type="button"
           onClick={() => resetCameraFnRef.current?.()}
-          className="p-1.5 rounded-lg bg-white/90 text-slate-700 border border-slate-200 hover:bg-white shadow-2xs cursor-pointer"
+          className="p-1.5 rounded-lg bg-white/90 text-[#263442] border border-[#C7CED6] hover:bg-white shadow-2xs cursor-pointer"
           title="Reset camera angle"
         >
           <RotateCcw className="w-3.5 h-3.5" />
@@ -620,7 +620,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
 
       {/* Bottom Profile Switcher Dock (Light Metallic Glass) */}
       <div className="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="pointer-events-auto inline-flex flex-wrap items-center gap-1 bg-white/92 backdrop-blur-md border border-slate-200 p-1 rounded-xl shadow-xs">
+        <div className="pointer-events-auto inline-flex flex-wrap items-center gap-1 bg-white/92 backdrop-blur-md border border-[#C7CED6] p-1 rounded-xl shadow-xs">
           {(
             [
               { id: 'channel', label: 'MS Channel' },
@@ -635,8 +635,8 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
               onClick={() => setMode(item.id)}
               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
                 mode === item.id
-                  ? 'bg-red-700 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
+                  ? 'bg-[#105186] text-white'
+                  : 'text-[#263442] hover:bg-[#EAF2F8]'
               }`}
             >
               {item.label}
@@ -648,7 +648,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
           <button
             type="button"
             onClick={() => onRequestQuote(meta.label)}
-            className="pointer-events-auto px-3 py-1.5 rounded-xl bg-white/95 hover:bg-red-50 text-red-700 border border-red-200 text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
+            className="pointer-events-auto px-3 py-1.5 rounded-xl bg-white/95 hover:bg-[#EAF2F8] text-[#105186] border border-[#105186]/30 text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
           >
             Quote {meta.label.split(' ')[0]} {meta.label.split(' ')[1]} →
           </button>
