@@ -15,8 +15,10 @@ import {
   Calendar,
   Layers,
   Sparkles,
+  Globe,
+  Shield,
 } from 'lucide-react';
-import { ActiveTab, CompanySettings } from '../types';
+import { ActiveTab, AppUser, CompanySettings, UserPermissions } from '../types';
 import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface MobileNavProps {
@@ -26,6 +28,8 @@ interface MobileNavProps {
   onClose: () => void;
   pendingEnquiriesCount: number;
   company: CompanySettings;
+  authUser?: AppUser | null;
+  onOpenWhatsAppSystem?: () => void;
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({
@@ -35,38 +39,54 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onClose,
   pendingEnquiriesCount,
   company,
+  authUser,
+  onOpenWhatsAppSystem,
 }) => {
-  const allTabs: { id: ActiveTab; label: string; icon: React.ElementType; badge?: number }[] = [
+  const allTabs: {
+    id: ActiveTab;
+    label: string;
+    icon: React.ElementType;
+    badge?: number;
+    requiredPerm?: keyof UserPermissions;
+  }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'ai-assistant', label: 'Nav Durga AI Assistant', icon: Sparkles },
-    { id: 'products', label: 'Products & Grades', icon: Package },
-    { id: 'daily-rates', label: 'Daily Rate Management', icon: Calendar },
-    { id: 'gauge-master', label: 'Gauge Difference Master', icon: Layers },
-    { id: 'daily-updates', label: 'Daily Price Updates', icon: TrendingUp },
-    { id: 'ai-post-generator', label: 'AI Post Generator', icon: Sparkles },
-    { id: 'whatsapp-center', label: 'WhatsApp Center', icon: MessageSquare },
-    { id: 'customers', label: 'Customers', icon: Users },
-    { id: 'enquiries', label: 'Enquiries', icon: HelpCircle, badge: pendingEnquiriesCount },
-    { id: 'quotations', label: 'Quotations', icon: FileText },
-    { id: 'orders', label: 'Sales Orders', icon: ShoppingCart },
-    { id: 'follow-ups', label: 'Follow-ups', icon: CalendarCheck },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'products', label: 'Products & Grades', icon: Package, requiredPerm: 'manageProducts' },
+    { id: 'daily-rates', label: 'Daily Rate Management', icon: Calendar, requiredPerm: 'manageDailyRates' },
+    { id: 'gauge-master', label: 'Gauge Difference Master', icon: Layers, requiredPerm: 'manageProducts' },
+    { id: 'daily-updates', label: 'Daily Price Updates', icon: TrendingUp, requiredPerm: 'manageDailyRates' },
+    { id: 'ai-post-generator', label: 'AI Post Generator', icon: Sparkles, requiredPerm: 'manageWhatsApp' },
+    { id: 'whatsapp-center', label: 'WhatsApp Center', icon: MessageSquare, requiredPerm: 'manageWhatsApp' },
+    { id: 'website-cms', label: 'Website CMS', icon: Globe, requiredPerm: 'manageWebsiteCms' },
+    { id: 'customers', label: 'Customers', icon: Users, requiredPerm: 'manageEnquiries' },
+    { id: 'enquiries', label: 'Enquiries', icon: HelpCircle, badge: pendingEnquiriesCount, requiredPerm: 'manageEnquiries' },
+    { id: 'quotations', label: 'Quotations', icon: FileText, requiredPerm: 'manageQuotationsOrders' },
+    { id: 'orders', label: 'Sales Orders', icon: ShoppingCart, requiredPerm: 'manageQuotationsOrders' },
+    { id: 'follow-ups', label: 'Follow-ups', icon: CalendarCheck, requiredPerm: 'manageEnquiries' },
+    { id: 'team-management', label: 'Team & Role Management', icon: Shield, requiredPerm: 'manageTeamUsers' },
+    { id: 'reports', label: 'Reports', icon: BarChart3, requiredPerm: 'viewReports' },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  // Quick primary items for bottom navigation bar
-  const bottomItems: { id: ActiveTab; label: string; icon: React.ElementType }[] = [
+  const isAllowed = (requiredPerm?: keyof UserPermissions) => {
+    if (!authUser || !requiredPerm) return true;
+    if (authUser.rbacRole === 'SUPER_ADMIN') return true;
+    return Boolean(authUser.permissions?.[requiredPerm]);
+  };
+
+  const visibleTabs = allTabs.filter((t) => isAllowed(t.requiredPerm));
+
+  const rawBottomItems: { id: ActiveTab; label: string; icon: React.ElementType; requiredPerm?: keyof UserPermissions }[] = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
-    { id: 'ai-assistant', label: 'AI ERP', icon: Sparkles },
-    { id: 'products', label: 'Products', icon: Package },
-    { id: 'daily-updates', label: 'Updates', icon: TrendingUp },
-    { id: 'whatsapp-center', label: 'WhatsApp', icon: MessageSquare },
-    { id: 'customers', label: 'Clients', icon: Users },
+    { id: 'daily-rates', label: 'Rates', icon: Calendar, requiredPerm: 'manageDailyRates' },
+    { id: 'products', label: 'Products', icon: Package, requiredPerm: 'manageProducts' },
+    { id: 'whatsapp-center', label: 'WhatsApp', icon: MessageSquare, requiredPerm: 'manageWhatsApp' },
+    { id: 'enquiries', label: 'Enquiries', icon: HelpCircle, requiredPerm: 'manageEnquiries' },
   ];
+  const bottomItems = rawBottomItems.filter((t) => isAllowed(t.requiredPerm));
 
   return (
     <>
-      {/* Mobile Drawer Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs md:hidden"
@@ -74,7 +94,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         />
       )}
 
-      {/* Mobile Drawer Side Panel */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-200 ease-in-out md:hidden flex flex-col justify-between ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
@@ -99,7 +118,21 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          {allTabs.map((item) => {
+          {onOpenWhatsAppSystem && isAllowed('manageWhatsApp') && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenWhatsAppSystem();
+              }}
+              className="w-full mb-2 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-extrabold cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>OPEN WHATSAPP SYSTEM</span>
+            </button>
+          )}
+
+          {visibleTabs.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
             return (

@@ -67,5 +67,26 @@ service cloud.firestore {
       allow create, update: if isValidId(broadcastId);
       allow delete: if isSignedIn() && isValidId(broadcastId);
     }
+
+    // Website CMS: Public read for website visitors, authenticated write
+    match /website_cms/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isValidId(docId);
+    }
+
+    // Rate Publications: Public read for live rate portal, authenticated write
+    match /rate_publications/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isValidId(docId);
+    }
+
+    // ERP Users & Activity Logs: Protected from unauthenticated public reads
+    match /erp_users/{userId} {
+      allow read, write: if isSignedIn() && isValidId(userId);
+    }
+
+    match /activity_logs/{logId} {
+      allow read, write: if isSignedIn() && isValidId(logId);
+    }
   }
 }

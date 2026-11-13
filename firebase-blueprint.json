@@ -147,6 +147,72 @@
         "failedCount": { "type": "number" }
       },
       "required": ["date", "broadcastType", "title", "mediumSectionRate", "slSectionRate"]
+    },
+    "ErpUser": {
+      "title": "ErpUser",
+      "description": "Authenticated ERP team member with role-based permissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "username": { "type": "string", "maxLength": 80 },
+        "name": { "type": "string", "maxLength": 200 },
+        "email": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "ADMIN", "SALES"] },
+        "status": { "type": "string", "enum": ["Active", "Inactive"] },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "username", "name", "email", "role", "status"]
+    },
+    "WebsiteCms": {
+      "title": "WebsiteCms",
+      "description": "Public website editable CMS headlines, banners, contact info, and announcements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "heroHeadline": { "type": "string", "maxLength": 300 },
+        "heroSubheadline": { "type": "string", "maxLength": 600 },
+        "announcementBanner": { "type": "string", "maxLength": 500 },
+        "aboutSummary": { "type": "string", "maxLength": 3000 },
+        "qualityCommitment": { "type": "string", "maxLength": 2000 },
+        "contactPhone": { "type": "string", "maxLength": 50 },
+        "contactWhatsapp": { "type": "string", "maxLength": 50 },
+        "contactEmail": { "type": "string", "maxLength": 150 },
+        "contactAddress": { "type": "string", "maxLength": 400 },
+        "updatedAt": { "type": "string", "maxLength": 100 },
+        "updatedBy": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "heroHeadline", "contactPhone", "contactEmail"]
+    },
+    "RatePublication": {
+      "title": "RatePublication",
+      "description": "Latest published public steel rate snapshot derived from ERP Daily Rate Management",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "mediumSectionRate": { "type": "number" },
+        "lightSectionRate": { "type": "number" },
+        "slSectionRate": { "type": "number" },
+        "status": { "type": "string", "enum": ["Published", "Indicative"] },
+        "gstNote": { "type": "string", "maxLength": 200 },
+        "lastUpdated": { "type": "string", "maxLength": 100 },
+        "updatedBy": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "mediumSectionRate", "lightSectionRate", "lastUpdated"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Audit log of ERP rate updates, logins, CMS changes, and team edits",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "string", "maxLength": 100 },
+        "actorName": { "type": "string", "maxLength": 200 },
+        "actorRole": { "type": "string", "maxLength": 50 },
+        "action": { "type": "string", "maxLength": 200 },
+        "details": { "type": "string", "maxLength": 2000 }
+      },
+      "required": ["id", "timestamp", "actorName", "action"]
     }
   },
   "firestore": {
@@ -181,6 +247,22 @@
     "/rate_broadcasts/{broadcastId}": {
       "schema": { "$ref": "#/entities/RateBroadcast" },
       "description": "Rate broadcast history with previous rate lists, revision alerts, and delivery logs"
+    },
+    "/erp_users/{userId}": {
+      "schema": { "$ref": "#/entities/ErpUser" },
+      "description": "Authorized ERP team profiles and RBAC roles"
+    },
+    "/website_cms/{docId}": {
+      "schema": { "$ref": "#/entities/WebsiteCms" },
+      "description": "Website CMS editable copy and public contact configuration"
+    },
+    "/rate_publications/{docId}": {
+      "schema": { "$ref": "#/entities/RatePublication" },
+      "description": "Live public product rate publication state synced from ERP"
+    },
+    "/activity_logs/{logId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Audit trail for administrative and pricing operations"
     }
   }
 }

@@ -39,6 +39,7 @@ interface DashboardViewProps {
   followUps: FollowUp[];
   whatsAppMessages: WhatsAppMessageRecord[];
   onNavigate: (tab: ActiveTab) => void;
+  onOpenWhatsAppSystem?: () => void;
   onOpenCreateUpdate: () => void;
   onOpenCreateEnquiry: () => void;
   onOpenCreateOrder: () => void;
@@ -58,6 +59,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   followUps,
   whatsAppMessages,
   onNavigate,
+  onOpenWhatsAppSystem,
   onOpenCreateUpdate,
   onOpenCreateEnquiry,
   onOpenCreateOrder,
@@ -114,7 +116,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Industrial Steel ERP Dashboard
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                Urla Mill & Raipur Market commercial operations, pricing broadcasts, and customer pipeline.
+                Urla Mill &amp; Raipur Market commercial operations, pricing broadcasts, and customer pipeline.
               </p>
             </div>
           </div>
@@ -132,11 +134,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <button
               type="button"
-              onClick={() => onNavigate('whatsapp-center')}
-              className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs transition-colors cursor-pointer"
+              onClick={() => (onOpenWhatsAppSystem ? onOpenWhatsAppSystem() : onNavigate('whatsapp-center'))}
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs transition-colors cursor-pointer"
             >
               <MessageSquare className="w-4 h-4 shrink-0" />
-              <span>WhatsApp Broadcast</span>
+              <span>OPEN WHATSAPP SYSTEM</span>
             </button>
 
             <button
@@ -156,7 +158,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
                   Today&apos;s Benchmark Prices ({latestUpdate.date}):
                 </span>
               </div>

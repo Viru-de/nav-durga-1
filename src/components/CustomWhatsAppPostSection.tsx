@@ -397,7 +397,7 @@ export const CustomWhatsAppPostSection: React.FC<CustomWhatsAppPostSectionProps>
               6. Attach Image
             </span>
             <span className="text-slate-400 font-bold">→</span>
-            <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-white font-bold shadow-2xs">
+            <span className="px-2.5 py-1 rounded-lg bg-blue-700 text-white font-bold shadow-2xs">
               7. Send Manually
             </span>
           </div>
@@ -681,7 +681,7 @@ export const CustomWhatsAppPostSection: React.FC<CustomWhatsAppPostSectionProps>
                 onClick={() => setActiveCustomerTab('test')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
                   activeCustomerTab === 'test'
-                    ? 'bg-slate-800 text-white'
+                    ? 'bg-blue-700 text-white'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -692,7 +692,7 @@ export const CustomWhatsAppPostSection: React.FC<CustomWhatsAppPostSectionProps>
                 onClick={() => setActiveCustomerTab('all')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
                   activeCustomerTab === 'all'
-                    ? 'bg-slate-800 text-white'
+                    ? 'bg-blue-700 text-white'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >

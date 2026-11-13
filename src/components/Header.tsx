@@ -5,8 +5,11 @@ import {
   Bell,
   Sparkles,
   Calendar,
+  MessageSquare,
+  Globe,
+  LogOut,
 } from 'lucide-react';
-import { ActiveTab, CompanySettings } from '../types';
+import { ActiveTab, AppUser, CompanySettings } from '../types';
 import { NavDurgaLogo } from './NavDurgaLogo';
 
 interface HeaderProps {
@@ -16,8 +19,9 @@ interface HeaderProps {
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
   pendingEnquiriesCount: number;
-  currentUser?: { displayName?: string | null; email?: string | null; photoURL?: string | null } | null;
-  onSignIn?: () => void;
+  authUser?: AppUser | null;
+  onOpenWhatsAppSystem?: () => void;
+  onViewWebsite?: () => void;
   onSignOut?: () => void;
 }
 
@@ -28,32 +32,25 @@ export const Header: React.FC<HeaderProps> = ({
   mobileMenuOpen,
   setMobileMenuOpen,
   pendingEnquiriesCount,
-  currentUser,
-  onSignIn,
+  authUser,
+  onOpenWhatsAppSystem,
+  onViewWebsite,
   onSignOut,
 }) => {
-  // Dynamically formatted current real date using the user's local date (e.g. "29 Sept 2026")
   const formattedCurrentDate = useMemo(() => {
     const now = new Date();
     const day = now.getDate();
     const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sept',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec',
     ];
-    const month = monthNames[now.getMonth()];
-    const year = now.getFullYear();
-    return `${day} ${month} ${year}`;
+    return `${day} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
   }, []);
+
+  const canOpenWhatsApp =
+    !authUser ||
+    authUser.rbacRole === 'SUPER_ADMIN' ||
+    authUser.permissions?.manageWhatsApp !== false;
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs no-print">
@@ -99,35 +96,59 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Center Info Ticker (Dynamic Date & Raipur Market Active Status) */}
-          <div className="hidden md:flex items-center text-xs">
+          {/* Center Info Ticker */}
+          <div className="hidden xl:flex items-center text-xs">
             <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-600 shadow-2xs">
               <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
               <span className="font-semibold text-slate-800 whitespace-nowrap">{formattedCurrentDate}</span>
               <span className="text-slate-300">|</span>
               <span className="flex items-center gap-1.5 text-emerald-700 font-semibold whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
                 Raipur Market Active
               </span>
             </div>
           </div>
 
           {/* Right Action Tools */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {/* Quick AI Assistant button */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {onViewWebsite && (
+              <button
+                type="button"
+                onClick={onViewWebsite}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer whitespace-nowrap"
+                title="View Public Website"
+              >
+                <Globe className="w-3.5 h-3.5 text-blue-700" />
+                <span>Website</span>
+              </button>
+            )}
+
+            {canOpenWhatsApp && onOpenWhatsAppSystem && (
+              <button
+                type="button"
+                onClick={onOpenWhatsAppSystem}
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs cursor-pointer whitespace-nowrap transition-colors"
+                title="Open Dedicated WhatsApp System"
+              >
+                <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden lg:inline">OPEN WHATSAPP SYSTEM</span>
+                <span className="lg:hidden">WhatsApp</span>
+              </button>
+            )}
+
+            {/* Quick AI Assistant button (Light theme) */}
             <button
               type="button"
               onClick={() => onNavigate('ai-assistant')}
-              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap ${
                 currentTab === 'ai-assistant'
-                  ? 'bg-slate-900 text-amber-300 ring-2 ring-blue-500'
-                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                  ? 'bg-blue-700 text-white ring-2 ring-blue-300'
+                  : 'bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100'
               }`}
               title="Open Nav Durga AI Assistant"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-              <span className="hidden sm:inline">AI Assistant</span>
-              <span className="sm:hidden">AI</span>
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">AI ERP</span>
             </button>
 
             {/* Notification Badge */}
@@ -139,75 +160,36 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Bell className="w-5 h-5" />
               {pendingEnquiriesCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-orange-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-4 h-4 bg-red-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {pendingEnquiriesCount}
                 </span>
               )}
             </button>
 
-            {/* User Profile / Firebase Auth Pill */}
-            {currentUser ? (
+            {/* Authenticated RBAC Profile */}
+            {authUser && (
               <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                {currentUser.photoURL ? (
-                  <img
-                    src={currentUser.photoURL}
-                    alt={currentUser.displayName || 'User'}
-                    className="w-8 h-8 rounded-full border border-slate-300 object-cover shrink-0"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center justify-center font-bold text-xs shrink-0">
-                    {(currentUser.displayName || currentUser.email || 'U').charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div
-                  onClick={() => onNavigate('settings')}
-                  className="hidden lg:flex flex-col text-left cursor-pointer hover:opacity-80"
-                >
+                <div className="w-8 h-8 rounded-full bg-red-50 text-red-800 border border-red-200 flex items-center justify-center font-bold text-xs shrink-0">
+                  {authUser.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden lg:flex flex-col text-left">
                   <span className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">
-                    {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}
+                    {authUser.name}
                   </span>
-                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Firebase Sync
+                  <span className="text-[10px] text-blue-700 font-bold">
+                    {authUser.rbacRole || authUser.role}
                   </span>
                 </div>
                 {onSignOut && (
                   <button
                     type="button"
                     onClick={onSignOut}
-                    className="hidden sm:inline-flex text-[10px] font-bold text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-slate-100 cursor-pointer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 cursor-pointer"
                     title="Sign Out"
                   >
-                    Logout
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Logout</span>
                   </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                {onSignIn ? (
-                  <button
-                    type="button"
-                    onClick={onSignIn}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors cursor-pointer"
-                    title="Sign in with Google Firebase"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>Sign In</span>
-                  </button>
-                ) : (
-                  <div
-                    onClick={() => onNavigate('settings')}
-                    className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 font-bold text-xs shrink-0">
-                      VP
-                    </div>
-                    <div className="hidden lg:flex flex-col text-left">
-                      <span className="text-xs font-bold text-slate-800 leading-tight">Virendra Patel</span>
-                      <span className="text-[10px] text-slate-500 font-medium">Administrator</span>
-                    </div>
-                  </div>
                 )}
               </div>
             )}

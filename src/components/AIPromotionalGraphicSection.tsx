@@ -431,7 +431,7 @@ export const AIPromotionalGraphicSection: React.FC<AIPromotionalGraphicSectionPr
                 <span>Edit Rates & Time</span>
               </button>
             ) : (
-              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
                 <Lock className="w-3.5 h-3.5" />
                 <span>Rates View-Only</span>
               </div>
@@ -470,17 +470,17 @@ export const AIPromotionalGraphicSection: React.FC<AIPromotionalGraphicSectionPr
               )}
             </div>
 
-            {/* Black Timestamp Pill Preview */}
-            <div className="px-3.5 py-2.5 rounded-xl bg-slate-950 text-white flex items-center justify-between text-xs font-extrabold">
+            {/* Timestamp Pill Preview */}
+            <div className="px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-300 text-slate-900 flex items-center justify-between text-xs font-extrabold">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                <Clock className="w-4 h-4 text-blue-700 shrink-0" />
                 <span>
-                  <span className="text-amber-400">{posterData.timeText}</span>{' '}
+                  <span className="text-blue-800">{posterData.timeText}</span>{' '}
                   <span>{posterData.ampmText}</span> , <span>{posterData.dayText}</span> ,{' '}
-                  <span className="text-amber-400">{posterData.dateText}</span>
+                  <span className="text-blue-800">{posterData.dateText}</span>
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-black bg-red-600 text-white uppercase">
+              <span className="px-2 py-0.5 rounded text-[10px] font-black bg-red-700 text-white uppercase">
                 {posterData.boxHeaderTitle}
               </span>
             </div>
@@ -536,9 +536,9 @@ export const AIPromotionalGraphicSection: React.FC<AIPromotionalGraphicSectionPr
                   <button
                     type="button"
                     onClick={handleApplyQuickPrompt}
-                    className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shrink-0 cursor-pointer flex items-center gap-1"
+                    className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-red-700 hover:bg-red-800 text-white shrink-0 cursor-pointer flex items-center gap-1"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                     <span>Apply</span>
                   </button>
                 </div>
@@ -821,82 +821,82 @@ export const AIPromotionalGraphicSection: React.FC<AIPromotionalGraphicSectionPr
 
             <form onSubmit={handleSaveRates} className="space-y-4 pt-4">
               {/* Timestamp & Header Section */}
-              <div className="p-4 rounded-xl bg-slate-900 text-white space-y-3">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wide text-amber-400 flex items-center gap-1.5">
+                  <span className="text-xs font-black uppercase tracking-wide text-blue-800 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>Timestamp & Box Header</span>
+                    <span>Timestamp &amp; Box Header</span>
                   </span>
                   <button
                     type="button"
                     onClick={handleFillNowTimestamp}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 cursor-pointer transition-colors"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-700 hover:bg-blue-800 text-white cursor-pointer transition-colors"
                   >
-                    Use Current Time & Date
+                    Use Current Time &amp; Date
                   </button>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1">
+                    <label className="text-[10px] font-bold text-slate-600 block mb-1">
                       Time
                     </label>
                     <input
                       type="text"
                       value={editTimeText}
                       onChange={(e) => setEditTimeText(e.target.value)}
-                      className="w-full px-2.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-slate-800 border border-slate-700 text-amber-400"
+                      className="w-full px-2.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-white border border-slate-300 text-slate-900"
                       placeholder="01.00"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1">
+                    <label className="text-[10px] font-bold text-slate-600 block mb-1">
                       AM / PM
                     </label>
                     <select
                       value={editAmpmText}
                       onChange={(e) => setEditAmpmText(e.target.value)}
-                      className="w-full px-2.5 py-1.5 text-xs font-bold rounded-lg bg-slate-800 border border-slate-700 text-white"
+                      className="w-full px-2.5 py-1.5 text-xs font-bold rounded-lg bg-white border border-slate-300 text-slate-900"
                     >
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1">
+                    <label className="text-[10px] font-bold text-slate-600 block mb-1">
                       Day
                     </label>
                     <input
                       type="text"
                       value={editDayText}
                       onChange={(e) => setEditDayText(e.target.value)}
-                      className="w-full px-2.5 py-1.5 text-xs font-bold rounded-lg bg-slate-800 border border-slate-700 text-white uppercase"
+                      className="w-full px-2.5 py-1.5 text-xs font-bold rounded-lg bg-white border border-slate-300 text-slate-900 uppercase"
                       placeholder="TUESDAY"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1">
+                    <label className="text-[10px] font-bold text-slate-600 block mb-1">
                       Date (DD.MM.YYYY)
                     </label>
                     <input
                       type="text"
                       value={editDateText}
                       onChange={(e) => setEditDateText(e.target.value)}
-                      className="w-full px-2.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-slate-800 border border-slate-700 text-amber-400"
+                      className="w-full px-2.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-white border border-slate-300 text-slate-900"
                       placeholder="18.08.2026"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 block mb-1">
+                  <label className="text-[10px] font-bold text-slate-600 block mb-1">
                     Red Box Header Label
                   </label>
                   <input
                     type="text"
                     value={editBoxHeaderTitle}
                     onChange={(e) => setEditBoxHeaderTitle(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs font-extrabold rounded-lg bg-slate-800 border border-slate-700 text-red-400 uppercase"
+                    className="w-full px-3 py-1.5 text-xs font-extrabold rounded-lg bg-white border border-slate-300 text-red-700 uppercase"
                     placeholder="RATE REVISED"
                   />
                 </div>

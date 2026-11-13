@@ -86,6 +86,7 @@ interface WhatsAppCenterViewProps {
   onCreateEnquiryFromWebhook: (enquiry: SalesEnquiry) => void;
   onNavigateToCustomer: (customerId: string) => void;
   onNavigateTab?: (tab: ActiveTab) => void;
+  onReturnToErp?: () => void;
 }
 
 type MainWhatsAppTab = 'inbox' | 'broadcast' | 'team' | 'coexistence' | 'posters';
@@ -115,6 +116,7 @@ export const WhatsAppCenterView: React.FC<WhatsAppCenterViewProps> = ({
   onCreateEnquiryFromWebhook,
   onNavigateToCustomer,
   onNavigateTab,
+  onReturnToErp,
 }) => {
   // Navigation between primary functional modes
   const [activeTab, setActiveTab] = useState<MainWhatsAppTab>('inbox');
@@ -188,19 +190,27 @@ export const WhatsAppCenterView: React.FC<WhatsAppCenterViewProps> = ({
     );
   }, [chatMessages, selectedConversation]);
 
+  const canViewAllChats =
+    !activeUser.rbacRole ||
+    activeUser.rbacRole === 'SUPER_ADMIN' ||
+    activeUser.rbacRole === 'ADMIN' ||
+    Boolean(activeUser.permissions?.viewAllWhatsAppChats);
+
   // Filter conversations
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
+      // RBAC restriction for Sales team without viewAllWhatsAppChats
+      if (!canViewAllChats) {
+        const isAssigned = c.assignedToUserId === activeUser.id;
+        const isUnassignedNew = !c.assignedToUserId || c.status === 'New';
+        if (!isAssigned && !isUnassignedNew) return false;
+      }
+
       // Status filter
       if (statusFilter !== 'ALL' && c.status !== statusFilter) return false;
 
       // Assignment filter (Team member permission logic)
       if (assignmentFilter === 'ASSIGNED_TO_ME' && c.assignedToUserId !== activeUser.id) {
-        return false;
-      }
-
-      // If non-admin sales staff wants to only see their work when restricted
-      if (activeUser.role !== 'Admin' && assignmentFilter === 'ASSIGNED_TO_ME' && c.assignedToUserId !== activeUser.id) {
         return false;
       }
 
@@ -215,7 +225,7 @@ export const WhatsAppCenterView: React.FC<WhatsAppCenterViewProps> = ({
 
       return true;
     });
-  }, [conversations, statusFilter, assignmentFilter, inboxSearch, activeUser]);
+  }, [conversations, statusFilter, assignmentFilter, inboxSearch, activeUser, canViewAllChats]);
 
   // Counts for 4 status badges
   const statusCounts = useMemo(() => {
@@ -518,31 +528,46 @@ export const WhatsAppCenterView: React.FC<WhatsAppCenterViewProps> = ({
           </p>
         </div>
 
-        {/* User Switcher / Current Staff Session */}
-        <div className="flex items-center gap-2 self-start md:self-auto bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
-          <div className="text-right px-2 hidden sm:block">
-            <div className="text-xs font-bold text-slate-900 leading-tight">{activeUser.name}</div>
-            <div className="text-[10px] text-blue-700 font-semibold">{activeUser.role} Account</div>
+        {/* User Switcher / Return to ERP */}
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          {onReturnToErp && (
+            <button
+              type="button"
+              onClick={onReturnToErp}
+              className="px-3.5 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold shadow-xs cursor-pointer whitespace-nowrap"
+            >
+              ← Return to ERP Dashboard
+            </button>
+          )}
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
+            <div className="text-right px-2 hidden sm:block">
+              <div className="text-xs font-bold text-slate-900 leading-tight">{activeUser.name}</div>
+              <div className="text-[10px] text-blue-700 font-semibold">
+                {activeUser.rbacRole || activeUser.role} Account
+              </div>
+            </div>
+            {(activeUser.rbacRole === 'SUPER_ADMIN' || !activeUser.rbacRole) && (
+              <select
+                value={activeUser.id}
+                onChange={(e) => {
+                  const u = users.find((x) => x.id === e.target.value);
+                  if (u && onChangeActiveUser) {
+                    onChangeActiveUser(u);
+                    setStatusFeedback(`Switched active session to ${u.name} (${u.rbacRole || u.role})`);
+                    setTimeout(() => setStatusFeedback(null), 3000);
+                  }
+                }}
+                className="px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                title="Switch logged in team member"
+              >
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.rbacRole || u.role})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
-          <select
-            value={activeUser.id}
-            onChange={(e) => {
-              const u = users.find((x) => x.id === e.target.value);
-              if (u && onChangeActiveUser) {
-                onChangeActiveUser(u);
-                setStatusFeedback(`Switched active session to ${u.name} (${u.role})`);
-                setTimeout(() => setStatusFeedback(null), 3000);
-              }
-            }}
-            className="px-2.5 py-1.5 text-xs font-bold bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            title="Switch logged in team member"
-          >
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.role})
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -682,7 +707,7 @@ export const WhatsAppCenterView: React.FC<WhatsAppCenterViewProps> = ({
                   onClick={() => setStatusFilter('ALL')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
                     statusFilter === 'ALL'
-                      ? 'bg-slate-900 text-white'
+                      ? 'bg-blue-700 text-white'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
@@ -1646,7 +1671,7 @@ export const WhatsAppCenterView: React.FC<WhatsAppCenterViewProps> = ({
                     setTimeout(() => setStatusFeedback(null), 3000);
                   }
                 }}
-                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-red-700 text-white hover:bg-red-800 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Poster Image</span>

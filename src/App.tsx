@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ActiveTab,
   Product,
@@ -7,18 +7,23 @@ import {
   SalesEnquiry,
   SalesOrder,
   Quotation,
-  FollowUp,
   WhatsAppMessageRecord,
   CompanySettings,
   WhatsAppConfig,
   WhatsAppConversation,
   WhatsAppChatMessage,
-  RateBroadcastRecord,
   WhatsAppChatStatus,
   AppUser,
+  WebsiteCmsContent,
+  PublicRatesPayload,
+  RateChargesConfig,
+  RateHistoryRecord,
+  CompanyGradeBasicRates,
+  CategoryBasicRates,
 } from './types';
 import { StorageService, AppFullState } from './services/storageService';
 import { WhatsAppService } from './services/whatsappService';
+import { PlatformApi } from './services/platformApi';
 import { INITIAL_USERS } from './data/demoData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -43,74 +48,230 @@ import { DailyRateUpdateView } from './components/DailyRateUpdateView';
 import { GaugeDifferenceMasterView } from './components/GaugeDifferenceMasterView';
 import { AIAssistantView } from './components/AIAssistantView';
 import { AIPostGeneratorView } from './components/AIPostGeneratorView';
-import { RateChargesConfig, RateHistoryRecord, GaugeDifferenceMasterItem, CompanyGradeBasicRates, CategoryBasicRates } from './types';
-import { calculateFinalRate } from './utils/rateCalculator';
-import { testFirestoreConnection, auth, googleProvider } from './firebase';
-import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
+import { PublicLayout } from './components/PublicLayout';
+import { PublicWebsitePages } from './components/PublicWebsitePages';
+import { LiveProductRatesView } from './components/LiveProductRatesView';
+import { QuotationRequestModal } from './components/QuotationRequestModal';
+import { LoginPage } from './components/LoginPage';
+import { WebsiteCmsView } from './components/WebsiteCmsView';
+import { TeamManagementView } from './components/TeamManagementView';
+import { CheckCircle2, X, CalendarCheck, BarChart3, MessageSquare } from 'lucide-react';
+import { NavDurgaLogo } from './components/NavDurgaLogo';
+
+const DEFAULT_CMS_FALLBACK: WebsiteCmsContent = {
+  id: 'main',
+  heroBadge: 'ISO-Grade Structural Steel Manufacturing • Urla, Raipur',
+  heroHeadline: 'Engineering Strength. Delivering Excellence.',
+  heroSubheadline: 'Your Trusted Partner for Quality Steel Products and Industrial Solutions.',
+  announcementBanner: 'Live Daily Rolling Mill Rates & Ex-Plant Urla Dispatch Open — Check Today Product Rates',
+  showAnnouncementBanner: true,
+  aboutTitle: 'Integrated Rolling Mill & Structural Steel Group',
+  aboutSummary:
+    'Nav Durga Ispat Pvt. Ltd. and Unit-2 NS Ispat (I) Pvt. Ltd. manufacture precision-rolled Medium and Light structural steel sections in Urla Industrial Area, Raipur (Chhattisgarh).',
+  visionText:
+    'To stand as Central India’s most reliable industrial structural steel producer through metallurgical precision, transparent pricing, and zero-defect rolling consistency.',
+  missionText:
+    'Deliver IS-grade structural steel channels, beams, angles, flats, and custom fabrication sections backed by instant live ERP pricing and dependable dispatch timelines.',
+  qualityCommitment:
+    'Every heat and rolling batch undergoes optical spectrometer chemical verification, tensile load testing, and digital sectional gauge inspection.',
+  contactPhone: '+91 98261 45890',
+  contactWhatsapp: '+91 98261 45890',
+  contactEmail: 'sales@navdurgasteel.com',
+  contactAddress: 'Plot 42-48, Urla Industrial Area, Raipur, Chhattisgarh 493221',
+  unit1Name: 'NAVDURGA ISPAT PVT. LTD.',
+  unit2Name: 'UNIT-2 - NS ISPAT (I) PVT. LTD.',
+  dispatchHours: 'Mon - Sat: 09:00 AM - 07:30 PM IST',
+  gstNumber: '22AABCN4120F1Z5',
+  updatedAt: new Date().toISOString(),
+  updatedBy: 'System',
+};
+
+function normalizePath(pathname: string): string {
+  const clean = pathname.replace(/\/+$/, '') || '/';
+  return clean;
+}
 
 export default function App() {
-  // Load initial persistent state
   const [appState, setAppState] = useState<AppFullState>(() => StorageService.loadState());
+  const [routePath, setRoutePath] = useState<string>(() => normalizePath(window.location.pathname));
 
-  // Firebase Auth State
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // Authenticated RBAC user + bootstrap state
+  const [authUser, setAuthUser] = useState<AppUser | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
+  const [websiteCms, setWebsiteCms] = useState<WebsiteCmsContent>(DEFAULT_CMS_FALLBACK);
+  const [publicRates, setPublicRates] = useState<PublicRatesPayload | null>(null);
 
-  // Navigation State
+  // Public Quotation Modal State
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const [quotePresetProduct, setQuotePresetProduct] = useState('');
+  const [quotePresetGrade, setQuotePresetGrade] = useState('');
+
+  // ERP UI State
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [erpBanner, setErpBanner] = useState<string | null>(null);
 
   // Modals state
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [postModalUpdate, setPostModalUpdate] = useState<DailyUpdate | null>(null);
-
   const [isSendTestModalOpen, setIsSendTestModalOpen] = useState(false);
   const [testModalUpdate, setTestModalUpdate] = useState<DailyUpdate | null>(null);
-
   const [isProductDetailOpen, setIsProductDetailOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-
   const [isDailyUpdateFormOpen, setIsDailyUpdateFormOpen] = useState(false);
-
   const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-
-  // Save state on changes
-  useEffect(() => {
-    StorageService.saveState(appState);
-  }, [appState]);
-
-  // Firebase connection and auth listener
-  useEffect(() => {
-    testFirestoreConnection();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      console.warn('Google sign-in closed or canceled:', err);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.warn('Sign out error:', err);
-    }
-  };
 
   // Active Team User session for WhatsApp ERP communications
   const [activeAppUser, setActiveAppUser] = useState<AppUser>(() => {
     return appState.users && appState.users.length > 0 ? appState.users[0] : INITIAL_USERS[0];
   });
+
+  // Save ERP local cache cleanly
+  useEffect(() => {
+    StorageService.saveState(appState);
+  }, [appState]);
+
+  // Listen to browser back/forward navigation
+  useEffect(() => {
+    const onPopState = () => {
+      setRoutePath(normalizePath(window.location.pathname));
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const navigateToPath = useCallback((path: string) => {
+    const clean = normalizePath(path);
+    if (window.location.pathname !== clean) {
+      window.history.pushState({}, '', clean);
+    }
+    setRoutePath(clean);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Load Public CMS + Public Rates + Auth Session on boot
+  const hydrateAuthenticatedErp = useCallback(async (user: AppUser) => {
+    setAuthUser(user);
+    setActiveAppUser(user);
+    try {
+      const boot = await PlatformApi.fetchErpBootstrap();
+      setWebsiteCms(boot.cms);
+      setPublicRates(boot.publicRates);
+      setAppState((prev) => {
+        // Merge server enquiries (from public website & rate portal) without losing local ones
+        const existingIds = new Set(prev.enquiries.map((e) => e.id));
+        const newServerEnquiries = (boot.enquiries || []).filter((e) => !existingIds.has(e.id));
+        return {
+          ...prev,
+          enquiries: [...newServerEnquiries, ...prev.enquiries],
+          users: boot.users && boot.users.length > 0 ? boot.users : prev.users,
+        };
+      });
+    } catch (err) {
+      console.warn('ERP bootstrap sync warning:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    PlatformApi.fetchPublicWebsite()
+      .then((res) => {
+        if (active && res?.cms) setWebsiteCms(res.cms);
+      })
+      .catch(() => {});
+
+    PlatformApi.fetchPublicRates()
+      .then((rates) => {
+        if (active) setPublicRates(rates);
+      })
+      .catch(() => {});
+
+    PlatformApi.fetchCurrentUser()
+      .then(async (res) => {
+        if (!active) return;
+        if (res.authenticated && res.user) {
+          await hydrateAuthenticatedErp(res.user);
+        } else {
+          setAuthUser(null);
+        }
+      })
+      .finally(() => {
+        if (active) setAuthChecked(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [hydrateAuthenticatedErp]);
+
+  // Synchronize ERP rates directly to Backend Public Rate Portal (Single Source of Truth)
+  const syncRatesToPublicServer = useCallback(
+    async (
+      nextProducts: Product[],
+      nextCategoryBasicRates?: CategoryBasicRates,
+      nextGradeBasicRates?: CompanyGradeBasicRates
+    ) => {
+      const mediumBase =
+        nextCategoryBasicRates?.['MEDIUM SECTION'] ??
+        nextGradeBasicRates?.['NAVDURGA ISPAT PVT. LTD.']?.Medium ??
+        appState.categoryBasicRates?.['MEDIUM SECTION'];
+      const lightBase =
+        nextCategoryBasicRates?.['LIGHT SECTION'] ??
+        nextGradeBasicRates?.['NS ISPAT (INDIA) PVT. LTD. UNIT-II']?.Medium ??
+        appState.categoryBasicRates?.['LIGHT SECTION'];
+
+      try {
+        const res = await PlatformApi.saveErpRates({
+          categoryBasicRates: {
+            'MEDIUM SECTION': mediumBase,
+            'LIGHT SECTION': lightBase,
+          },
+          products: nextProducts.map((p) => ({
+            id: p.id,
+            code: p.code,
+            gaugeDifference: p.gaugeDifference,
+            finalRate: p.finalRate ?? p.currentPrice,
+            inStock: p.inStock,
+            status: p.status,
+            description: p.description,
+          })),
+          rateStatus: 'Published',
+        });
+        if (res?.publicRates) {
+          setPublicRates(res.publicRates);
+        }
+      } catch (err) {
+        console.warn('Server public rate sync queued locally:', err);
+      }
+    },
+    [appState.categoryBasicRates]
+  );
+
+  // Auth Actions
+  const handleLoginSuccess = async (user: AppUser) => {
+    await hydrateAuthenticatedErp(user);
+    if (routePath === '/erp/whatsapp') {
+      navigateToPath('/erp/whatsapp');
+    } else {
+      navigateToPath('/erp');
+    }
+  };
+
+  const handleLogout = async () => {
+    await PlatformApi.logout();
+    setAuthUser(null);
+    navigateToPath('/');
+  };
+
+  const handleOpenQuoteModal = (presetProduct = '', presetGrade = '') => {
+    setQuotePresetProduct(presetProduct);
+    setQuotePresetGrade(presetGrade);
+    setQuoteModalOpen(true);
+  };
 
   // Derived counts for badges
   const newEnquiriesCount = appState.enquiries.filter((e) => e.status === 'New').length;
@@ -120,11 +281,19 @@ export default function App() {
   const pendingFollowUpsCount = appState.followUps.filter((f) => f.status === 'Pending').length;
   const pendingWhatsAppCount = (appState.conversations || []).filter((c) => c.status === 'New').length;
 
-  // Handlers for Navigation
+  // ERP Navigation Handlers
   const handleTabChange = (tab: ActiveTab) => {
     setActiveTab(tab);
-    setSelectedCustomer(null); // Return to list view if changing main tabs
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setSelectedCustomer(null);
+    if (routePath !== '/erp') {
+      navigateToPath('/erp');
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleOpenWhatsAppSystem = () => {
+    navigateToPath('/erp/whatsapp');
   };
 
   const handleSelectCustomer = (customer: Customer) => {
@@ -142,21 +311,18 @@ export default function App() {
     }
   };
 
-  // Post Generator
   const handleOpenPostGenerator = (update?: DailyUpdate) => {
     const targetUpdate = update || appState.dailyUpdates[0];
     setPostModalUpdate(targetUpdate);
     setIsPostModalOpen(true);
   };
 
-  // Send Test WhatsApp Modal
   const handleOpenSendTestWhatsApp = (update?: DailyUpdate) => {
     const targetUpdate = update || appState.dailyUpdates[0];
     setTestModalUpdate(targetUpdate);
     setIsSendTestModalOpen(true);
   };
 
-  // Preselected category / search when opening Daily Rates from AI Assistant
   const [dailyRatesPreselection, setDailyRatesPreselection] = useState<{
     category: 'MEDIUM SECTION' | 'LIGHT SECTION' | 'ALL';
     search?: string;
@@ -188,8 +354,9 @@ export default function App() {
   };
 
   const handleSaveProduct = (data: Partial<Product>) => {
+    let nextProducts: Product[];
     if (editingProduct) {
-      const updated = appState.products.map((p) =>
+      nextProducts = appState.products.map((p) =>
         p.id === editingProduct.id
           ? {
               ...p,
@@ -216,7 +383,6 @@ export default function App() {
             }
           : p
       );
-      setAppState({ ...appState, products: updated });
     } else {
       const currentRate = data.finalRate || data.currentPrice || 48106;
       const prevRate = data.previousPrice || currentRate;
@@ -253,8 +419,10 @@ export default function App() {
           },
         ],
       };
-      setAppState({ ...appState, products: [newProd, ...appState.products] });
+      nextProducts = [newProd, ...appState.products];
     }
+    setAppState({ ...appState, products: nextProducts });
+    syncRatesToPublicServer(nextProducts);
   };
 
   // Daily Rate Management Batch Handler
@@ -265,7 +433,6 @@ export default function App() {
     updatedGradeBasicRates?: CompanyGradeBasicRates,
     updatedCategoryBasicRates?: CategoryBasicRates
   ) => {
-    // Synchronize currentPrice with calculated finalRate
     const mappedProducts = updatedProducts.map((p) => {
       const final = p.finalRate ?? p.currentPrice;
       const prev = p.previousPrice ?? final;
@@ -286,14 +453,16 @@ export default function App() {
       gradeBasicRates: updatedGradeBasicRates || prev.gradeBasicRates,
       categoryBasicRates: updatedCategoryBasicRates || prev.categoryBasicRates,
     }));
+
+    syncRatesToPublicServer(mappedProducts, updatedCategoryBasicRates, updatedGradeBasicRates);
   };
 
-  // Gauge Difference Master update handler
   const handleUpdateGaugeDifferenceProducts = (updatedProducts: Product[]) => {
     setAppState((prev) => ({
       ...prev,
       products: updatedProducts,
     }));
+    syncRatesToPublicServer(updatedProducts);
   };
 
   const handleToggleProductStatus = (productId: string) => {
@@ -301,6 +470,7 @@ export default function App() {
       p.id === productId ? { ...p, status: (p.status === 'Active' ? 'Inactive' : 'Active') as Product['status'] } : p
     );
     setAppState({ ...appState, products: updated });
+    syncRatesToPublicServer(updated);
   };
 
   const handleQuickUpdateProductPrice = (productId: string, newPrice: number, reason: string) => {
@@ -313,6 +483,7 @@ export default function App() {
           ...p,
           previousPrice: p.currentPrice,
           currentPrice: newPrice,
+          finalRate: newPrice,
           priceChange: diff,
           priceHistory: newHistory,
         };
@@ -320,17 +491,15 @@ export default function App() {
       return p;
     });
     setAppState({ ...appState, products: updated });
+    syncRatesToPublicServer(updated);
     if (selectedProduct && selectedProduct.id === productId) {
       const found = updated.find((p) => p.id === productId);
       if (found) setSelectedProduct(found);
     }
   };
 
-  // Daily Updates Actions
   const handleSaveDailyUpdate = (newUpdate: DailyUpdate, openGenerator = false) => {
     const updatedList = [newUpdate, ...appState.dailyUpdates];
-
-    // Also update current prices in product catalog if matching
     const updatedProducts = appState.products.map((prod) => {
       const itemMatch = newUpdate.items.find((it) => it.productId === prod.id || it.grade === prod.grade);
       if (itemMatch) {
@@ -338,6 +507,7 @@ export default function App() {
           ...prod,
           previousPrice: prod.currentPrice,
           currentPrice: itemMatch.price,
+          finalRate: itemMatch.price,
           priceChange: itemMatch.price - prod.currentPrice,
           priceHistory: [
             {
@@ -357,6 +527,7 @@ export default function App() {
       products: updatedProducts,
       dailyUpdates: updatedList,
     }));
+    syncRatesToPublicServer(updatedProducts);
 
     if (openGenerator) {
       setPostModalUpdate(newUpdate);
@@ -364,15 +535,12 @@ export default function App() {
     }
   };
 
-  // Dedicated Section-based Daily Price Update Synchronizer
   const handleUpdateSectionPrices = (
     updatedProducts: Product[],
     newHistory: RateHistoryRecord[],
     sectionName?: string
   ) => {
     const today = new Date().toISOString().split('T')[0];
-
-    // Identify changed products to build published broadcast sheet
     const changedProducts = updatedProducts.filter((p) => {
       const orig = appState.products.find((o) => o.id === p.id);
       return orig && orig.currentPrice !== p.currentPrice;
@@ -404,12 +572,11 @@ export default function App() {
         remarks: `Official Daily Price Revision for ${sectionName || 'Section'}. Ex-plant Raipur. GST 18% extra.`,
         status: 'Published',
         createdAt: new Date().toISOString(),
-        createdBy: 'Admin',
+        createdBy: authUser?.name || 'Admin',
       };
       updatedDailyUpdates = [newDailyUpdate, ...appState.dailyUpdates];
     }
 
-    // Also synchronize categoryBasicRates & gradeBasicRates from updated products
     const nextCategoryRates: CategoryBasicRates = { ...(appState.categoryBasicRates || {}) };
     const nextGradeRates: CompanyGradeBasicRates = { ...(appState.gradeBasicRates || {}) };
 
@@ -442,6 +609,7 @@ export default function App() {
       categoryBasicRates: nextCategoryRates,
       gradeBasicRates: nextGradeRates,
     }));
+    syncRatesToPublicServer(updatedProducts, nextCategoryRates, nextGradeRates);
   };
 
   // Customer Actions
@@ -477,7 +645,7 @@ export default function App() {
         state: data.state || 'Chhattisgarh',
         gstin: data.gstin || '22AABC00000',
         customerType: data.customerType || 'Contractor',
-        interestedProducts: data.interestedProducts || ['TMT Fe 500D'],
+        interestedProducts: data.interestedProducts || ['MS Channel'],
         notes: data.notes || '',
         status: data.status || 'Active',
         creditDays: data.creditDays || 7,
@@ -488,7 +656,6 @@ export default function App() {
     }
   };
 
-  // WhatsApp logs
   const handleLogWhatsAppMessage = (record: WhatsAppMessageRecord) => {
     setAppState((prev: AppFullState) => ({
       ...prev,
@@ -496,15 +663,14 @@ export default function App() {
     }));
   };
 
-  // Sales Enquiry Actions
   const handleAddEnquiry = (enquiryData: Partial<SalesEnquiry>) => {
     const newEnq: SalesEnquiry = {
-      id: `enq-${Date.now()}`,
+      id: enquiryData.id || `enq-${Date.now()}`,
       enquiryNumber: enquiryData.enquiryNumber || `ENQ-2026-${Math.floor(100 + Math.random() * 900)}`,
       customerId: enquiryData.customerId || appState.customers[0]?.id || 'c1',
       customerName: enquiryData.customerName || 'Customer',
-      product: enquiryData.product || 'TMT Steel Rebar',
-      grade: enquiryData.grade || 'Fe 500D',
+      product: enquiryData.product || 'MS Channel',
+      grade: enquiryData.grade || 'Medium / IS 2062',
       quantity: enquiryData.quantity || 10,
       unit: enquiryData.unit || 'MT',
       quotedPrice: enquiryData.quotedPrice,
@@ -613,7 +779,6 @@ export default function App() {
     setActiveTab('orders');
   };
 
-  // Quotation Actions
   const handleAddQuotation = (quotation: Quotation) => {
     setAppState((prev: AppFullState) => ({
       ...prev,
@@ -628,7 +793,6 @@ export default function App() {
     }));
   };
 
-  // Order Actions
   const handleAddOrder = (order: SalesOrder) => {
     setAppState((prev: AppFullState) => ({
       ...prev,
@@ -650,7 +814,6 @@ export default function App() {
     }));
   };
 
-  // Settings
   const handleSaveCompanySettings = (updated: CompanySettings) => {
     setAppState((prev: AppFullState) => ({ ...prev, company: updated }));
   };
@@ -665,7 +828,6 @@ export default function App() {
     setActiveTab('dashboard');
   };
 
-  // WhatsApp Chat System Handlers
   const handleSendChatMessage = async (conversationId: string, text: string) => {
     if (!text.trim()) return;
     const conv = (appState.conversations || []).find((c) => c.id === conversationId);
@@ -692,13 +854,10 @@ export default function App() {
       status: conv.status === 'New' ? 'Open' : conv.status,
     };
 
-    const updatedConvs = (appState.conversations || []).map((c) => (c.id === conversationId ? updatedConv : c));
-    const updatedMsgs = [...(appState.chatMessages || []), newMsg];
-
     setAppState((prev) => ({
       ...prev,
-      conversations: updatedConvs,
-      chatMessages: updatedMsgs,
+      conversations: (prev.conversations || []).map((c) => (c.id === conversationId ? updatedConv : c)),
+      chatMessages: [...(prev.chatMessages || []), newMsg],
     }));
 
     StorageService.saveChatMessageToFirestore(newMsg);
@@ -718,39 +877,45 @@ export default function App() {
   };
 
   const handleUpdateConversationStatus = (conversationId: string, status: WhatsAppChatStatus) => {
-    const updatedConvs = (appState.conversations || []).map((c) => {
-      if (c.id === conversationId) {
-        const updated = { ...c, status };
-        StorageService.saveConversationToFirestore(updated);
-        return updated;
-      }
-      return c;
-    });
-    setAppState((prev) => ({ ...prev, conversations: updatedConvs }));
+    setAppState((prev) => ({
+      ...prev,
+      conversations: (prev.conversations || []).map((c) => {
+        if (c.id === conversationId) {
+          const updated = { ...c, status };
+          StorageService.saveConversationToFirestore(updated);
+          return updated;
+        }
+        return c;
+      }),
+    }));
   };
 
   const handleAssignConversation = (conversationId: string, userId: string, userName: string) => {
-    const updatedConvs = (appState.conversations || []).map((c) => {
-      if (c.id === conversationId) {
-        const updated = { ...c, assignedToUserId: userId, assignedToName: userName };
-        StorageService.saveConversationToFirestore(updated);
-        return updated;
-      }
-      return c;
-    });
-    setAppState((prev) => ({ ...prev, conversations: updatedConvs }));
+    setAppState((prev) => ({
+      ...prev,
+      conversations: (prev.conversations || []).map((c) => {
+        if (c.id === conversationId) {
+          const updated = { ...c, assignedToUserId: userId, assignedToName: userName };
+          StorageService.saveConversationToFirestore(updated);
+          return updated;
+        }
+        return c;
+      }),
+    }));
   };
 
   const handleUpdateConversationNotes = (conversationId: string, notes: string, followUpDate?: string) => {
-    const updatedConvs = (appState.conversations || []).map((c) => {
-      if (c.id === conversationId) {
-        const updated = { ...c, internalNotes: notes, followUpDate: followUpDate || c.followUpDate };
-        StorageService.saveConversationToFirestore(updated);
-        return updated;
-      }
-      return c;
-    });
-    setAppState((prev) => ({ ...prev, conversations: updatedConvs }));
+    setAppState((prev) => ({
+      ...prev,
+      conversations: (prev.conversations || []).map((c) => {
+        if (c.id === conversationId) {
+          const updated = { ...c, internalNotes: notes, followUpDate: followUpDate || c.followUpDate };
+          StorageService.saveConversationToFirestore(updated);
+          return updated;
+        }
+        return c;
+      }),
+    }));
   };
 
   const handleBroadcastRates = async (params: {
@@ -761,11 +926,11 @@ export default function App() {
   }) => {
     const mediumBase =
       appState.categoryBasicRates?.['MEDIUM SECTION'] ??
-      appState.gradeBasicRates?.['NAV DURGA ISPAT PVT. LTD.']?.['Medium'] ??
+      appState.gradeBasicRates?.['NAV DURGA ISPAT PVT. LTD.']?.Medium ??
       49711;
     const slBase =
       appState.categoryBasicRates?.['LIGHT SECTION'] ??
-      appState.gradeBasicRates?.['NS ISPAT (INDIA) PVT. LTD. UNIT-II']?.['Medium'] ??
+      appState.gradeBasicRates?.['NS ISPAT (INDIA) PVT. LTD. UNIT-II']?.Medium ??
       42211;
     const dateStr = new Date().toISOString().split('T')[0];
 
@@ -780,41 +945,180 @@ export default function App() {
       imageUrl: params.includeImage ? '/market_opening_template.jpg' : undefined,
     });
 
-    const updatedBroadcasts = [record, ...(appState.rateBroadcasts || [])];
-    setAppState((prev) => ({ ...prev, rateBroadcasts: updatedBroadcasts }));
+    setAppState((prev) => ({ ...prev, rateBroadcasts: [record, ...(prev.rateBroadcasts || [])] }));
     StorageService.saveRateBroadcastToFirestore(record);
   };
 
   const handleRetryBroadcast = async (broadcastId: string) => {
     const existing = (appState.rateBroadcasts || []).find((b) => b.id === broadcastId);
     if (!existing) return;
-
     const updated = await WhatsAppService.retryFailedRecipients(existing);
-    const updatedBroadcasts = (appState.rateBroadcasts || []).map((b) => (b.id === broadcastId ? updated : b));
-    setAppState((prev) => ({ ...prev, rateBroadcasts: updatedBroadcasts }));
+    setAppState((prev) => ({
+      ...prev,
+      rateBroadcasts: (prev.rateBroadcasts || []).map((b) => (b.id === broadcastId ? updated : b)),
+    }));
     StorageService.saveRateBroadcastToFirestore(updated);
   };
 
   const handleAddTeamMember = (userData: Omit<AppUser, 'id'>) => {
-    const newUser: AppUser = {
-      ...userData,
-      id: `usr-${Date.now()}`,
-    };
+    const newUser: AppUser = { ...userData, id: `usr-${Date.now()}` };
     const updatedUsers = [...(appState.users || []), newUser];
     setAppState((prev) => ({ ...prev, users: updatedUsers }));
     StorageService.saveUsers(updatedUsers);
   };
 
   const handleToggleBroadcastOptIn = (customerId: string, optedIn: boolean) => {
-    const updatedCustomers = appState.customers.map((c) =>
-      c.id === customerId ? { ...c, optedInForBroadcast: optedIn, broadcastRecipient: optedIn } : c
-    );
-    setAppState((prev) => ({ ...prev, customers: updatedCustomers }));
+    setAppState((prev) => ({
+      ...prev,
+      customers: prev.customers.map((c) =>
+        c.id === customerId ? { ...c, optedInForBroadcast: optedIn, broadcastRecipient: optedIn } : c
+      ),
+    }));
   };
 
+  // ===========================================================================
+  // ROUTE DISPATCHER: /login, /erp, /erp/whatsapp, /product-rates, Public Site
+  // ===========================================================================
+  const isErpRoute = routePath === '/erp' || routePath.startsWith('/erp/');
+  const isWhatsAppStandalone = routePath === '/erp/whatsapp';
+
+  // 1. LOGIN PAGE (/login) or Unauthenticated visit to protected /erp/*
+  if (routePath === '/login' || (isErpRoute && authChecked && !authUser)) {
+    if (authUser && routePath === '/login') {
+      navigateToPath('/erp');
+    }
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        onBackToWebsite={() => navigateToPath('/')}
+      />
+    );
+  }
+
+  // Wait briefly while session token validates for /erp/*
+  if (isErpRoute && !authChecked) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F6] flex flex-col items-center justify-center p-6 text-center space-y-3">
+        <NavDurgaLogo size="lg" withCard priority />
+        <div className="text-sm font-bold text-slate-700">Verifying Nav Durga ERP Session...</div>
+      </div>
+    );
+  }
+
+  // 2. DEDICATED STANDALONE WHATSAPP SYSTEM (/erp/whatsapp)
+  if (isWhatsAppStandalone && authUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
+        <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 sm:px-8 h-16 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-3">
+            <NavDurgaLogo size="sm" withCard priority />
+            <div>
+              <div className="font-display font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <span>Nav Durga WhatsApp System</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold">
+                  Human Sales Desk
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-500">
+                Signed in: {authUser.name} ({authUser.rbacRole || authUser.role})
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigateToPath('/erp')}
+              className="px-3.5 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold cursor-pointer"
+            >
+              ← Return to ERP Dashboard
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6">
+          <WhatsAppCenterView
+            dailyUpdates={appState.dailyUpdates}
+            customers={appState.customers}
+            products={appState.products}
+            company={appState.company}
+            whatsAppConfig={appState.whatsAppConfig}
+            categoryBasicRates={appState.categoryBasicRates}
+            gradeBasicRates={appState.gradeBasicRates}
+            conversations={appState.conversations || []}
+            chatMessages={appState.chatMessages || []}
+            rateBroadcasts={appState.rateBroadcasts || []}
+            users={appState.users || []}
+            activeUser={activeAppUser}
+            onChangeActiveUser={setActiveAppUser}
+            onAddTeamMember={handleAddTeamMember}
+            onSendMessage={handleSendChatMessage}
+            onUpdateConversationStatus={handleUpdateConversationStatus}
+            onAssignConversation={handleAssignConversation}
+            onUpdateConversationNotes={handleUpdateConversationNotes}
+            onBroadcastRates={handleBroadcastRates}
+            onRetryBroadcast={handleRetryBroadcast}
+            onLogMessage={handleLogWhatsAppMessage}
+            onCreateEnquiryFromWebhook={(enq) => {
+              setAppState((prev) => ({ ...prev, enquiries: [enq, ...prev.enquiries] }));
+            }}
+            onNavigateToCustomer={(cid) => {
+              handleSelectCustomerById(cid);
+              navigateToPath('/erp');
+            }}
+            onNavigateTab={handleTabChange}
+            onReturnToErp={() => navigateToPath('/erp')}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  // 3. PUBLIC WEBSITE & LIVE PRODUCT RATE PORTAL (/ and /product-rates and public pages)
+  if (!isErpRoute) {
+    return (
+      <>
+        <PublicLayout
+          currentPath={routePath}
+          onNavigate={navigateToPath}
+          cms={websiteCms}
+          authUser={authUser}
+          onOpenQuoteModal={handleOpenQuoteModal}
+        >
+          {routePath === '/product-rates' ? (
+            <LiveProductRatesView
+              initialRates={publicRates}
+              cms={websiteCms}
+              onOpenQuoteModal={handleOpenQuoteModal}
+              onRatesRefreshed={setPublicRates}
+            />
+          ) : (
+            <PublicWebsitePages
+              currentPath={routePath}
+              cms={websiteCms}
+              rates={publicRates}
+              onNavigate={navigateToPath}
+              onOpenQuoteModal={handleOpenQuoteModal}
+              onEnquirySubmitted={(enq) => handleAddEnquiry(enq)}
+            />
+          )}
+        </PublicLayout>
+
+        <QuotationRequestModal
+          isOpen={quoteModalOpen}
+          onClose={() => setQuoteModalOpen(false)}
+          presetProduct={quotePresetProduct}
+          presetGrade={quotePresetGrade}
+          contactWhatsapp={websiteCms.contactWhatsapp}
+          onEnquirySubmitted={(enq) => handleAddEnquiry(enq)}
+        />
+      </>
+    );
+  }
+
+  // 4. PROTECTED ERP WORKSPACE (/erp)
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased selection:bg-blue-600 selection:text-white overflow-x-hidden">
-      {/* Global Header */}
       <Header
         company={appState.company}
         currentTab={activeTab}
@@ -822,14 +1126,27 @@ export default function App() {
         mobileMenuOpen={isMobileMenuOpen}
         setMobileMenuOpen={setIsMobileMenuOpen}
         pendingEnquiriesCount={newEnquiriesCount}
-        currentUser={currentUser}
-        onSignIn={handleGoogleSignIn}
-        onSignOut={handleSignOut}
+        authUser={authUser}
+        onOpenWhatsAppSystem={handleOpenWhatsAppSystem}
+        onViewWebsite={() => navigateToPath('/')}
+        onSignOut={handleLogout}
       />
 
-      {/* Main Layout Container */}
+      {erpBanner && (
+        <div className="max-w-7xl lg:max-w-none w-full mx-auto px-3 sm:px-6 lg:px-8 pt-3 no-print">
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+              {erpBanner}
+            </span>
+            <button type="button" onClick={() => setErpBanner(null)} className="cursor-pointer">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 flex w-full max-w-7xl lg:max-w-none mx-auto px-3 sm:px-6 lg:px-6 xl:px-8 2xl:px-10 py-4 sm:py-6 gap-6">
-        {/* Desktop Sidebar Navigation */}
         <Sidebar
           currentTab={activeTab}
           onSelectTab={handleTabChange}
@@ -837,11 +1154,12 @@ export default function App() {
           pendingFollowUpsCount={pendingFollowUpsCount}
           todayOrdersCount={pendingOrdersCount}
           pendingWhatsAppCount={pendingWhatsAppCount}
+          authUser={authUser}
+          onOpenWhatsAppSystem={handleOpenWhatsAppSystem}
+          onOpenPublicSite={navigateToPath}
         />
 
-        {/* Main Content Area */}
         <main className="flex-1 min-w-0 pb-24 md:pb-8">
-          {/* VIEW: DASHBOARD */}
           {activeTab === 'dashboard' && (
             <DashboardView
               products={appState.products}
@@ -852,6 +1170,7 @@ export default function App() {
               followUps={appState.followUps}
               whatsAppMessages={appState.whatsAppMessages}
               onNavigate={handleTabChange}
+              onOpenWhatsAppSystem={handleOpenWhatsAppSystem}
               onOpenCreateUpdate={() => setIsDailyUpdateFormOpen(true)}
               onOpenCreateEnquiry={() => {
                 handleAddEnquiry({});
@@ -869,7 +1188,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: NAV DURGA AI ASSISTANT */}
           {activeTab === 'ai-assistant' && (
             <AIAssistantView
               products={appState.products}
@@ -892,7 +1210,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: PRODUCTS */}
           {activeTab === 'products' && (
             <ProductsView
               products={appState.products}
@@ -907,7 +1224,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: DAILY RATE MANAGEMENT */}
           {activeTab === 'daily-rates' && (
             <DailyRateUpdateView
               products={appState.products}
@@ -923,7 +1239,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: GAUGE DIFFERENCE MASTER */}
           {activeTab === 'gauge-master' && (
             <GaugeDifferenceMasterView
               products={appState.products}
@@ -935,7 +1250,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: DAILY UPDATES */}
           {activeTab === 'daily-updates' && (
             <DailyUpdatesView
               products={appState.products}
@@ -944,17 +1258,14 @@ export default function App() {
               rateHistory={appState.rateHistory || []}
               onOpenCreateUpdate={() => setIsDailyUpdateFormOpen(true)}
               onGeneratePost={(u) => handleOpenPostGenerator(u)}
-              onNavigateToWhatsAppCenter={() => {
-                setActiveTab('whatsapp');
-              }}
+              onNavigateToWhatsAppCenter={handleOpenWhatsAppSystem}
               onSendTestWhatsApp={handleOpenSendTestWhatsApp}
               onUpdateSectionPrices={handleUpdateSectionPrices}
             />
           )}
 
-          {/* VIEW: CUSTOMERS */}
-          {activeTab === 'customers' && (
-            selectedCustomer ? (
+          {activeTab === 'customers' &&
+            (selectedCustomer ? (
               <CustomerDetailView
                 customer={selectedCustomer}
                 enquiries={appState.enquiries}
@@ -969,25 +1280,20 @@ export default function App() {
                 onUpdateConversationStatus={handleUpdateConversationStatus}
                 onToggleBroadcastOptIn={handleToggleBroadcastOptIn}
                 onCreateEnquiryForCustomer={(c) => {
-                  handleAddEnquiry({
-                    customerId: c.id,
-                    customerName: c.companyName,
-                  });
+                  handleAddEnquiry({ customerId: c.id, customerName: c.companyName });
                   setActiveTab('enquiries');
                 }}
-                onCreateQuotationForCustomer={() => {
-                  setActiveTab('quotations');
-                }}
-                onCreateOrderForCustomer={() => {
-                  setActiveTab('orders');
-                }}
+                onCreateQuotationForCustomer={() => setActiveTab('quotations')}
+                onCreateOrderForCustomer={() => setActiveTab('orders')}
                 onScheduleFollowUp={(c) => {
-                  alert(`Follow-up scheduled for ${c.companyName}. Recorded in audit timeline.`);
+                  setErpBanner(`Follow-up scheduled for ${c.companyName} and recorded in timeline.`);
                 }}
                 onSendCustomWhatsApp={async (c, msg) => {
                   const phoneDigits = (c.whatsapp || c.mobile || '').replace(/\D/g, '');
                   const conv = (appState.conversations || []).find(
-                    (cv) => cv.customerId === c.id || (cv.phoneNumber && cv.phoneNumber.replace(/\D/g, '').endsWith(phoneDigits.slice(-10)))
+                    (cv) =>
+                      cv.customerId === c.id ||
+                      (cv.phoneNumber && cv.phoneNumber.replace(/\D/g, '').endsWith(phoneDigits.slice(-10)))
                   );
                   if (conv) {
                     await handleSendChatMessage(conv.id, msg);
@@ -1014,10 +1320,8 @@ export default function App() {
                 onAddCustomer={handleAddCustomer}
                 onEditCustomer={handleEditCustomer}
               />
-            )
-          )}
+            ))}
 
-          {/* VIEW: AI POST GENERATOR (NANO BANANA AI) */}
           {activeTab === 'ai-post-generator' && (
             <AIPostGeneratorView
               products={appState.products}
@@ -1032,7 +1336,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: WHATSAPP CENTER */}
           {(activeTab === 'whatsapp' || activeTab === 'whatsapp-center') && (
             <WhatsAppCenterView
               dailyUpdates={appState.dailyUpdates}
@@ -1057,17 +1360,28 @@ export default function App() {
               onRetryBroadcast={handleRetryBroadcast}
               onLogMessage={handleLogWhatsAppMessage}
               onCreateEnquiryFromWebhook={(enq) => {
-                setAppState((prev: AppFullState) => ({
-                  ...prev,
-                  enquiries: [enq, ...prev.enquiries],
-                }));
+                setAppState((prev: AppFullState) => ({ ...prev, enquiries: [enq, ...prev.enquiries] }));
               }}
               onNavigateToCustomer={handleSelectCustomerById}
               onNavigateTab={handleTabChange}
             />
           )}
 
-          {/* VIEW: ENQUIRIES */}
+          {activeTab === 'website-cms' && (
+            <WebsiteCmsView
+              cms={websiteCms}
+              onCmsUpdated={setWebsiteCms}
+              onOpenPublicSite={navigateToPath}
+            />
+          )}
+
+          {activeTab === 'team-management' && authUser && (
+            <TeamManagementView
+              currentUser={authUser}
+              onUsersSynced={(users) => setAppState((prev) => ({ ...prev, users }))}
+            />
+          )}
+
           {activeTab === 'enquiries' && (
             <EnquiriesView
               enquiries={appState.enquiries}
@@ -1081,7 +1395,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: QUOTATIONS */}
           {activeTab === 'quotations' && (
             <QuotationsView
               quotations={appState.quotations}
@@ -1094,7 +1407,6 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: ORDERS */}
           {activeTab === 'orders' && (
             <OrdersView
               orders={appState.orders}
@@ -1108,7 +1420,95 @@ export default function App() {
             />
           )}
 
-          {/* VIEW: SETTINGS */}
+          {activeTab === 'follow-ups' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <CalendarCheck className="w-5 h-5 text-blue-700" />
+                  <h2 className="text-lg font-extrabold text-slate-900">
+                    Scheduled Customer Follow-ups ({appState.followUps.length})
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenWhatsAppSystem}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Open WhatsApp System</span>
+                </button>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {appState.followUps.map((f) => (
+                  <div key={f.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div>
+                      <div className="font-bold text-slate-900">{f.customerName}</div>
+                      <div className="text-slate-600 mt-0.5">{f.notes}</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        Due: {f.followUpDate} {f.followUpTime} • Officer: {f.salesperson}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAppState((prev) => ({
+                          ...prev,
+                          followUps: prev.followUps.map((item) =>
+                            item.id === f.id
+                              ? { ...item, status: item.status === 'Completed' ? 'Pending' : 'Completed' }
+                              : item
+                          ),
+                        }))
+                      }
+                      className={`px-3 py-1.5 rounded-lg font-bold cursor-pointer shrink-0 ${
+                        f.status === 'Completed'
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : 'bg-amber-50 text-amber-800 border border-amber-200'
+                      }`}
+                    >
+                      {f.status}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'reports' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <BarChart3 className="w-5 h-5 text-blue-700" />
+                <h2 className="text-lg font-extrabold text-slate-900">Commercial Reports &amp; Analytics</h2>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="text-slate-500 font-semibold">Active Steel Products</div>
+                  <div className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
+                    {appState.products.length}
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200">
+                  <div className="text-blue-800 font-semibold">Total Enquiries</div>
+                  <div className="text-2xl font-extrabold text-blue-900 mt-1 tabular-nums">
+                    {appState.enquiries.length}
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                  <div className="text-emerald-800 font-semibold">Sales Orders Value</div>
+                  <div className="text-2xl font-extrabold text-emerald-900 mt-1 tabular-nums">
+                    ₹{(appState.orders.reduce((s, o) => s + o.total, 0) / 100000).toFixed(2)}L
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-red-50/70 border border-red-200">
+                  <div className="text-red-800 font-semibold">Rate Revisions Logged</div>
+                  <div className="text-2xl font-extrabold text-red-900 mt-1 tabular-nums">
+                    {(appState.rateHistory || []).length}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'settings' && (
             <SettingsView
               company={appState.company}
@@ -1121,7 +1521,6 @@ export default function App() {
         </main>
       </div>
 
-      {/* Mobile Navigation Drawer & Bottom Bar */}
       <MobileNav
         currentTab={activeTab}
         onSelectTab={handleTabChange}
@@ -1129,9 +1528,10 @@ export default function App() {
         onClose={() => setIsMobileMenuOpen(false)}
         pendingEnquiriesCount={newEnquiriesCount}
         company={appState.company}
+        authUser={authUser}
+        onOpenWhatsAppSystem={handleOpenWhatsAppSystem}
       />
 
-      {/* MODAL: Square WhatsApp Post Graphic Generator */}
       <PostGeneratorModal
         update={postModalUpdate || appState.dailyUpdates[0]}
         company={appState.company}
@@ -1147,12 +1547,11 @@ export default function App() {
         onClose={() => setIsPostModalOpen(false)}
         onNavigateToWhatsAppCenter={() => {
           setIsPostModalOpen(false);
-          setActiveTab('whatsapp');
+          handleOpenWhatsAppSystem();
         }}
         onOpenSendTest={(u) => handleOpenSendTestWhatsApp(u)}
       />
 
-      {/* MODAL: Send Test WhatsApp (Nav Durga Test Customer Preview) */}
       {isSendTestModalOpen && (
         <SendTestWhatsAppModal
           isOpen={isSendTestModalOpen}
@@ -1162,7 +1561,6 @@ export default function App() {
         />
       )}
 
-      {/* MODAL: Product Details & Historical Price Log */}
       <ProductDetailModal
         product={selectedProduct}
         isOpen={isProductDetailOpen}
@@ -1171,7 +1569,6 @@ export default function App() {
         onQuickUpdatePrice={handleQuickUpdateProductPrice}
       />
 
-      {/* MODAL: Product Form (Add / Edit) */}
       <ProductFormModal
         product={editingProduct}
         isOpen={isProductFormOpen}
@@ -1179,7 +1576,6 @@ export default function App() {
         onSave={handleSaveProduct}
       />
 
-      {/* MODAL: Daily Update Form */}
       <DailyUpdateFormModal
         products={appState.products}
         isOpen={isDailyUpdateFormOpen}
@@ -1188,7 +1584,6 @@ export default function App() {
         onUpdateSectionPrices={handleUpdateSectionPrices}
       />
 
-      {/* MODAL: Customer Form (Add / Edit) */}
       <CustomerFormModal
         customer={editingCustomer}
         isOpen={isCustomerFormOpen}

@@ -622,7 +622,7 @@ export const DailyRateUpdateView: React.FC<DailyRateUpdateViewProps> = ({
               onClick={() => setActiveCategoryTab('ALL')}
               className={`px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 activeCategoryTab === 'ALL'
-                  ? 'bg-slate-900 text-white shadow-sm'
+                  ? 'bg-blue-700 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >

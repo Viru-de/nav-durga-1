@@ -4,7 +4,22 @@ import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
+import {
+  loadServerStore,
+  saveServerStore,
+  sanitizeUser,
+  addActivityLog,
+  signSessionToken,
+  verifySessionToken,
+  parseCookies,
+  getPublicRatesPayload,
+  getDefaultPermissionsForRole,
+  StoredErpUser,
+} from './server/erpStore';
+import type { ErpRole, UserPermissions, WebsiteCmsContent } from './src/types';
 
 dotenv.config();
 
@@ -13,19 +28,615 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const SESSION_COOKIE_NAME = 'nd_erp_session';
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.resolve(__dirname, 'public')));
+
+// Auth helper middleware
+function getAuthenticatedUser(req: express.Request): StoredErpUser | null {
+  const cookies = parseCookies(req.headers.cookie);
+  const authHeader = req.headers.authorization;
+  const bearerToken =
+    typeof authHeader === 'string' && authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : undefined;
+  const token = cookies[SESSION_COOKIE_NAME] || bearerToken;
+  const payload = verifySessionToken(token);
+  if (!payload) return null;
+  const store = loadServerStore();
+  const user = store.users.find((u) => u.id === payload.userId && u.status === 'Active');
+  return user || null;
+}
+
+function requireAuth(req: express.Request, res: express.Response): StoredErpUser | null {
+  const user = getAuthenticatedUser(req);
+  if (!user) {
+    res.status(401).json({ error: 'Authentication required. Please log in to Nav Durga ERP.' });
+    return null;
+  }
+  return user;
+}
 
 // Health Check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'Nav Durga ERP Server',
+    service: 'Nav Durga Ispat Unified Platform & ERP',
     geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
     whatsappConfigured: Boolean(process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID),
     timestamp: new Date().toISOString(),
   });
+});
+
+// ============================================================================
+// SEO: SITEMAP.XML & ROBOTS.TXT
+// ============================================================================
+app.get('/robots.txt', (req, res) => {
+  const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+  res.type('text/plain').send(
+    `User-agent: *\nAllow: /\nDisallow: /erp\nDisallow: /erp/\nDisallow: /login\nDisallow: /api/\n\nSitemap: ${baseUrl}/sitemap.xml\n`
+  );
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+  const today = new Date().toISOString().split('T')[0];
+  const publicRoutes = [
+    { path: '/', priority: '1.0', changefreq: 'daily' },
+    { path: '/product-rates', priority: '0.95', changefreq: 'hourly' },
+    { path: '/products', priority: '0.9', changefreq: 'daily' },
+    { path: '/products/medium-section', priority: '0.9', changefreq: 'daily' },
+    { path: '/products/light-section', priority: '0.9', changefreq: 'daily' },
+    { path: '/about', priority: '0.8', changefreq: 'monthly' },
+    { path: '/industries', priority: '0.8', changefreq: 'monthly' },
+    { path: '/quality', priority: '0.8', changefreq: 'monthly' },
+    { path: '/resources', priority: '0.7', changefreq: 'weekly' },
+    { path: '/contact', priority: '0.8', changefreq: 'monthly' },
+    { path: '/privacy', priority: '0.4', changefreq: 'yearly' },
+    { path: '/terms', priority: '0.4', changefreq: 'yearly' },
+  ];
+
+  const urlsXml = publicRoutes
+    .map(
+      (r) =>
+        `  <url>\n    <loc>${baseUrl}${r.path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
+    )
+    .join('\n');
+
+  res.type('application/xml').send(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlsXml}\n</urlset>`
+  );
+});
+
+// ============================================================================
+// PUBLIC WEBSITE & LIVE PRODUCT RATES API (NO INTERNAL MARGINS/STAFF DATA)
+// ============================================================================
+app.get('/api/public/website', (req, res) => {
+  const store = loadServerStore();
+  res.json({
+    cms: store.cms,
+    rateSummary: {
+      mediumSectionRate: store.categoryBasicRates['MEDIUM SECTION'],
+      lightSectionRate: store.categoryBasicRates['LIGHT SECTION'],
+      lastUpdated: store.rateLastUpdated,
+      rateStatus: store.rateStatus,
+    },
+  });
+});
+
+app.get('/api/public/rates', (req, res) => {
+  const store = loadServerStore();
+  res.json(getPublicRatesPayload(store));
+});
+
+app.post('/api/public/enquiries', (req, res) => {
+  const { name, companyName, phone, email, city, product, grade, quantity, unit, notes } = req.body || {};
+  if (!name || !phone) {
+    return res.status(400).json({ error: 'Contact name and phone number are required.' });
+  }
+
+  const store = loadServerStore();
+  const today = new Date().toISOString().split('T')[0];
+  const enquiryNumber = `WEB-${today.replace(/-/g, '').slice(2)}-${Math.floor(100 + Math.random() * 900)}`;
+
+  const newEnquiry = {
+    id: `enq-web-${Date.now()}`,
+    enquiryNumber,
+    customerId: `web-lead-${Date.now()}`,
+    customerName: companyName ? `${companyName} (${name})` : String(name).trim(),
+    product: product ? String(product).trim() : 'Structural Steel Enquiry',
+    grade: grade ? String(grade).trim() : 'Medium',
+    quantity: Number(quantity) || 10,
+    unit: unit ? String(unit).trim() : 'MT',
+    source: 'Website' as const,
+    date: today,
+    salesperson: 'Rajesh Sharma',
+    status: 'New' as const,
+    notes: [
+      `Contact: ${String(name).trim()}`,
+      `Phone: ${String(phone).trim()}`,
+      email ? `Email: ${String(email).trim()}` : '',
+      city ? `Location: ${String(city).trim()}` : '',
+      notes ? `Requirement: ${String(notes).trim()}` : '',
+    ]
+      .filter(Boolean)
+      .join(' | '),
+  };
+
+  store.enquiries.unshift(newEnquiry);
+  addActivityLog(store, {
+    actorId: 'public-portal',
+    actorName: String(name).trim(),
+    actorRole: 'PUBLIC_LEAD',
+    action: 'PUBLIC_ENQUIRY_SUBMITTED',
+    target: newEnquiry.enquiryNumber,
+    details: `${newEnquiry.customerName} requested ${newEnquiry.quantity} ${newEnquiry.unit} of ${newEnquiry.product}`,
+  });
+  saveServerStore(store);
+
+  res.status(201).json({
+    success: true,
+    enquiry: newEnquiry,
+    message: 'Your enquiry has been received by the Nav Durga Ispat commercial sales desk.',
+  });
+});
+
+// ============================================================================
+// AUTHENTICATION & SESSION API (BCRYPT + SIGNED COOKIE / BEARER)
+// ============================================================================
+app.post('/api/auth/login', (req, res) => {
+  const { identifier, password, rememberMe } = req.body || {};
+  if (!identifier || !password) {
+    return res.status(400).json({ error: 'Username/Email and password are required.' });
+  }
+
+  const store = loadServerStore();
+  const cleanId = String(identifier).trim().toLowerCase();
+  const user = store.users.find(
+    (u) => u.username.toLowerCase() === cleanId || u.email.toLowerCase() === cleanId
+  );
+
+  if (!user || !bcrypt.compareSync(String(password), user.passwordHash)) {
+    return res.status(401).json({ error: 'Invalid username/email or password.' });
+  }
+
+  if (user.status !== 'Active') {
+    return res.status(403).json({ error: 'This account has been deactivated. Contact Super Admin.' });
+  }
+
+  user.lastLoginAt = new Date().toISOString();
+  const ttlMs = rememberMe ? 14 * 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000;
+  const token = signSessionToken({
+    userId: user.id,
+    role: user.rbacRole,
+    exp: Date.now() + ttlMs,
+  });
+
+  addActivityLog(store, {
+    actorId: user.id,
+    actorName: user.name,
+    actorRole: user.rbacRole,
+    action: 'LOGIN',
+    details: `Logged into Nav Durga ERP (${user.rbacRole})`,
+  });
+  saveServerStore(store);
+
+  res.cookie(SESSION_COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: ttlMs,
+    path: '/',
+  });
+
+  res.json({
+    success: true,
+    token,
+    user: sanitizeUser(user),
+  });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  const user = getAuthenticatedUser(req);
+  if (user) {
+    const store = loadServerStore();
+    addActivityLog(store, {
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: user.rbacRole,
+      action: 'LOGOUT',
+      details: 'Signed out of Nav Durga ERP',
+    });
+    saveServerStore(store);
+  }
+  res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
+  res.json({ success: true });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const user = getAuthenticatedUser(req);
+  if (!user) {
+    return res.status(401).json({ authenticated: false });
+  }
+  res.json({ authenticated: true, user: sanitizeUser(user) });
+});
+
+app.post('/api/auth/forgot-password', (req, res) => {
+  const { identifier } = req.body || {};
+  if (!identifier) {
+    return res.status(400).json({ error: 'Enter your registered username or email.' });
+  }
+  const store = loadServerStore();
+  const cleanId = String(identifier).trim().toLowerCase();
+  const user = store.users.find(
+    (u) => u.username.toLowerCase() === cleanId || u.email.toLowerCase() === cleanId
+  );
+
+  if (!user) {
+    return res.json({
+      success: true,
+      message: 'If an active account matches that username/email, a reset code has been generated.',
+    });
+  }
+
+  const resetCode = String(Math.floor(100000 + Math.random() * 900000));
+  store.resetTokens[resetCode] = {
+    userId: user.id,
+    expiresAt: Date.now() + 15 * 60 * 1000,
+  };
+  addActivityLog(store, {
+    actorId: user.id,
+    actorName: user.name,
+    actorRole: user.rbacRole,
+    action: 'PASSWORD_RESET_REQUESTED',
+    details: `Password reset requested for ${user.username}`,
+  });
+  saveServerStore(store);
+
+  res.json({
+    success: true,
+    message:
+      'Reset verification code generated. Contact Super Admin or enter the verification code to set a new password.',
+    verificationCodeHint: process.env.NODE_ENV === 'production' ? undefined : resetCode,
+  });
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+  const { code, newPassword } = req.body || {};
+  if (!code || !newPassword || String(newPassword).length < 6) {
+    return res.status(400).json({ error: 'Valid reset code and password (min 6 characters) required.' });
+  }
+
+  const store = loadServerStore();
+  const entry = store.resetTokens[String(code).trim()];
+  if (!entry || Date.now() > entry.expiresAt) {
+    return res.status(400).json({ error: 'Reset code is invalid or expired.' });
+  }
+
+  const user = store.users.find((u) => u.id === entry.userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User account not found.' });
+  }
+
+  user.passwordHash = bcrypt.hashSync(String(newPassword), 10);
+  delete store.resetTokens[String(code).trim()];
+  addActivityLog(store, {
+    actorId: user.id,
+    actorName: user.name,
+    actorRole: user.rbacRole,
+    action: 'PASSWORD_RESET_COMPLETED',
+    details: `Password updated for ${user.username}`,
+  });
+  saveServerStore(store);
+
+  res.json({ success: true, message: 'Password updated successfully. You may now sign in.' });
+});
+
+// ============================================================================
+// PROTECTED ERP API ROUTES (RBAC ENFORCED)
+// ============================================================================
+app.get('/api/erp/bootstrap', (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const store = loadServerStore();
+  res.json({
+    user: sanitizeUser(user),
+    cms: store.cms,
+    publicRates: getPublicRatesPayload(store),
+    enquiries: store.enquiries,
+    users: user.permissions.manageTeamUsers || user.rbacRole === 'SUPER_ADMIN' || user.rbacRole === 'ADMIN'
+      ? store.users.map(sanitizeUser)
+      : [sanitizeUser(user)],
+    activityLogs:
+      user.rbacRole === 'SUPER_ADMIN' || user.rbacRole === 'ADMIN'
+        ? store.activityLogs.slice(0, 60)
+        : [],
+  });
+});
+
+app.post('/api/erp/rates', (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+  if (!user.permissions.manageDailyRates && !user.permissions.publishPublicRates && user.rbacRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'You do not have permission to modify daily steel rates.' });
+  }
+
+  const { categoryBasicRates, products, rateStatus } = req.body || {};
+  const store = loadServerStore();
+
+  if (categoryBasicRates) {
+    if (typeof categoryBasicRates['MEDIUM SECTION'] === 'number') {
+      store.categoryBasicRates['MEDIUM SECTION'] = categoryBasicRates['MEDIUM SECTION'];
+    }
+    if (typeof categoryBasicRates['LIGHT SECTION'] === 'number') {
+      store.categoryBasicRates['LIGHT SECTION'] = categoryBasicRates['LIGHT SECTION'];
+    }
+  }
+
+  if (Array.isArray(products) && products.length > 0) {
+    for (const incoming of products) {
+      const idx = store.products.findIndex((p) => p.id === incoming.id || p.code === incoming.code);
+      if (idx >= 0) {
+        const existing = store.products[idx];
+        const gaugeDiff =
+          incoming.gaugeDifference !== undefined ? Number(incoming.gaugeDifference) : existing.gaugeDifference;
+        const isLight = existing.section === 'LIGHT SECTION';
+        const baseRate = isLight
+          ? store.categoryBasicRates['LIGHT SECTION']
+          : store.categoryBasicRates['MEDIUM SECTION'];
+        const nextFinal =
+          typeof incoming.finalRate === 'number' && incoming.finalRate > 0
+            ? incoming.finalRate
+            : baseRate + gaugeDiff;
+        store.products[idx] = {
+          ...existing,
+          gaugeDifference: gaugeDiff,
+          baseRate,
+          previousPrice: existing.finalRate,
+          finalRate: nextFinal,
+          priceChange: nextFinal - existing.finalRate,
+          inStock: incoming.inStock ?? existing.inStock,
+          status: incoming.status || existing.status,
+          description: incoming.description || existing.description,
+        };
+      }
+    }
+  } else {
+    // Recalculate all products from updated categoryBasicRates
+    store.products = store.products.map((p) => {
+      const baseRate =
+        p.section === 'LIGHT SECTION'
+          ? store.categoryBasicRates['LIGHT SECTION']
+          : store.categoryBasicRates['MEDIUM SECTION'];
+      const nextFinal = baseRate > 0 ? baseRate + p.gaugeDifference : 0;
+      return {
+        ...p,
+        baseRate,
+        previousPrice: p.finalRate,
+        finalRate: nextFinal,
+        priceChange: nextFinal - p.finalRate,
+      };
+    });
+  }
+
+  if (rateStatus === 'Published' || rateStatus === 'Indicative') {
+    store.rateStatus = rateStatus;
+  }
+  store.rateLastUpdated = new Date().toISOString();
+  store.rateUpdatedBy = user.name;
+
+  addActivityLog(store, {
+    actorId: user.id,
+    actorName: user.name,
+    actorRole: user.rbacRole,
+    action: 'DAILY_RATES_PUBLISHED',
+    details: `Medium Section: ₹${store.categoryBasicRates['MEDIUM SECTION'].toLocaleString('en-IN')}/MT, Light Section: ₹${store.categoryBasicRates['LIGHT SECTION'].toLocaleString('en-IN')}/MT`,
+  });
+
+  saveServerStore(store);
+  res.json({ success: true, publicRates: getPublicRatesPayload(store) });
+});
+
+app.put('/api/erp/website', (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+  if (!user.permissions.manageWebsiteCms && user.rbacRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'You do not have permission to edit Website CMS content.' });
+  }
+
+  const incoming = req.body as Partial<WebsiteCmsContent>;
+  const store = loadServerStore();
+  store.cms = {
+    ...store.cms,
+    ...incoming,
+    id: 'main_website',
+    updatedAt: new Date().toISOString(),
+    updatedBy: user.name,
+  };
+
+  addActivityLog(store, {
+    actorId: user.id,
+    actorName: user.name,
+    actorRole: user.rbacRole,
+    action: 'WEBSITE_CMS_UPDATED',
+    details: `Updated public website content & contact settings`,
+  });
+  saveServerStore(store);
+
+  res.json({ success: true, cms: store.cms });
+});
+
+app.get('/api/erp/enquiries', (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+  const store = loadServerStore();
+  res.json({ enquiries: store.enquiries });
+});
+
+app.patch('/api/erp/enquiries/:id', (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+  const store = loadServerStore();
+  const idx = store.enquiries.findIndex((e) => e.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Enquiry not found' });
+  store.enquiries[idx] = { ...store.enquiries[idx], ...req.body };
+  saveServerStore(store);
+  res.json({ success: true, enquiry: store.enquiries[idx] });
+});
+
+// ============================================================================
+// TEAM & ROLE MANAGEMENT API (/api/users)
+// ============================================================================
+app.get('/api/users', (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+  if (!user.permissions.manageTeamUsers && user.rbacRole !== 'SUPER_ADMIN' && user.rbacRole !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only Super Admin or Admin can view team directory.' });
+  }
+  const store = loadServerStore();
+  res.json({ users: store.users.map(sanitizeUser), activityLogs: store.activityLogs.slice(0, 60) });
+});
+
+app.post('/api/users', (req, res) => {
+  const actor = requireAuth(req, res);
+  if (!actor) return;
+  if (!actor.permissions.manageTeamUsers && actor.rbacRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Only authorized administrators can create team accounts.' });
+  }
+
+  const { username, name, email, phone, password, rbacRole = 'SALES', permissions } = req.body || {};
+  if (!username || !name || !email || !password) {
+    return res.status(400).json({ error: 'Username, name, email, and initial password are required.' });
+  }
+
+  const roleValue: ErpRole =
+    rbacRole === 'SUPER_ADMIN' || rbacRole === 'ADMIN' || rbacRole === 'SALES' ? rbacRole : 'SALES';
+  if (roleValue === 'SUPER_ADMIN' && actor.rbacRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Only Super Admin can create another Super Admin.' });
+  }
+
+  const store = loadServerStore();
+  const duplicate = store.users.find(
+    (u) =>
+      u.username.toLowerCase() === String(username).trim().toLowerCase() ||
+      u.email.toLowerCase() === String(email).trim().toLowerCase()
+  );
+  if (duplicate) {
+    return res.status(409).json({ error: 'Username or email already exists.' });
+  }
+
+  const newUser: StoredErpUser = {
+    id: `usr-${Date.now()}`,
+    username: String(username).trim(),
+    name: String(name).trim(),
+    email: String(email).trim(),
+    phone: String(phone || '+91 98261 00000').trim(),
+    role: roleValue === 'SALES' ? 'Sales' : 'Admin',
+    rbacRole: roleValue,
+    status: 'Active',
+    passwordHash: bcrypt.hashSync(String(password), 10),
+    permissions: permissions
+      ? { ...getDefaultPermissionsForRole(roleValue), ...permissions }
+      : getDefaultPermissionsForRole(roleValue),
+  };
+
+  store.users.push(newUser);
+  addActivityLog(store, {
+    actorId: actor.id,
+    actorName: actor.name,
+    actorRole: actor.rbacRole,
+    action: 'TEAM_USER_CREATED',
+    target: newUser.username,
+    details: `Created ${newUser.rbacRole} account for ${newUser.name}`,
+  });
+  saveServerStore(store);
+
+  res.status(201).json({ success: true, user: sanitizeUser(newUser) });
+});
+
+app.patch('/api/users/:id', (req, res) => {
+  const actor = requireAuth(req, res);
+  if (!actor) return;
+  if (!actor.permissions.manageTeamUsers && actor.rbacRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Permission denied for modifying team users.' });
+  }
+
+  const store = loadServerStore();
+  const idx = store.users.findIndex((u) => u.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'User not found.' });
+
+  const target = store.users[idx];
+  if (target.rbacRole === 'SUPER_ADMIN' && actor.rbacRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Only Super Admin can modify a Super Admin account.' });
+  }
+
+  const { name, email, phone, status, rbacRole, permissions } = req.body || {};
+  const nextRole: ErpRole =
+    rbacRole && (rbacRole === 'SUPER_ADMIN' || rbacRole === 'ADMIN' || rbacRole === 'SALES')
+      ? rbacRole
+      : target.rbacRole;
+
+  if (target.rbacRole === 'SUPER_ADMIN' && (status === 'Inactive' || nextRole !== 'SUPER_ADMIN')) {
+    const activeSuperAdmins = store.users.filter((u) => u.rbacRole === 'SUPER_ADMIN' && u.status === 'Active');
+    if (activeSuperAdmins.length <= 1) {
+      return res.status(400).json({ error: 'At least one active Super Admin must remain.' });
+    }
+  }
+
+  store.users[idx] = {
+    ...target,
+    name: name !== undefined ? String(name).trim() : target.name,
+    email: email !== undefined ? String(email).trim() : target.email,
+    phone: phone !== undefined ? String(phone).trim() : target.phone,
+    status: status === 'Inactive' ? 'Inactive' : status === 'Active' ? 'Active' : target.status,
+    rbacRole: nextRole,
+    role: nextRole === 'SALES' ? 'Sales' : 'Admin',
+    permissions: permissions
+      ? { ...target.permissions, ...permissions }
+      : target.permissions,
+  };
+
+  addActivityLog(store, {
+    actorId: actor.id,
+    actorName: actor.name,
+    actorRole: actor.rbacRole,
+    action: 'TEAM_USER_UPDATED',
+    target: store.users[idx].username,
+    details: `Updated profile/permissions for ${store.users[idx].name} (${store.users[idx].rbacRole}, ${store.users[idx].status})`,
+  });
+  saveServerStore(store);
+
+  res.json({ success: true, user: sanitizeUser(store.users[idx]) });
+});
+
+app.post('/api/users/:id/reset-password', (req, res) => {
+  const actor = requireAuth(req, res);
+  if (!actor) return;
+  if (!actor.permissions.manageTeamUsers && actor.rbacRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Permission denied.' });
+  }
+  const { newPassword } = req.body || {};
+  if (!newPassword || String(newPassword).length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+  }
+
+  const store = loadServerStore();
+  const idx = store.users.findIndex((u) => u.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'User not found.' });
+
+  store.users[idx].passwordHash = bcrypt.hashSync(String(newPassword), 10);
+  addActivityLog(store, {
+    actorId: actor.id,
+    actorName: actor.name,
+    actorRole: actor.rbacRole,
+    action: 'ADMIN_PASSWORD_RESET',
+    target: store.users[idx].username,
+    details: `Password reset by ${actor.name} for ${store.users[idx].name}`,
+  });
+  saveServerStore(store);
+
+  res.json({ success: true });
 });
 
 // Inbound webhook event queue buffer (in-memory buffer for real-time frontend retrieval)
@@ -54,9 +665,23 @@ app.get('/api/whatsapp/webhook', (req, res) => {
   res.sendStatus(403);
 });
 
+const processedWamids = new Set<string>();
+
 // 2. Meta WhatsApp Webhook Event Receiver (POST /api/whatsapp/webhook)
 app.post('/api/whatsapp/webhook', (req, res) => {
   try {
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    const signature = req.headers['x-hub-signature-256'];
+    if (appSecret && typeof signature === 'string') {
+      const expected =
+        'sha256=' +
+        crypto.createHmac('sha256', appSecret).update(JSON.stringify(req.body)).digest('hex');
+      if (signature !== expected) {
+        console.warn('[Meta Webhook] Invalid x-hub-signature-256 header.');
+        return res.sendStatus(403);
+      }
+    }
+
     const body = req.body;
     console.log('[Meta Webhook] Received webhook payload:', JSON.stringify(body).slice(0, 300));
 
@@ -69,13 +694,21 @@ app.post('/api/whatsapp/webhook', (req, res) => {
           const val = change.value;
           if (val && val.messages) {
             for (const msg of val.messages) {
+              const msgId = msg.id || `wamid-${Date.now()}`;
+              if (processedWamids.has(msgId)) continue;
+              processedWamids.add(msgId);
+              if (processedWamids.size > 1000) {
+                const first = processedWamids.values().next().value;
+                if (first) processedWamids.delete(first);
+              }
+
               const text = msg.text?.body || msg.interactive?.button_reply?.title || msg.caption || '';
               const from = msg.from;
               const contact = val.contacts?.find((c: any) => c.wa_id === from);
               const senderName = contact?.profile?.name || 'WhatsApp Customer';
 
               const event: InboundMessageEvent = {
-                id: msg.id || `wamid-${Date.now()}`,
+                id: msgId,
                 senderPhone: from ? `+${from}` : '+91 97521 83053',
                 senderName,
                 messageText: text,

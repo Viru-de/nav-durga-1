@@ -1565,7 +1565,7 @@ export const AIPostGeneratorView: React.FC<AIPostGeneratorViewProps> = ({
                 )}
               </button>
               {showPromptInspector && currentPost && (
-                <pre className="mt-2 p-3 rounded-xl bg-slate-900 text-slate-100 text-[11px] font-mono whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed">
+                <pre className="mt-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-mono whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed">
                   {currentPost.prompt}
                 </pre>
               )}

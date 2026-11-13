@@ -433,13 +433,97 @@ export interface WhatsAppConfig {
   autoEnquiryParsing?: boolean;
 }
 
+export type ErpRole = 'SUPER_ADMIN' | 'ADMIN' | 'SALES';
+
+export interface UserPermissions {
+  manageDailyRates: boolean;
+  manageProducts: boolean;
+  manageWebsiteCms: boolean;
+  manageEnquiries: boolean;
+  manageQuotationsOrders: boolean;
+  manageWhatsApp: boolean;
+  viewAllWhatsAppChats: boolean;
+  manageTeamUsers: boolean;
+  publishPublicRates: boolean;
+  viewReports: boolean;
+}
+
 export interface AppUser {
   id: string;
+  username?: string;
   name: string;
   role: 'Admin' | 'Sales' | 'Staff';
+  rbacRole?: ErpRole;
   email: string;
   phone: string;
   status: 'Active' | 'Inactive';
+  permissions?: UserPermissions;
+  lastLoginAt?: string;
+}
+
+export interface WebsiteCmsContent {
+  id: string;
+  heroBadge: string;
+  heroHeadline: string;
+  heroSubheadline: string;
+  announcementBanner: string;
+  showAnnouncementBanner: boolean;
+  aboutTitle: string;
+  aboutSummary: string;
+  visionText: string;
+  missionText: string;
+  qualityCommitment: string;
+  contactPhone: string;
+  contactWhatsapp: string;
+  contactEmail: string;
+  contactAddress: string;
+  unit1Name: string;
+  unit2Name: string;
+  dispatchHours: string;
+  gstNumber: string;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface PublicRateProductItem {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  section: 'MEDIUM SECTION' | 'LIGHT SECTION' | string;
+  size: string;
+  grade: string;
+  unit: string;
+  baseRate: number;
+  gaugeDifference: number;
+  finalRate: number;
+  priceChange: number;
+  inStock: boolean;
+  rateSource: string;
+  description: string;
+}
+
+export interface PublicRatesPayload {
+  mediumSectionRate: number;
+  slSectionRate: number;
+  lightSectionRate: number;
+  lastUpdated: string;
+  updatedBy: string;
+  rateStatus: 'Published' | 'Indicative';
+  gstNote: string;
+  unitLabel: string;
+  products: PublicRateProductItem[];
+}
+
+export interface ActivityLogEntry {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  actorRole: string;
+  action: string;
+  target?: string;
+  details: string;
 }
 
 export interface CompanyGradeBasicRates {
@@ -481,6 +565,8 @@ export type ActiveTab =
   | 'orders'
   | 'follow-ups'
   | 'reports'
+  | 'website-cms'
+  | 'team-management'
   | 'settings';
 
 export type NanoBananaPostType =

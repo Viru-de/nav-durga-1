@@ -205,7 +205,7 @@ export const GaugeDifferenceMasterView: React.FC<GaugeDifferenceMasterViewProps>
                   onClick={() => setSelectedSource(source)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-slate-900 text-white shadow-xs'
+                      ? 'bg-blue-700 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
