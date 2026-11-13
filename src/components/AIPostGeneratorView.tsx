@@ -1791,11 +1791,22 @@ export const AIPostGeneratorView: React.FC<AIPostGeneratorViewProps> = ({
                           : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
                       }`}
                     >
-                      <img
-                        src={hist.imageDataUrl}
-                        alt={hist.title}
-                        className="w-full h-28 object-cover rounded-lg border border-slate-200 mb-1.5"
-                      />
+                      {hist.imageDataUrl ? (
+                        <img
+                          src={hist.imageDataUrl}
+                          alt={hist.title}
+                          className="w-full h-28 object-cover rounded-lg border border-slate-200 mb-1.5"
+                        />
+                      ) : (
+                        <div className="w-full h-28 rounded-lg border border-slate-200 bg-slate-100 flex flex-col items-center justify-center text-center px-2 mb-1.5">
+                          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                            Rate Snapshot
+                          </span>
+                          <span className="text-[10px] text-slate-500 truncate max-w-full mt-0.5">
+                            {hist.effectiveDate}
+                          </span>
+                        </div>
+                      )}
                       <div className="text-[11px] font-bold text-slate-900 truncate">
                         {hist.postTypeLabel}
                       </div>

@@ -296,11 +296,15 @@ export class WhatsAppService {
       const current = this.getActivities();
       const updated = [newEntry, ...current].slice(0, 50);
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(TEST_ACTIVITY_STORAGE_KEY, JSON.stringify(updated));
+        try {
+          localStorage.setItem(TEST_ACTIVITY_STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          localStorage.setItem(TEST_ACTIVITY_STORAGE_KEY, JSON.stringify(updated.slice(0, 15)));
+        }
         window.dispatchEvent(new CustomEvent('navdurga_whatsapp_activity_logged', { detail: newEntry }));
       }
     } catch (err) {
-      console.error('Error persisting test activity:', err);
+      console.warn('Could not persist test activity to localStorage:', err);
     }
 
     return newEntry;
@@ -313,7 +317,7 @@ export class WhatsAppService {
         window.dispatchEvent(new CustomEvent('navdurga_whatsapp_activity_logged'));
       }
     } catch (err) {
-      console.error('Error clearing test activity:', err);
+      console.warn('Could not clear test activity in localStorage:', err);
     }
   }
 
@@ -325,12 +329,16 @@ export class WhatsAppService {
       if (typeof localStorage === 'undefined') return INITIAL_CUSTOM_POSTS;
       const stored = localStorage.getItem(CUSTOM_POSTS_STORAGE_KEY);
       if (!stored) {
-        localStorage.setItem(CUSTOM_POSTS_STORAGE_KEY, JSON.stringify(INITIAL_CUSTOM_POSTS));
+        try {
+          localStorage.setItem(CUSTOM_POSTS_STORAGE_KEY, JSON.stringify(INITIAL_CUSTOM_POSTS));
+        } catch {
+          // ignore quota error on seed cache
+        }
         return INITIAL_CUSTOM_POSTS;
       }
       return JSON.parse(stored) as CustomWhatsAppPost[];
     } catch (err) {
-      console.error('Error fetching custom WhatsApp posts:', err);
+      console.warn('Error fetching custom WhatsApp posts:', err);
       return INITIAL_CUSTOM_POSTS;
     }
   }
@@ -347,12 +355,26 @@ export class WhatsAppService {
         updated = [post, ...current];
       }
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(CUSTOM_POSTS_STORAGE_KEY, JSON.stringify(updated));
+        try {
+          localStorage.setItem(CUSTOM_POSTS_STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          // Strip heavy base64 images from older custom posts if storage quota is tight
+          const compact = updated.slice(0, 6).map((item, idx) =>
+            idx > 0 && item.imageUrl?.startsWith('data:image/') && item.imageUrl.length > 32000
+              ? { ...item, imageUrl: '' }
+              : item
+          );
+          try {
+            localStorage.setItem(CUSTOM_POSTS_STORAGE_KEY, JSON.stringify(compact));
+          } catch {
+            // keep in memory for this session
+          }
+        }
         window.dispatchEvent(new CustomEvent('navdurga_custom_posts_updated', { detail: post }));
       }
       return post;
     } catch (err) {
-      console.error('Error saving custom WhatsApp post:', err);
+      console.warn('Could not persist custom WhatsApp post to localStorage:', err);
       return post;
     }
   }
@@ -366,7 +388,7 @@ export class WhatsAppService {
         window.dispatchEvent(new CustomEvent('navdurga_custom_posts_updated'));
       }
     } catch (err) {
-      console.error('Error deleting custom WhatsApp post:', err);
+      console.warn('Could not update deleted custom WhatsApp post in localStorage:', err);
     }
   }
 

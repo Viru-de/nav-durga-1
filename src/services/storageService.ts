@@ -104,6 +104,146 @@ export interface AppFullState {
   marketOpeningRates: MarketOpeningRates;
 }
 
+function isQuotaExceededError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { name?: string; code?: number; message?: string };
+  return (
+    e.name === 'QuotaExceededError' ||
+    e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    e.code === 22 ||
+    e.code === 1014 ||
+    (typeof e.message === 'string' && e.message.toLowerCase().includes('quota'))
+  );
+}
+
+function stripHeavyDataUrl(url: string | undefined, maxLen = 16384): string | undefined {
+  if (!url) return url;
+  if (url.startsWith('data:image/') && url.length > maxLen) {
+    return undefined;
+  }
+  return url;
+}
+
+function sanitizeRateBroadcastsForStorage(records: RateBroadcastRecord[]): RateBroadcastRecord[] {
+  return (records || []).slice(0, 25).map((r) => ({
+    ...r,
+    imageUrl: stripHeavyDataUrl(r.imageUrl),
+  }));
+}
+
+function sanitizeChatMessagesForStorage(messages: WhatsAppChatMessage[]): WhatsAppChatMessage[] {
+  const list = messages || [];
+  const sliced = list.length > 200 ? list.slice(list.length - 200) : list;
+  return sliced.map((m) => ({
+    ...m,
+    mediaUrl: stripHeavyDataUrl(m.mediaUrl),
+  }));
+}
+
+function sanitizeWhatsAppMessagesForStorage(messages: WhatsAppMessageRecord[]): WhatsAppMessageRecord[] {
+  const list = messages || [];
+  const sliced = list.length > 150 ? list.slice(list.length - 150) : list;
+  return sliced.map((m) => ({
+    ...m,
+    imageUrl: stripHeavyDataUrl(m.imageUrl),
+  }));
+}
+
+function pruneBloatedLocalStorageCaches(aggressive = false): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const ls = window.localStorage;
+
+    // 1. Compact or evict AI post history cache (primary cause of 5MB quota exhaustion)
+    const nanoRaw = ls.getItem('navdurga_nano_banana_posts_v1');
+    if (nanoRaw) {
+      if (aggressive || nanoRaw.length > 1_200_000) {
+        try {
+          const parsed = JSON.parse(nanoRaw) as Array<Record<string, unknown>>;
+          if (Array.isArray(parsed) && !aggressive) {
+            const compacted = parsed.slice(0, 3).map((p, idx) => ({
+              ...p,
+              rawAiImageDataUrl: undefined,
+              pages: undefined,
+              imageDataUrl:
+                idx === 0 && typeof p.imageDataUrl === 'string' && p.imageDataUrl.length < 300_000
+                  ? p.imageDataUrl
+                  : '',
+            }));
+            ls.setItem('navdurga_nano_banana_posts_v1', JSON.stringify(compacted));
+          } else {
+            ls.removeItem('navdurga_nano_banana_posts_v1');
+          }
+        } catch {
+          ls.removeItem('navdurga_nano_banana_posts_v1');
+        }
+      }
+    }
+
+    // 2. Evict oversized custom poster background templates if bloated or under aggressive cleanup
+    for (const bgKey of [
+      'navdurga_custom_market_opening_bg_v1',
+      'navdurga_custom_rate_revised_bg_v1',
+    ]) {
+      const val = ls.getItem(bgKey);
+      if (val && (aggressive || val.length > 800_000)) {
+        ls.removeItem(bgKey);
+      }
+    }
+
+    // 3. Compact custom WhatsApp posts if oversized
+    const customPostsRaw = ls.getItem('navdurga_custom_whatsapp_posts_v1');
+    if (customPostsRaw && (aggressive || customPostsRaw.length > 500_000)) {
+      try {
+        const posts = JSON.parse(customPostsRaw) as Array<Record<string, unknown>>;
+        if (Array.isArray(posts)) {
+          const trimmed = posts.slice(0, 5).map((p) => ({
+            ...p,
+            imageUrl:
+              typeof p.imageUrl === 'string' &&
+              p.imageUrl.startsWith('data:image/') &&
+              p.imageUrl.length > 64_000
+                ? ''
+                : p.imageUrl,
+          }));
+          ls.setItem('navdurga_custom_whatsapp_posts_v1', JSON.stringify(trimmed));
+        }
+      } catch {
+        ls.removeItem('navdurga_custom_whatsapp_posts_v1');
+      }
+    }
+
+    // 4. Compact already-stored rate broadcasts / chat messages if they contain multi-MB base64 blobs
+    const rbRaw = ls.getItem(STORAGE_KEYS.RATE_BROADCASTS);
+    if (rbRaw && rbRaw.length > 250_000) {
+      try {
+        const parsed = JSON.parse(rbRaw) as RateBroadcastRecord[];
+        ls.setItem(
+          STORAGE_KEYS.RATE_BROADCASTS,
+          JSON.stringify(sanitizeRateBroadcastsForStorage(parsed))
+        );
+      } catch {
+        ls.removeItem(STORAGE_KEYS.RATE_BROADCASTS);
+      }
+    }
+
+    const cmRaw = ls.getItem(STORAGE_KEYS.CHAT_MESSAGES);
+    if (cmRaw && cmRaw.length > 350_000) {
+      try {
+        const parsed = JSON.parse(cmRaw) as WhatsAppChatMessage[];
+        ls.setItem(
+          STORAGE_KEYS.CHAT_MESSAGES,
+          JSON.stringify(sanitizeChatMessagesForStorage(parsed))
+        );
+      } catch {
+        ls.removeItem(STORAGE_KEYS.CHAT_MESSAGES);
+      }
+    }
+  } catch {
+    // ignore cleanup failures
+  }
+}
+
 function safeGet<T>(key: string, fallback: T): T {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return fallback;
@@ -119,9 +259,32 @@ function safeGet<T>(key: string, fallback: T): T {
 function safeSet<T>(key: string, value: T): void {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return;
-    localStorage.setItem(key, JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+    try {
+      localStorage.setItem(key, serialized);
+    } catch (err) {
+      if (isQuotaExceededError(err)) {
+        // First pass: compact oversized base64 image caches and retry
+        pruneBloatedLocalStorageCaches(false);
+        try {
+          localStorage.setItem(key, serialized);
+          return;
+        } catch {
+          // Second pass: aggressive cache eviction and retry
+          pruneBloatedLocalStorageCaches(true);
+          try {
+            localStorage.setItem(key, serialized);
+            return;
+          } catch (retryErr) {
+            console.warn(`Storage quota tight while caching ${key}; keeping state in memory.`, retryErr);
+            return;
+          }
+        }
+      }
+      console.warn(`Error saving ${key} to storage:`, err);
+    }
   } catch (err) {
-    console.error(`Error saving ${key} to storage:`, err);
+    console.warn(`Could not serialize ${key} for storage:`, err);
   }
 }
 
@@ -161,6 +324,9 @@ function ensureTestCustomer(customers: Customer[]): Customer[] {
 
 export class StorageService {
   static loadState(): AppFullState {
+    // Recover cleanly if a previous session left localStorage saturated with base64 blobs
+    pruneBloatedLocalStorageCaches(false);
+
     const rawCustomers = safeGet<Customer[]>(STORAGE_KEYS.CUSTOMERS, INITIAL_CUSTOMERS);
     const customers = ensureTestCustomer(rawCustomers);
 
@@ -229,12 +395,12 @@ export class StorageService {
     safeSet(STORAGE_KEYS.ORDERS, state.orders);
     safeSet(STORAGE_KEYS.QUOTATIONS, state.quotations);
     safeSet(STORAGE_KEYS.FOLLOW_UPS, state.followUps);
-    safeSet(STORAGE_KEYS.WHATSAPP_MESSAGES, state.whatsAppMessages);
+    safeSet(STORAGE_KEYS.WHATSAPP_MESSAGES, sanitizeWhatsAppMessagesForStorage(state.whatsAppMessages));
     safeSet(STORAGE_KEYS.CONVERSATIONS, state.conversations);
-    safeSet(STORAGE_KEYS.CHAT_MESSAGES, state.chatMessages);
-    safeSet(STORAGE_KEYS.RATE_BROADCASTS, state.rateBroadcasts);
+    safeSet(STORAGE_KEYS.CHAT_MESSAGES, sanitizeChatMessagesForStorage(state.chatMessages));
+    safeSet(STORAGE_KEYS.RATE_BROADCASTS, sanitizeRateBroadcastsForStorage(state.rateBroadcasts));
     safeSet(STORAGE_KEYS.RATE_CHARGES, state.rateCharges);
-    safeSet(STORAGE_KEYS.RATE_HISTORY, state.rateHistory);
+    safeSet(STORAGE_KEYS.RATE_HISTORY, (state.rateHistory || []).slice(0, 100));
     safeSet(STORAGE_KEYS.COMMON_PRODUCT_IMAGES, state.commonProductImages);
     safeSet(STORAGE_KEYS.GRADE_BASIC_RATES, state.gradeBasicRates);
     safeSet(STORAGE_KEYS.CATEGORY_BASIC_RATES, state.categoryBasicRates);

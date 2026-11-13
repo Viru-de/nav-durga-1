@@ -3933,29 +3933,63 @@ Scene & Composition: ${sceneNarrative}`;
     ctx.closePath();
   }
 
+  private static inMemoryHistory: NanoBananaGeneratedPost[] | null = null;
+
   /**
    * History Storage Helpers
    */
   public static getGeneratedPostsHistory(): NanoBananaGeneratedPost[] {
+    if (this.inMemoryHistory) {
+      return this.inMemoryHistory;
+    }
     try {
       const raw = localStorage.getItem(NANO_BANANA_HISTORY_KEY);
       if (!raw) return [];
-      return JSON.parse(raw) as NanoBananaGeneratedPost[];
+      const parsed = JSON.parse(raw) as NanoBananaGeneratedPost[];
+      this.inMemoryHistory = Array.isArray(parsed) ? parsed : [];
+      return this.inMemoryHistory;
     } catch {
       return [];
     }
   }
 
   public static savePostToHistory(post: NanoBananaGeneratedPost): void {
+    const existing = this.getGeneratedPostsHistory().filter((p) => p.id !== post.id);
+    const updated = [post, ...existing].slice(0, 12);
+    this.inMemoryHistory = updated;
+
+    const persistCompact = (items: NanoBananaGeneratedPost[], keepImageCount: number): boolean => {
+      try {
+        const compacted = items.map((p, idx) => ({
+          ...p,
+          rawAiImageDataUrl: undefined,
+          pages: undefined,
+          imageDataUrl:
+            idx < keepImageCount && typeof p.imageDataUrl === 'string' && p.imageDataUrl.length <= 280_000
+              ? p.imageDataUrl
+              : '',
+        }));
+        localStorage.setItem(NANO_BANANA_HISTORY_KEY, JSON.stringify(compacted));
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
     try {
-      const existing = this.getGeneratedPostsHistory().filter((p) => p.id !== post.id);
-      const updated = [post, ...existing].slice(0, 12);
-      localStorage.setItem(NANO_BANANA_HISTORY_KEY, JSON.stringify(updated));
-      window.dispatchEvent(
-        new CustomEvent('navdurga_nano_banana_post_generated', { detail: post })
-      );
+      if (
+        !persistCompact(updated.slice(0, 6), 2) &&
+        !persistCompact(updated.slice(0, 4), 1) &&
+        !persistCompact(updated.slice(0, 4), 0)
+      ) {
+        localStorage.removeItem(NANO_BANANA_HISTORY_KEY);
+      }
     } catch (err) {
-      console.warn('Could not save Nano Banana post to history:', err);
+      console.warn('Could not save Nano Banana post to localStorage history:', err);
     }
+
+    window.dispatchEvent(
+      new CustomEvent('navdurga_nano_banana_post_generated', { detail: post })
+    );
   }
 }
