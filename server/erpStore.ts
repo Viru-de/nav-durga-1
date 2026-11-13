@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { fileURLToPath } from 'url';
 import { CANONICAL_GAUGE_DIFFERENCE_RECORDS } from '../src/data/productMasterData';
 import type {
   AppUser,
@@ -15,10 +14,7 @@ import type {
   ActivityLogEntry,
 } from '../src/types';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const DATA_DIR = path.resolve(__dirname, '..', '.data');
+const DATA_DIR = path.resolve(process.cwd(), '.data');
 const STORE_PATH = path.join(DATA_DIR, 'erp-store.json');
 
 const SESSION_SECRET =

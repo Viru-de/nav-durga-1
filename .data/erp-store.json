@@ -22,7 +22,7 @@
         "publishPublicRates": true,
         "viewReports": true
       },
-      "lastLoginAt": "2026-11-13T11:30:11.372Z"
+      "lastLoginAt": "2026-11-13T11:51:47.051Z"
     },
     {
       "id": "usr-admin-2",
@@ -625,6 +625,15 @@
     }
   ],
   "activityLogs": [
+    {
+      "id": "log-1794570707051-760",
+      "timestamp": "2026-11-13T11:51:47.051Z",
+      "actorId": "usr-1",
+      "actorName": "Virendra Patel",
+      "actorRole": "SUPER_ADMIN",
+      "action": "LOGIN",
+      "details": "Logged into Nav Durga ERP (SUPER_ADMIN)"
+    },
     {
       "id": "log-1794569411700-407",
       "timestamp": "2026-11-13T11:30:11.700Z",
