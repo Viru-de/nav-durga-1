@@ -175,6 +175,24 @@
         "announcementBanner": { "type": "string", "maxLength": 500 },
         "aboutSummary": { "type": "string", "maxLength": 3000 },
         "qualityCommitment": { "type": "string", "maxLength": 2000 },
+        "journeyHeading": { "type": "string", "maxLength": 200 },
+        "journeySubheading": { "type": "string", "maxLength": 300 },
+        "journeyDescription": { "type": "string", "maxLength": 1000 },
+        "journeyMilestones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "maxLength": 128 },
+              "dateLabel": { "type": "string", "maxLength": 60 },
+              "title": { "type": "string", "maxLength": 200 },
+              "description": { "type": "string", "maxLength": 1000 },
+              "imageUrl": { "type": "string", "maxLength": 500000 },
+              "enabled": { "type": "boolean" },
+              "order": { "type": "number" }
+            }
+          }
+        },
         "contactPhone": { "type": "string", "maxLength": 50 },
         "contactWhatsapp": { "type": "string", "maxLength": 50 },
         "contactEmail": { "type": "string", "maxLength": 150 },

@@ -26,6 +26,12 @@ import { WhatsAppService } from './services/whatsappService';
 import { PlatformApi } from './services/platformApi';
 import { INITIAL_USERS } from './data/demoData';
 import { DEFAULT_HERO_SLIDES } from './data/heroSlidesDefaults';
+import {
+  DEFAULT_JOURNEY_DESCRIPTION,
+  DEFAULT_JOURNEY_HEADING,
+  DEFAULT_JOURNEY_MILESTONES,
+  DEFAULT_JOURNEY_SUBHEADING,
+} from './data/journeyDefaults';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MobileNav } from './components/MobileNav';
@@ -56,6 +62,7 @@ import { QuotationRequestModal } from './components/QuotationRequestModal';
 import { LoginPage } from './components/LoginPage';
 import { WebsiteCmsView } from './components/WebsiteCmsView';
 import { TeamManagementView } from './components/TeamManagementView';
+import { SeoHead } from './components/SeoHead';
 import { CheckCircle2, X, CalendarCheck, BarChart3, MessageSquare } from 'lucide-react';
 import { NavDurgaLogo } from './components/NavDurgaLogo';
 
@@ -67,6 +74,10 @@ const DEFAULT_CMS_FALLBACK: WebsiteCmsContent = {
     'Steel products for industrial, structural and infrastructure requirements. Explore our products and connect with our team.',
   heroSlides: DEFAULT_HERO_SLIDES,
   defaultHeroSlideId: DEFAULT_HERO_SLIDES[0].id,
+  journeyHeading: DEFAULT_JOURNEY_HEADING,
+  journeySubheading: DEFAULT_JOURNEY_SUBHEADING,
+  journeyDescription: DEFAULT_JOURNEY_DESCRIPTION,
+  journeyMilestones: DEFAULT_JOURNEY_MILESTONES,
   announcementBanner:
     'Nav Durga Ispat Pvt. Ltd. — Direct Commercial Enquiries & Live Structural Steel Rates (Urla Industrial Area, Raipur)',
   showAnnouncementBanner: true,
@@ -107,6 +118,8 @@ export default function App() {
   const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [websiteCms, setWebsiteCms] = useState<WebsiteCmsContent>(DEFAULT_CMS_FALLBACK);
   const [publicRates, setPublicRates] = useState<PublicRatesPayload | null>(null);
+  const [ratesLoading, setRatesLoading] = useState<boolean>(true);
+  const [ratesError, setRatesError] = useState<string | null>(null);
 
   // Public Quotation Modal State
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
@@ -151,6 +164,33 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
+  const mergeWithCmsDefaults = useCallback((incoming: WebsiteCmsContent): WebsiteCmsContent => {
+    return {
+      ...DEFAULT_CMS_FALLBACK,
+      ...incoming,
+      journeyHeading: incoming.journeyHeading || DEFAULT_JOURNEY_HEADING,
+      journeySubheading: incoming.journeySubheading || DEFAULT_JOURNEY_SUBHEADING,
+      journeyDescription: incoming.journeyDescription || DEFAULT_JOURNEY_DESCRIPTION,
+      journeyMilestones:
+        Array.isArray(incoming.journeyMilestones) && incoming.journeyMilestones.length > 0
+          ? incoming.journeyMilestones
+          : DEFAULT_JOURNEY_MILESTONES,
+    };
+  }, []);
+
+  const refreshPublicRates = useCallback(async () => {
+    setRatesLoading((prev) => (publicRates === null ? true : prev));
+    try {
+      const rates = await PlatformApi.fetchPublicRates();
+      setPublicRates(rates);
+      setRatesError(null);
+    } catch (err) {
+      setRatesError(err instanceof Error ? err.message : 'Unable to fetch latest ERP rates');
+    } finally {
+      setRatesLoading(false);
+    }
+  }, [publicRates]);
+
   const navigateToPath = useCallback((path: string) => {
     const clean = normalizePath(path);
     if (window.location.pathname !== clean) {
@@ -160,15 +200,21 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (!clean.startsWith('/erp') && clean !== '/login') {
       PlatformApi.fetchPublicRates()
-        .then((rates) => setPublicRates(rates))
-        .catch(() => {});
+        .then((rates) => {
+          setPublicRates(rates);
+          setRatesError(null);
+        })
+        .catch((err) => {
+          setRatesError((prev) => prev || (err instanceof Error ? err.message : 'Unable to load latest rates'));
+        })
+        .finally(() => setRatesLoading(false));
       PlatformApi.fetchPublicWebsite()
         .then((res) => {
-          if (res?.cms) setWebsiteCms(res.cms);
+          if (res?.cms) setWebsiteCms(mergeWithCmsDefaults(res.cms));
         })
         .catch(() => {});
     }
-  }, []);
+  }, [mergeWithCmsDefaults]);
 
   // Load Public CMS + Public Rates + Auth Session on boot
   const hydrateAuthenticatedErp = useCallback(async (user: AppUser) => {
@@ -176,36 +222,53 @@ export default function App() {
     setActiveAppUser(user);
     try {
       const boot = await PlatformApi.fetchErpBootstrap();
-      setWebsiteCms(boot.cms);
+      setWebsiteCms(mergeWithCmsDefaults(boot.cms));
       setPublicRates(boot.publicRates);
+      setRatesError(null);
+      setRatesLoading(false);
       setAppState((prev) => {
-        // Merge server enquiries (from public website & rate portal) without losing local ones
+        // Merge server enquiries (preferring authoritative server updates) while keeping local-only items
+        const serverMap = new Map<string, SalesEnquiry>();
+        for (const srv of boot.enquiries || []) {
+          serverMap.set(srv.id, srv);
+        }
+        const mergedLocal = prev.enquiries.map((localEnq) => serverMap.get(localEnq.id) || localEnq);
         const existingIds = new Set(prev.enquiries.map((e) => e.id));
         const newServerEnquiries = (boot.enquiries || []).filter((e) => !existingIds.has(e.id));
         return {
           ...prev,
-          enquiries: [...newServerEnquiries, ...prev.enquiries],
+          enquiries: [...newServerEnquiries, ...mergedLocal],
           users: boot.users && boot.users.length > 0 ? boot.users : prev.users,
         };
       });
     } catch (err) {
       console.warn('ERP bootstrap sync warning:', err);
     }
-  }, []);
+  }, [mergeWithCmsDefaults]);
 
   useEffect(() => {
     let active = true;
     PlatformApi.fetchPublicWebsite()
       .then((res) => {
-        if (active && res?.cms) setWebsiteCms(res.cms);
+        if (active && res?.cms) setWebsiteCms(mergeWithCmsDefaults(res.cms));
       })
       .catch(() => {});
 
     PlatformApi.fetchPublicRates()
       .then((rates) => {
-        if (active) setPublicRates(rates);
+        if (active) {
+          setPublicRates(rates);
+          setRatesError(null);
+        }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (active) {
+          setRatesError(err instanceof Error ? err.message : 'Unable to load latest ERP rates');
+        }
+      })
+      .finally(() => {
+        if (active) setRatesLoading(false);
+      });
 
     PlatformApi.fetchCurrentUser()
       .then(async (res) => {
@@ -223,7 +286,23 @@ export default function App() {
     return () => {
       active = false;
     };
-  }, [hydrateAuthenticatedErp]);
+  }, [hydrateAuthenticatedErp, mergeWithCmsDefaults]);
+
+  // Keep public homepage & catalogue synchronized with ERP rate updates
+  useEffect(() => {
+    if (routePath.startsWith('/erp') || routePath === '/login' || routePath === '/product-rates') {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      PlatformApi.fetchPublicRates()
+        .then((rates) => {
+          setPublicRates(rates);
+          setRatesError(null);
+        })
+        .catch(() => {});
+    }, 30000);
+    return () => window.clearInterval(timer);
+  }, [routePath]);
 
   // Synchronize ERP rates & active catalog directly to Backend Public Rate Portal (Single Source of Truth)
   const syncRatesToPublicServer = useCallback(
@@ -723,6 +802,15 @@ export default function App() {
       ...prev,
       enquiries: prev.enquiries.map((e) => (e.id === enquiryId ? { ...e, status: newStatus } : e)),
     }));
+    PlatformApi.updateErpEnquiry(enquiryId, { status: newStatus }).catch(() => {});
+  };
+
+  const handleUpdateEnquiry = (enquiryId: string, patch: Partial<SalesEnquiry>) => {
+    setAppState((prev: AppFullState) => ({
+      ...prev,
+      enquiries: prev.enquiries.map((e) => (e.id === enquiryId ? { ...e, ...patch } : e)),
+    }));
+    PlatformApi.updateErpEnquiry(enquiryId, patch).catch(() => {});
   };
 
   const handleConvertEnquiryToQuotation = (enq: SalesEnquiry) => {
@@ -1041,6 +1129,12 @@ export default function App() {
   if (isWhatsAppStandalone && authUser) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
+        <SeoHead
+          title="Nav Durga WhatsApp Sales Desk | Internal ERP"
+          description="Internal Nav Durga Ispat ERP WhatsApp communications console."
+          canonicalPath="/erp/whatsapp"
+          noIndex
+        />
         <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 sm:px-8 h-16 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-3">
             <NavDurgaLogo size="sm" withCard priority />
@@ -1123,12 +1217,16 @@ export default function App() {
               cms={websiteCms}
               onOpenQuoteModal={handleOpenQuoteModal}
               onRatesRefreshed={setPublicRates}
+              onNavigate={navigateToPath}
             />
           ) : (
             <PublicWebsitePages
               currentPath={routePath}
               cms={websiteCms}
               rates={publicRates}
+              ratesLoading={ratesLoading}
+              ratesError={ratesError}
+              onRefreshRates={refreshPublicRates}
               onNavigate={navigateToPath}
               onOpenQuoteModal={handleOpenQuoteModal}
               onEnquirySubmitted={(enq) => handleAddEnquiry(enq)}
@@ -1141,6 +1239,7 @@ export default function App() {
           onClose={() => setQuoteModalOpen(false)}
           presetProduct={quotePresetProduct}
           presetGrade={quotePresetGrade}
+          products={publicRates?.products || []}
           contactWhatsapp={websiteCms.contactWhatsapp}
           onEnquirySubmitted={(enq) => handleAddEnquiry(enq)}
         />
@@ -1151,6 +1250,12 @@ export default function App() {
   // 4. PROTECTED ERP WORKSPACE (/erp)
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased selection:bg-blue-600 selection:text-white overflow-x-hidden">
+      <SeoHead
+        title="Nav Durga Ispat ERP Workspace"
+        description="Internal enterprise resource planning console for Nav Durga Ispat Pvt. Ltd."
+        canonicalPath="/erp"
+        noIndex
+      />
       <Header
         company={appState.company}
         currentTab={activeTab}
@@ -1419,8 +1524,10 @@ export default function App() {
               enquiries={appState.enquiries}
               customers={appState.customers}
               products={appState.products}
+              users={appState.users || []}
               onAddEnquiry={handleAddEnquiry}
               onUpdateStatus={handleUpdateEnquiryStatus}
+              onUpdateEnquiry={handleUpdateEnquiry}
               onConvertToQuotation={handleConvertEnquiryToQuotation}
               onConvertToOrder={handleConvertEnquiryToOrder}
               onSelectCustomer={handleSelectCustomerById}

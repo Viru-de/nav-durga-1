@@ -22,7 +22,7 @@
         "publishPublicRates": true,
         "viewReports": true
       },
-      "lastLoginAt": "2026-11-13T12:19:58.594Z"
+      "lastLoginAt": "2026-11-14T11:18:44.793Z"
     },
     {
       "id": "usr-admin-2",
@@ -163,7 +163,7 @@
     "gstNumber": "",
     "cinNumber": "U24132CT1988PTC004838",
     "establishedYear": "1988",
-    "updatedAt": "2026-11-13T12:19:58.461Z",
+    "updatedAt": "2026-11-13T13:30:14.397Z",
     "updatedBy": "Virendra Patel",
     "heroSlides": [
       {
@@ -247,14 +247,126 @@
         "secondaryCtaTarget": "/product-rates"
       }
     ],
-    "defaultHeroSlideId": "slide-1"
+    "defaultHeroSlideId": "slide-1",
+    "solutionsServices": [
+      {
+        "id": "sol-structural-steel",
+        "key": "structural-steel",
+        "title": "Structural Steel Products",
+        "description": "Active structural steel sections rolled and managed directly through Nav Durga Ispat ERP for industrial, structural, and infrastructure needs.",
+        "kind": "product",
+        "enabled": true
+      },
+      {
+        "id": "sol-medium-section",
+        "key": "medium-section",
+        "title": "Medium Section",
+        "description": "Medium structural steel channels, joists, and heavy sections supplied by Nav Durga Ispat Pvt. Ltd.",
+        "kind": "product",
+        "enabled": true
+      },
+      {
+        "id": "sol-light-section",
+        "key": "light-section",
+        "title": "Light Section",
+        "description": "Light structural channels, equal angles, and merchant sections supplied through Unit-2 NS Ispat (I) Pvt. Ltd.",
+        "kind": "product",
+        "enabled": true
+      },
+      {
+        "id": "sol-beams-joists",
+        "key": "beams-joists",
+        "title": "Steel Beams & Joists",
+        "description": "Structural joists and beam sections matched to ERP size specifications for spans, columns, and heavy framing.",
+        "kind": "product",
+        "enabled": true
+      },
+      {
+        "id": "sol-ms-channels",
+        "key": "ms-channels",
+        "title": "M.S. Channels",
+        "description": "Mild steel C-channels across Medium and Light rolling ranges, synchronized live with ERP sizes and gauge differences.",
+        "kind": "product",
+        "enabled": true
+      },
+      {
+        "id": "sol-ms-angles",
+        "key": "ms-angles",
+        "title": "M.S. Equal Angles",
+        "description": "Equal structural angle sections for trusses, bracing, towers, and industrial steel fabrication work.",
+        "kind": "product",
+        "enabled": true
+      },
+      {
+        "id": "sol-steel-enquiries",
+        "key": "steel-enquiries",
+        "title": "Steel Product Enquiries",
+        "description": "Direct commercial quotation and requirement submission connected straight to the Nav Durga Ispat Raipur sales team.",
+        "kind": "service",
+        "enabled": true
+      },
+      {
+        "id": "sol-rate-info",
+        "key": "rate-information",
+        "title": "Product Rate Information",
+        "description": "Live daily section basic rates and product-wise rate portal synced directly from ERP Daily Rate Management.",
+        "kind": "service",
+        "enabled": true
+      }
+    ],
+    "additionalLocations": [],
+    "journeyHeading": "Our Journey",
+    "journeySubheading": "From Foundation to Forward Progress",
+    "journeyDescription": "Every milestone reflects our journey, experience and continued presence in the steel industry.",
+    "journeyMilestones": [
+      {
+        "id": "milestone-1988",
+        "order": 1,
+        "enabled": true,
+        "dateLabel": "1988",
+        "title": "Foundation & First Steps",
+        "description": "Nav Durga Ispat Pvt. Ltd. was incorporated in 1988, marking the beginning of its journey in the steel industry."
+      },
+      {
+        "id": "milestone-scale",
+        "order": 2,
+        "enabled": true,
+        "dateLabel": "",
+        "title": "Building Scale – Subsequent Years",
+        "description": "Developing its business presence and strengthening its position in the steel industry."
+      },
+      {
+        "id": "milestone-product-presence",
+        "order": 3,
+        "enabled": true,
+        "dateLabel": "",
+        "title": "Strengthening Our Product Presence",
+        "description": "Expanding the company's presence across steel product categories and serving industrial and structural requirements."
+      },
+      {
+        "id": "milestone-established",
+        "order": 4,
+        "enabled": true,
+        "dateLabel": "",
+        "title": "Established Industry Presence",
+        "description": "Continuing the company's journey from its base in Urla Industrial Area, Raipur, Chhattisgarh."
+      },
+      {
+        "id": "milestone-today",
+        "order": 5,
+        "enabled": true,
+        "dateLabel": "",
+        "title": "Moving Forward – Today",
+        "description": "Continuing to build business relationships and making product information more accessible through digital platforms."
+      }
+    ]
   },
   "categoryBasicRates": {
     "MEDIUM SECTION": 49711,
     "LIGHT SECTION": 42211
   },
   "rateStatus": "Published",
-  "rateLastUpdated": "2026-11-13T11:30:11.700Z",
+  "rateLastUpdated": "2026-11-14T11:18:44.810Z",
   "rateUpdatedBy": "Virendra Patel",
   "products": [
     {
@@ -710,6 +822,60 @@
     }
   ],
   "activityLogs": [
+    {
+      "id": "log-1794655124810-587",
+      "timestamp": "2026-11-14T11:18:44.810Z",
+      "actorId": "usr-1",
+      "actorName": "Virendra Patel",
+      "actorRole": "SUPER_ADMIN",
+      "action": "DAILY_RATES_PUBLISHED",
+      "details": "Medium Section: ₹49,711/MT, Light Section: ₹42,211/MT"
+    },
+    {
+      "id": "log-1794655124801-639",
+      "timestamp": "2026-11-14T11:18:44.801Z",
+      "actorId": "usr-1",
+      "actorName": "Virendra Patel",
+      "actorRole": "SUPER_ADMIN",
+      "action": "DAILY_RATES_PUBLISHED",
+      "details": "Medium Section: ₹49,811/MT, Light Section: ₹42,211/MT"
+    },
+    {
+      "id": "log-1794655124794-382",
+      "timestamp": "2026-11-14T11:18:44.794Z",
+      "actorId": "usr-1",
+      "actorName": "Virendra Patel",
+      "actorRole": "SUPER_ADMIN",
+      "action": "LOGIN",
+      "details": "Logged into Nav Durga ERP (SUPER_ADMIN)"
+    },
+    {
+      "id": "log-1794576614397-701",
+      "timestamp": "2026-11-13T13:30:14.397Z",
+      "actorId": "usr-1",
+      "actorName": "Virendra Patel",
+      "actorRole": "SUPER_ADMIN",
+      "action": "WEBSITE_CMS_UPDATED",
+      "details": "Updated public website content & contact settings"
+    },
+    {
+      "id": "log-1794576614391-307",
+      "timestamp": "2026-11-13T13:30:14.391Z",
+      "actorId": "usr-1",
+      "actorName": "Virendra Patel",
+      "actorRole": "SUPER_ADMIN",
+      "action": "WEBSITE_CMS_UPDATED",
+      "details": "Updated public website content & contact settings"
+    },
+    {
+      "id": "log-1794576614382-710",
+      "timestamp": "2026-11-13T13:30:14.382Z",
+      "actorId": "usr-1",
+      "actorName": "Virendra Patel",
+      "actorRole": "SUPER_ADMIN",
+      "action": "LOGIN",
+      "details": "Logged into Nav Durga ERP (SUPER_ADMIN)"
+    },
     {
       "id": "log-1794570707051-760",
       "timestamp": "2026-11-13T11:51:47.051Z",

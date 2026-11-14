@@ -77,7 +77,9 @@ export const PlatformApi = {
     phone: string;
     email?: string;
     city?: string;
+    productId?: string;
     product?: string;
+    size?: string;
     grade?: string;
     quantity?: number;
     unit?: string;
@@ -181,6 +183,16 @@ export const PlatformApi = {
     return apiFetch('/api/erp/website', {
       method: 'PUT',
       body: JSON.stringify(cms),
+    });
+  },
+
+  async updateErpEnquiry(
+    id: string,
+    payload: Partial<SalesEnquiry>
+  ): Promise<{ success: boolean; enquiry: SalesEnquiry }> {
+    return apiFetch(`/api/erp/enquiries/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
     });
   },
 

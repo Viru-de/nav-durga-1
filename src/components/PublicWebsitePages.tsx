@@ -13,18 +13,14 @@ import {
   Download,
   FileText,
   Building2,
-  Send,
   MessageSquare,
   Cpu,
   Search,
   Eye,
-  X,
   Package,
   Compass,
   Handshake,
   Globe,
-  Clock,
-  SlidersHorizontal,
   Boxes,
   Wrench,
 } from 'lucide-react';
@@ -39,13 +35,19 @@ import { ThreeSteelShowcase } from './ThreeSteelShowcase';
 import { SeoHead } from './SeoHead';
 import { HeroImageSlider } from './HeroImageSlider';
 import { PresenceMapSection } from './PresenceMapSection';
+import { OurJourneyTimeline } from './OurJourneyTimeline';
+import { FaqSection, buildFaqJsonLd, buildPublicFaqs } from './FaqSection';
+import { QuickEnquiryForm } from './QuickEnquiryForm';
+import { InnerPageBanner } from './InnerPageBanner';
 import { DEFAULT_SOLUTIONS_SERVICES } from '../data/solutionsDefaults';
-import { PlatformApi } from '../services/platformApi';
 
 interface PublicWebsitePagesProps {
   currentPath: string;
   cms: WebsiteCmsContent;
   rates: PublicRatesPayload | null;
+  ratesLoading?: boolean;
+  ratesError?: string | null;
+  onRefreshRates?: () => void;
   mapsApiKey?: string;
   onNavigate: (path: string) => void;
   onOpenQuoteModal: (presetProduct?: string, presetGrade?: string) => void;
@@ -123,6 +125,9 @@ const ProductCardMedia: React.FC<{ item: PublicRateProductItem }> = ({ item }) =
       <img
         src={item.image}
         alt={`${item.name} ${item.size}`}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
         className="w-full h-full object-cover"
         onError={() => setImgFailed(true)}
       />
@@ -136,30 +141,18 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
   currentPath,
   cms,
   rates,
+  ratesLoading = false,
+  ratesError = null,
+  onRefreshRates,
   mapsApiKey,
   onNavigate,
   onOpenQuoteModal,
   onEnquirySubmitted,
 }) => {
-  const [contactForm, setContactForm] = useState({
-    name: '',
-    companyName: '',
-    phone: '',
-    email: '',
-    city: '',
-    product: 'Structural Steel Enquiry',
-    quantity: '25',
-    notes: '',
-  });
-  const [contactSubmitting, setContactSubmitting] = useState(false);
-  const [contactError, setContactError] = useState<string | null>(null);
-  const [contactSuccess, setContactSuccess] = useState<SalesEnquiry | null>(null);
-
-  // Homepage / Catalog interactive filters & Product Detail Modal
+  // Homepage / Catalog interactive filters
   const [productSearch, setProductSearch] = useState('');
   const [sectionFilter, setSectionFilter] = useState<'ALL' | 'MEDIUM SECTION' | 'LIGHT SECTION'>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
-  const [detailProduct, setDetailProduct] = useState<PublicRateProductItem | null>(null);
 
   // Reduced-motion support for smooth anchor scrolling
   const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
@@ -176,6 +169,20 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
   }, []);
 
   const allProducts = rates?.products || [];
+  const formattedRatesUpdatedAt = useMemo(() => {
+    if (!rates?.lastUpdated) return null;
+    try {
+      return new Date(rates.lastUpdated).toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return rates.lastUpdated;
+    }
+  }, [rates?.lastUpdated]);
   const mediumProducts = useMemo(
     () => allProducts.filter((p) => p.section === 'MEDIUM SECTION'),
     [allProducts]
@@ -226,46 +233,6 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
     }
   };
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setContactError(null);
-    if (!contactForm.name.trim() || !contactForm.phone.trim()) {
-      setContactError('Name and phone/WhatsApp number are required.');
-      return;
-    }
-    setContactSubmitting(true);
-    try {
-      const res = await PlatformApi.submitPublicEnquiry({
-        name: contactForm.name.trim(),
-        companyName: contactForm.companyName.trim(),
-        phone: contactForm.phone.trim(),
-        email: contactForm.email.trim(),
-        city: contactForm.city.trim(),
-        product: contactForm.product.trim(),
-        grade: 'Standard Enquiry',
-        quantity: Number(contactForm.quantity) || 10,
-        unit: 'MT',
-        notes: contactForm.notes.trim(),
-      });
-      setContactSuccess(res.enquiry);
-      onEnquirySubmitted?.(res.enquiry);
-      setContactForm({
-        name: '',
-        companyName: '',
-        phone: '',
-        email: '',
-        city: '',
-        product: 'Structural Steel Enquiry',
-        quantity: '25',
-        notes: '',
-      });
-    } catch (err) {
-      setContactError(err instanceof Error ? err.message : 'Could not submit enquiry');
-    } finally {
-      setContactSubmitting(false);
-    }
-  };
-
   const handleDownloadSpecSheet = (title: string, items: PublicRateProductItem[]) => {
     const lines = [
       `NAV DURGA ISPAT PVT. LTD. — ${title.toUpperCase()}`,
@@ -294,110 +261,9 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const renderProductDetailModal = () => {
-    if (!detailProduct) return null;
-    const isMedium = detailProduct.section === 'MEDIUM SECTION';
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 backdrop-blur-xs p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="product-modal-title"
-      >
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden">
-          <div className="h-44 relative bg-slate-100">
-            <ProductCardMedia item={detailProduct} />
-            <button
-              type="button"
-              onClick={() => setDetailProduct(null)}
-              aria-label="Close product details"
-              className="absolute top-3 right-3 p-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-slate-700 shadow-xs cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="p-6 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span
-                className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${
-                  isMedium
-                    ? 'bg-[#EAF2F8] text-[#105186] border border-[#105186]/25'
-                    : 'bg-[#F7F9FB] text-[#0B3A60] border border-[#C7CED6]'
-                }`}
-              >
-                {detailProduct.section}
-              </span>
-              <span className="text-xs font-mono font-semibold text-[#737D88]">
-                Code: {detailProduct.code}
-              </span>
-            </div>
-
-            <div>
-              <h3 id="product-modal-title" className="font-display text-2xl font-extrabold text-[#263442]">
-                {detailProduct.name}
-              </h3>
-              <p className="text-sm text-[#737D88] mt-1">
-                {detailProduct.description || `${detailProduct.category} (${detailProduct.size}) supplied by ${detailProduct.rateSource}.`}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-[#F7F9FB] rounded-xl border border-[#C7CED6] p-4 text-xs">
-              <div>
-                <div className="text-[#737D88] font-semibold">Size / Spec</div>
-                <div className="font-bold text-[#263442] mt-0.5 tabular-nums">{detailProduct.size || 'Standard'}</div>
-              </div>
-              <div>
-                <div className="text-[#737D88] font-semibold">Category</div>
-                <div className="font-bold text-[#263442] mt-0.5">{detailProduct.category}</div>
-              </div>
-              <div>
-                <div className="text-[#737D88] font-semibold">Grade</div>
-                <div className="font-bold text-[#263442] mt-0.5">{detailProduct.grade}</div>
-              </div>
-              <div>
-                <div className="text-[#737D88] font-semibold">Unit</div>
-                <div className="font-bold text-[#263442] mt-0.5">{detailProduct.unit || 'MT'}</div>
-              </div>
-              <div>
-                <div className="text-[#737D88] font-semibold">Availability</div>
-                <div className="font-bold text-emerald-700 mt-0.5">
-                  {detailProduct.inStock ? 'Ready Stock' : 'Booking Open'}
-                </div>
-              </div>
-              <div>
-                <div className="text-[#737D88] font-semibold">Latest Rate</div>
-                <div className="font-extrabold text-[#105186] mt-0.5 tabular-nums">
-                  {formatRateText(detailProduct.finalRate)}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setDetailProduct(null)}
-                className="px-4 py-2.5 rounded-xl bg-[#F7F9FB] hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const target = detailProduct;
-                  setDetailProduct(null);
-                  onOpenQuoteModal(`${target.name} (${target.size})`, target.grade);
-                }}
-                className="px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
-              >
-                Request a Quote
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // Helper for product detail page navigation URL
+  const getProductDetailPath = (item: PublicRateProductItem) =>
+    `/products/${encodeURIComponent(item.id)}`;
 
   // ===========================================================================
   // ROUTE: ABOUT US (/about)
@@ -414,15 +280,25 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             { name: 'About', path: '/about' },
           ]}
         />
+        <InnerPageBanner
+          theme="about"
+          title="About Us"
+          subtitle={`Nav Durga Ispat Pvt. Ltd. • Established ${companyEst} in Urla Industrial Area, Raipur`}
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: 'About Us' },
+          ]}
+          onNavigate={onNavigate}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-5">
               <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#EAF2F8] border border-[#105186]/25 text-[#105186] text-xs font-bold uppercase tracking-wider">
                 Established Steel Industry • Raipur, Chhattisgarh
               </span>
-              <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#263442] tracking-tight">
                 {cms.aboutTitle}
-              </h1>
+              </h2>
               <p className="text-base text-[#737D88] leading-relaxed">{cms.aboutSummary}</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -476,6 +352,68 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             </div>
           </section>
 
+          {/* OUR JOURNEY TIMELINE (About Us Page Only) */}
+          <OurJourneyTimeline cms={cms} />
+
+          {/* Structural Steel Product Gallery & Approved Visuals */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <figure className="bg-white rounded-2xl border border-[#C7CED6] overflow-hidden shadow-2xs">
+              <div className="aspect-[16/9] w-full bg-[#EAF2F8] overflow-hidden">
+                <picture>
+                  <source srcSet="/assets/hero-slides/slide-2-structural-products.webp" type="image/webp" />
+                  <img
+                    src="/assets/hero-slides/slide-2-structural-products.jpg"
+                    alt="Structural steel beams, MS channels, and equal angles"
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </picture>
+              </div>
+              <figcaption className="px-5 py-3.5 text-xs text-[#737D88] border-t border-[#C7CED6]/60 flex items-center justify-between gap-2">
+                <span className="font-semibold text-[#263442]">
+                  Medium &amp; Light Structural Steel Sections
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/products')}
+                  className="font-bold text-[#105186] hover:underline cursor-pointer shrink-0"
+                >
+                  Browse Catalogue →
+                </button>
+              </figcaption>
+            </figure>
+
+            <figure className="bg-white rounded-2xl border border-[#C7CED6] overflow-hidden shadow-2xs">
+              <div className="aspect-[16/9] w-full bg-[#EAF2F8] overflow-hidden">
+                <picture>
+                  <source srcSet="/assets/hero-slides/slide-5-finished-steel.webp" type="image/webp" />
+                  <img
+                    src="/assets/hero-slides/slide-5-finished-steel.jpg"
+                    alt="Finished structural steel channels ready for industrial and construction applications"
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </picture>
+              </div>
+              <figcaption className="px-5 py-3.5 text-xs text-[#737D88] border-t border-[#C7CED6]/60 flex items-center justify-between gap-2">
+                <span className="font-semibold text-[#263442]">
+                  Finished Structural Profiles &amp; Live ERP Pricing
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/product-rates')}
+                  className="font-bold text-[#105186] hover:underline cursor-pointer shrink-0"
+                >
+                  Live Rate Portal →
+                </button>
+              </figcaption>
+            </figure>
+          </section>
+
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-2xs space-y-2">
               <Award className="w-7 h-7 text-[#105186]" />
@@ -489,10 +427,309 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             </div>
             <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-2xs space-y-2">
               <ShieldCheck className="w-7 h-7 text-[#0B3A60]" />
-              <h2 className="font-display text-lg font-extrabold text-[#263442]">Quality &amp; Reliability</h2>
+              <h2 className="font-display text-lg font-extrabold text-[#263442]">Quality &amp; Documentation</h2>
               <p className="text-sm text-[#737D88] leading-relaxed">{cms.qualityCommitment}</p>
+              <div className="pt-1 flex flex-wrap gap-3 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/quality')}
+                  className="text-[#105186] hover:underline cursor-pointer"
+                >
+                  Quality Overview →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/resources')}
+                  className="text-[#0B3A60] hover:underline cursor-pointer"
+                >
+                  Specification Sheets →
+                </button>
+              </div>
             </div>
           </section>
+        </div>
+      </>
+    );
+  }
+
+  // ===========================================================================
+  // ROUTE: DEDICATED PRODUCT DETAIL PAGE (/products/:productId)
+  // ===========================================================================
+  if (
+    currentPath.startsWith('/products/') &&
+    currentPath !== '/products/medium-section' &&
+    currentPath !== '/products/light-section'
+  ) {
+    const slug = decodeURIComponent(currentPath.slice('/products/'.length)).trim();
+    const matchedItem = allProducts.find(
+      (p) =>
+        p.id === slug ||
+        p.code.toLowerCase() === slug.toLowerCase() ||
+        `${p.name}-${p.size}`.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()
+    );
+
+    if (!matchedItem) {
+      return (
+        <>
+          <SeoHead
+            title="Product Specification | Nav Durga Ispat Pvt. Ltd."
+            description="View active structural steel products, sizes, and live ex-plant rates from Nav Durga Ispat Pvt. Ltd., Raipur."
+            canonicalPath={currentPath}
+            noIndex
+          />
+          <InnerPageBanner
+            theme="products"
+            title={ratesLoading ? 'Loading Product Specification' : 'Product Specification'}
+            subtitle="Nav Durga Ispat Structural Steel Catalogue"
+            breadcrumbs={[
+              { label: 'Home', path: '/' },
+              { label: 'Products', path: '/products' },
+              { label: 'Specification' },
+            ]}
+            onNavigate={onNavigate}
+          />
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center space-y-4">
+            <div className="bg-white rounded-2xl border border-[#C7CED6] p-10 space-y-4 shadow-xs">
+              <Package className="w-10 h-10 text-[#105186] mx-auto" />
+              <h2 className="font-display text-2xl font-extrabold text-[#263442]">
+                {ratesLoading ? 'Loading Product Specification...' : 'Product Unavailable or Inactive'}
+              </h2>
+              <p className="text-sm text-[#737D88]">
+                {ratesLoading
+                  ? 'Fetching live structural steel catalog details from Nav Durga ERP...'
+                  : 'This steel item is currently not listed as an active ERP product. Browse our active catalog or submit a custom enquiry.'}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/products')}
+                  className="px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
+                >
+                  View All Active Products
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onOpenQuoteModal(slug, 'Standard')}
+                  className="px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] text-[#105186] text-xs font-bold cursor-pointer"
+                >
+                  Request Custom Quote
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    const isMedium = matchedItem.section === 'MEDIUM SECTION';
+    const sectionPath = isMedium ? '/products/medium-section' : '/products/light-section';
+    const relatedProducts = allProducts
+      .filter((p) => p.id !== matchedItem.id && p.section === matchedItem.section)
+      .slice(0, 3);
+    const hasApprovedRate = matchedItem.finalRate > 0;
+    const itemWaHref = `https://wa.me/${whatsappDigits.startsWith('91') ? whatsappDigits : `91${whatsappDigits}`}?text=${encodeURIComponent(
+      `Hello Nav Durga Ispat Sales Desk, I would like a quotation for ${matchedItem.name} (${matchedItem.size}, Grade: ${matchedItem.grade}, Code: ${matchedItem.code}).`
+    )}`;
+
+    const productJsonLd: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: `${matchedItem.name} ${matchedItem.size}`.trim(),
+      sku: matchedItem.code,
+      category: matchedItem.category,
+      description:
+        matchedItem.description ||
+        `${matchedItem.name} ${matchedItem.size} (${matchedItem.grade}) supplied by Nav Durga Ispat Pvt. Ltd., Raipur.`,
+      brand: {
+        '@type': 'Brand',
+        name: 'Nav Durga Ispat Pvt. Ltd.',
+      },
+      ...(matchedItem.image && !matchedItem.image.startsWith('data:') ? { image: matchedItem.image } : {}),
+      ...(hasApprovedRate
+        ? {
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'INR',
+              price: Math.round(matchedItem.finalRate),
+              availability: matchedItem.inStock
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/PreOrder',
+            },
+          }
+        : {}),
+    };
+
+    return (
+      <>
+        <SeoHead
+          title={`${matchedItem.name} ${matchedItem.size} | Nav Durga Ispat`}
+          description={`${matchedItem.name} ${matchedItem.size} (${matchedItem.grade}) — ${matchedItem.section} structural steel from Nav Durga Ispat Pvt. Ltd., Urla Industrial Area, Raipur.`}
+          canonicalPath={`/products/${encodeURIComponent(matchedItem.id)}`}
+          ogType="product"
+          ogImage={matchedItem.image}
+          breadcrumbs={[
+            { name: 'Home', path: '/' },
+            { name: 'Products', path: '/products' },
+            { name: matchedItem.section, path: sectionPath },
+            { name: `${matchedItem.name} ${matchedItem.size}`, path: `/products/${encodeURIComponent(matchedItem.id)}` },
+          ]}
+          jsonLd={productJsonLd}
+        />
+
+        <InnerPageBanner
+          theme="products"
+          title={`${matchedItem.name} — ${matchedItem.size}`}
+          subtitle={`${matchedItem.category} · Grade: ${matchedItem.grade} · ${matchedItem.section}`}
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: 'Products', path: '/products' },
+            { label: matchedItem.section, path: sectionPath },
+            { label: `${matchedItem.name} ${matchedItem.size}` },
+          ]}
+          onNavigate={onNavigate}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+          {/* Main Product Detail Card */}
+          <div className="bg-white rounded-2xl border border-[#C7CED6] shadow-xs overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+            <div className="lg:col-span-5 h-64 sm:h-80 lg:h-auto min-h-[280px] relative bg-[#F7F9FB] border-b lg:border-b-0 lg:border-r border-[#C7CED6]">
+              <ProductCardMedia item={matchedItem} />
+              <span
+                className={`absolute top-4 left-4 px-3 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider shadow-xs z-20 ${
+                  isMedium ? 'bg-[#105186] text-white' : 'bg-[#0B3A60] text-white'
+                }`}
+              >
+                {matchedItem.section}
+              </span>
+            </div>
+
+            <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between gap-6">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-mono font-bold text-[#105186]">
+                    {matchedItem.category} • Code: {matchedItem.code}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded bg-[#EAF2F8] border border-[#C7CED6] text-xs font-bold text-[#0B3A60]">
+                    Grade: {matchedItem.grade}
+                  </span>
+                </div>
+
+                <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
+                  {matchedItem.name} — {matchedItem.size}
+                </h2>
+
+                <p className="text-sm text-[#737D88] leading-relaxed">
+                  {matchedItem.description ||
+                    `${matchedItem.name} (${matchedItem.size}, Grade: ${matchedItem.grade}) supplied under ${matchedItem.section} from Urla Industrial Area, Raipur, Chhattisgarh.`}
+                </p>
+
+                {/* ERP Spec Grid */}
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-[#F7F9FB] rounded-xl border border-[#C7CED6] p-4 text-xs">
+                  <div>
+                    <dt className="text-[#737D88] font-semibold">Size / Spec</dt>
+                    <dd className="font-bold text-[#263442] mt-0.5 tabular-nums">
+                      {matchedItem.size || 'Standard'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[#737D88] font-semibold">Rolling Section</dt>
+                    <dd className="font-bold text-[#263442] mt-0.5">{matchedItem.section}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[#737D88] font-semibold">Unit</dt>
+                    <dd className="font-bold text-[#263442] mt-0.5">{matchedItem.unit || 'MT'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[#737D88] font-semibold">Supplying Division</dt>
+                    <dd className="font-bold text-[#263442] mt-0.5">{matchedItem.rateSource}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[#737D88] font-semibold">Availability</dt>
+                    <dd className="font-bold text-emerald-700 mt-0.5">
+                      {matchedItem.inStock ? 'Ready Stock' : 'Booking Open'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[#737D88] font-semibold">Ex-Plant Rate</dt>
+                    <dd className="font-extrabold text-[#105186] mt-0.5 tabular-nums">
+                      {formatRateText(matchedItem.finalRate)}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div className="pt-4 border-t border-[#C7CED6]/60 flex flex-wrap items-center justify-between gap-3">
+                <div className="text-[11px] text-[#737D88]">
+                  Synced from Nav Durga ERP • Ex-Plant Urla, Raipur (GST 18% Extra)
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <a
+                    href={itemWaHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Enquire on WhatsApp</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => onOpenQuoteModal(`${matchedItem.name} (${matchedItem.size})`, matchedItem.grade)}
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                  >
+                    <span>Request a Quote</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Related Products */}
+          {relatedProducts.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-extrabold text-[#263442]">
+                  More {matchedItem.section} Steel Products
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => onNavigate(sectionPath)}
+                  className="text-xs font-bold text-[#105186] hover:underline cursor-pointer"
+                >
+                  View All →
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {relatedProducts.map((rel) => (
+                  <article
+                    key={rel.id}
+                    className="bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] p-5 flex flex-col justify-between gap-3 transition-colors"
+                  >
+                    <div>
+                      <div className="text-[11px] font-mono text-[#737D88]">
+                        {rel.category} • {rel.code}
+                      </div>
+                      <h3 className="font-display text-base font-extrabold text-[#263442] mt-1">
+                        {rel.name} — {rel.size}
+                      </h3>
+                      <div className="text-xs font-bold text-[#105186] mt-1 tabular-nums">
+                        {formatRateText(rel.finalRate)}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate(getProductDetailPath(rel))}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[#105186] hover:text-[#0B3A60] cursor-pointer"
+                    >
+                      <span>View Specification</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </>
     );
@@ -536,19 +773,44 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             ...(activeSection !== 'ALL' ? [{ name: activeSection, path: currentPath }] : []),
           ]}
         />
+        <InnerPageBanner
+          theme={activeSection === 'ALL' ? 'products' : 'infrastructure'}
+          title={
+            activeSection === 'MEDIUM SECTION'
+              ? 'Medium Section Steel'
+              : activeSection === 'LIGHT SECTION'
+              ? 'Light Section Steel'
+              : 'Our Steel Products'
+          }
+          subtitle={
+            activeSection === 'MEDIUM SECTION'
+              ? cms.unit1Name
+              : activeSection === 'LIGHT SECTION'
+              ? cms.unit2Name
+              : 'Structural steel channels, beams, angles, and merchant sections synced with Nav Durga ERP'
+          }
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: 'Products', path: activeSection === 'ALL' ? undefined : '/products' },
+            ...(activeSection !== 'ALL'
+              ? [{ label: activeSection === 'MEDIUM SECTION' ? 'Medium Section' : 'Light Section' }]
+              : []),
+          ]}
+          onNavigate={onNavigate}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
           <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
               <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
                 ERP Synchronized Product Catalogue
               </span>
-              <h1 className="font-display text-3xl font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
                 {activeSection === 'MEDIUM SECTION'
                   ? `Medium Section Steel — ${cms.unit1Name}`
                   : activeSection === 'LIGHT SECTION'
                   ? `Light Section Steel — ${cms.unit2Name}`
-                  : 'Our Steel Products'}
-              </h1>
+                  : 'Available Structural Steel Catalogue'}
+              </h2>
               <p className="text-sm text-[#737D88]">
                 Explore our available steel product range and current product information directly from Nav Durga Ispat ERP.
               </p>
@@ -670,7 +932,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
-                          onClick={() => setDetailProduct(item)}
+                          onClick={() => onNavigate(getProductDetailPath(item))}
                           className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -691,7 +953,6 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             </div>
           )}
         </div>
-        {renderProductDetailModal()}
       </>
     );
   }
@@ -734,14 +995,24 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             { name: 'Industries', path: '/industries' },
           ]}
         />
+        <InnerPageBanner
+          theme="projects"
+          title="Industries & Projects"
+          subtitle="Serving industrial structures, structural fabrication, and infrastructure projects"
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: 'Industries & Applications' },
+          ]}
+          onNavigate={onNavigate}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
           <div className="max-w-3xl space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
               Industries &amp; Applications
             </span>
-            <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-[#263442]">
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#263442]">
               Serving Industrial, Structural &amp; Infrastructure Requirements
-            </h1>
+            </h2>
             <p className="text-sm sm:text-base text-[#737D88]">
               Delivering structural steel products from Urla Industrial Area, Raipur with straightforward service and reliable customer support.
             </p>
@@ -791,15 +1062,25 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             { name: 'Quality', path: '/quality' },
           ]}
         />
+        <InnerPageBanner
+          theme="quality"
+          title="Quality & Reliability"
+          subtitle="Consistent rolling specifications, weight verification, and commercial transparency"
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: 'Quality' },
+          ]}
+          onNavigate={onNavigate}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wider">
                 Quality &amp; Customer Commitment
               </span>
-              <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900">
+              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900">
                 Dependable Specifications &amp; Commercial Transparency
-              </h1>
+              </h2>
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
                 {cms.qualityCommitment}
               </p>
@@ -872,14 +1153,24 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             { name: 'Resources', path: '/resources' },
           ]}
         />
+        <InnerPageBanner
+          theme="services"
+          title="Services & Resources"
+          subtitle="Technical specification downloads and live ERP rate documentation"
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: 'Resources' },
+          ]}
+          onNavigate={onNavigate}
+        />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
               Product Documentation
             </span>
-            <h1 className="font-display text-3xl font-extrabold text-[#263442] mt-1">
+            <h2 className="font-display text-3xl font-extrabold text-[#263442] mt-1">
               Specification Sheets &amp; Live Rate Portal
-            </h1>
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -957,12 +1248,37 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       <>
         <SeoHead
           title="Contact Us | Nav Durga Ispat Pvt. Ltd. — Urla Industrial Area, Raipur"
-          description={`Contact Nav Durga Ispat Pvt. Ltd. at ${cms.contactAddress}. Phone: ${cms.contactPhone}.`}
+          description={`Contact Nav Durga Ispat Pvt. Ltd. at ${cms.contactAddress}. Phone: ${cms.contactPhone}. Submit structural steel enquiries directly to our ERP sales desk.`}
           canonicalPath="/contact"
           breadcrumbs={[
             { name: 'Home', path: '/' },
             { name: 'Contact', path: '/contact' },
           ]}
+          jsonLd={{
+            '@context': 'https://schema.org',
+            '@type': 'LocalBusiness',
+            name: 'Nav Durga Ispat Pvt. Ltd.',
+            telephone: cms.contactPhone,
+            email: cms.contactEmail,
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: 'Plot No. 435-A, Sector-C, Urla Industrial Area',
+              addressLocality: 'Raipur',
+              addressRegion: 'Chhattisgarh',
+              postalCode: '493221',
+              addressCountry: 'IN',
+            },
+          }}
+        />
+        <InnerPageBanner
+          theme="contact"
+          title="Contact Us"
+          subtitle="Urla Industrial Area, Raipur • Direct Commercial Sales Desk"
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: 'Contact Us' },
+          ]}
+          onNavigate={onNavigate}
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -971,9 +1287,9 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
                   Direct Commercial Sales Desk
                 </span>
-                <h1 className="font-display text-3xl font-extrabold text-[#263442] mt-1">
+                <h2 className="font-display text-3xl font-extrabold text-[#263442] mt-1">
                   Connect With Our Team
-                </h1>
+                </h2>
                 <p className="text-sm text-[#737D88] mt-2">
                   Submit your structural steel requirement or reach our Urla Industrial Area, Raipur desk for product availability and current rates.
                 </p>
@@ -1024,107 +1340,18 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             </div>
 
             <div className="lg:col-span-7 bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs">
-              <h2 className="font-display text-xl font-extrabold text-[#263442] mb-4">
+              <h2 className="font-display text-xl font-extrabold text-[#263442] mb-1">
                 Send Direct Commercial Enquiry
               </h2>
+              <p className="text-xs text-[#737D88] mb-5">
+                Select your steel product, size or specification, and quantity to log a direct enquiry in Nav Durga ERP.
+              </p>
 
-              {contactSuccess && (
-                <div className="mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
-                  <div>
-                    <span className="font-bold">Enquiry Recorded ({contactSuccess.enquiryNumber}). </span>
-                    Thank you! Our sales team has received your requirement in Nav Durga ERP.
-                  </div>
-                </div>
-              )}
-
-              {contactError && (
-                <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-bold text-amber-900">
-                  {contactError}
-                </div>
-              )}
-
-              <form onSubmit={handleContactSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[#263442] mb-1">Full Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={contactForm.name}
-                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#263442] mb-1">Company Name</label>
-                    <input
-                      type="text"
-                      value={contactForm.companyName}
-                      onChange={(e) => setContactForm({ ...contactForm, companyName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#263442] mb-1">Phone / WhatsApp *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={contactForm.phone}
-                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#263442] mb-1">City</label>
-                    <input
-                      type="text"
-                      value={contactForm.city}
-                      onChange={(e) => setContactForm({ ...contactForm, city: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#263442] mb-1">Product Required</label>
-                    <input
-                      type="text"
-                      value={contactForm.product}
-                      onChange={(e) => setContactForm({ ...contactForm, product: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#263442] mb-1">Quantity (MT)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={contactForm.quantity}
-                      onChange={(e) => setContactForm({ ...contactForm, quantity: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186] tabular-nums"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#263442] mb-1">Requirement Details</label>
-                  <textarea
-                    rows={3}
-                    value={contactForm.notes}
-                    onChange={(e) => setContactForm({ ...contactForm, notes: e.target.value })}
-                    placeholder="Mention required sizes, grades (Medium / SL), length, and delivery location..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={contactSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-sm font-bold shadow-xs cursor-pointer transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>{contactSubmitting ? 'Sending Enquiry...' : 'Submit Sales Enquiry'}</span>
-                </button>
-              </form>
+              <QuickEnquiryForm
+                products={allProducts}
+                contactWhatsapp={cms.contactWhatsapp}
+                onEnquirySubmitted={onEnquirySubmitted}
+              />
             </div>
           </div>
         </div>
@@ -1144,11 +1371,21 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           description="Commercial terms, rate validity, weighbridge dispatch terms, and buyer privacy policy of Nav Durga Ispat Pvt. Ltd."
           canonicalPath={currentPath}
         />
+        <InnerPageBanner
+          theme="infrastructure"
+          title={isPrivacy ? 'Privacy Policy' : 'Terms & Dispatch Conditions'}
+          subtitle="Nav Durga Ispat Pvt. Ltd. • Commercial & Documentation Standards"
+          breadcrumbs={[
+            { label: 'Home', path: '/' },
+            { label: isPrivacy ? 'Privacy Policy' : 'Terms & Dispatch Conditions' },
+          ]}
+          onNavigate={onNavigate}
+        />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white rounded-2xl border border-slate-200 p-8 space-y-4">
-            <h1 className="font-display text-2xl font-extrabold text-slate-900">
+            <h2 className="font-display text-2xl font-extrabold text-slate-900">
               {isPrivacy ? 'Privacy Policy' : 'Terms of Supply & Dispatch Conditions'}
-            </h1>
+            </h2>
             {isPrivacy ? (
               <p className="text-sm text-slate-600 leading-relaxed">
                 Nav Durga Ispat Pvt. Ltd. collects commercial contact information submitted via quotation and enquiry forms solely for steel trade quotation, order processing, dispatch coordination, and customer service. Buyer contact data is never sold to third parties.
@@ -1303,27 +1540,33 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
     return Layers;
   };
 
+  const homeFaqs = buildPublicFaqs(cms);
+
   return (
     <>
       <SeoHead
-        title="Nav Durga Ispat Pvt. Ltd. | Strength in Steel. Built for Tomorrow."
-        description="Nav Durga Ispat Pvt. Ltd. — Steel manufacturing and steel products in Urla Industrial Area, Raipur, Chhattisgarh. Explore our products and live rates."
+        title="Nav Durga Ispat Pvt. Ltd. | Structural Steel in Raipur"
+        description="Steel manufacturer in Raipur, Chhattisgarh supplying Medium & Light Section MS Channels, Beams, Joists & Equal Angles with live ERP-synced steel rates."
         canonicalPath="/"
-        jsonLd={{
-          '@context': 'https://schema.org',
-          '@type': 'LocalBusiness',
-          name: 'Nav Durga Ispat Pvt. Ltd.',
-          telephone: cms.contactPhone,
-          email: cms.contactEmail,
-          address: {
-            '@type': 'PostalAddress',
-            streetAddress: 'Plot No. 435-A, Sector-C, Urla Industrial Area',
-            addressLocality: 'Raipur',
-            addressRegion: 'Chhattisgarh',
-            postalCode: '493221',
-            addressCountry: 'IN',
+        jsonLd={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'LocalBusiness',
+            name: 'Nav Durga Ispat Pvt. Ltd.',
+            foundingDate: companyEst,
+            telephone: cms.contactPhone,
+            email: cms.contactEmail,
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: 'Plot No. 435-A, Sector-C, Urla Industrial Area',
+              addressLocality: 'Raipur',
+              addressRegion: 'Chhattisgarh',
+              postalCode: '493221',
+              addressCountry: 'IN',
+            },
           },
-        }}
+          buildFaqJsonLd(homeFaqs),
+        ]}
       />
 
       {/* 1. EXISTING PREMIUM INDUSTRIAL IMAGE SLIDER (BELOW NAVBAR) */}
@@ -1333,7 +1576,125 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         onExploreProducts={scrollToProductsSection}
       />
 
-      {/* 2. WHY CHOOSE NAV DURGA ISPAT? */}
+      {/* 2. ERP SYNCHRONIZED DAILY PRICING (DIRECTLY BELOW HERO SLIDER) */}
+      <section
+        aria-labelledby="erp-daily-pricing-heading"
+        className="bg-[#F7F9FB] border-b border-[#C7CED6] py-6 sm:py-8"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 sm:p-6 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div className="space-y-1">
+              <div className="text-xs font-extrabold uppercase tracking-wider text-[#105186]">
+                ERP Synchronized Daily Pricing
+              </div>
+              <h2
+                id="erp-daily-pricing-heading"
+                className="font-display text-xl font-extrabold text-[#263442]"
+              >
+                Current Structural Steel Section Basic Rates
+              </h2>
+              <p className="text-xs text-[#737D88]">
+                <span>Synced directly from Nav Durga Ispat ERP • Ex-Plant Urla, Raipur</span>
+                {formattedRatesUpdatedAt && (
+                  <>
+                    <span aria-hidden="true"> · </span>
+                    <span className="font-semibold text-[#0B3A60] tabular-nums">
+                      Updated {formattedRatesUpdatedAt}
+                    </span>
+                  </>
+                )}
+              </p>
+            </div>
+
+            {ratesLoading && !rates ? (
+              <div
+                aria-live="polite"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[440px]"
+              >
+                <div className="bg-[#EAF2F8] rounded-xl border border-[#105186]/25 px-4 py-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
+                      Medium Section
+                    </div>
+                    <div className="text-xs font-semibold text-[#263442]">Nav Durga Ispat</div>
+                  </div>
+                  <div className="text-xs font-bold text-[#0B3A60]">Syncing ERP rates...</div>
+                </div>
+
+                <div className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#0B3A60]">
+                      Light Section
+                    </div>
+                    <div className="text-xs font-semibold text-[#263442]">Unit-2 NS Ispat</div>
+                  </div>
+                  <div className="text-xs font-bold text-[#105186]">Syncing ERP rates...</div>
+                </div>
+              </div>
+            ) : ratesError && !rates ? (
+              <div
+                role="status"
+                className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex flex-wrap items-center justify-between gap-3 lg:min-w-[440px]"
+              >
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-[#0B3A60]">
+                    Live ERP rate feed temporarily unavailable
+                  </div>
+                  <div className="text-[11px] text-[#737D88]">
+                    Retry connection or view the Live Rate Portal.
+                  </div>
+                </div>
+                {onRefreshRates && (
+                  <button
+                    type="button"
+                    onClick={onRefreshRates}
+                    className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#105186] text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[440px]">
+                <div className="bg-[#EAF2F8] rounded-xl border border-[#105186]/25 px-4 py-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
+                      Medium Section
+                    </div>
+                    <div className="text-xs font-semibold text-[#263442]">Nav Durga Ispat</div>
+                  </div>
+                  <div className="text-base sm:text-lg font-extrabold text-[#0B3A60] tabular-nums">
+                    {formatRateText(rates?.mediumSectionRate)}
+                  </div>
+                </div>
+
+                <div className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#0B3A60]">
+                      Light Section
+                    </div>
+                    <div className="text-xs font-semibold text-[#263442]">Unit-2 NS Ispat</div>
+                  </div>
+                  <div className="text-base sm:text-lg font-extrabold text-[#105186] tabular-nums">
+                    {formatRateText(rates?.lightSectionRate)}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onNavigate('/product-rates')}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer shrink-0 transition-colors"
+            >
+              <span>View Live Rates</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. WHY CHOOSE NAV DURGA ISPAT? */}
       <section className="bg-[#FFFFFF] border-b border-[#C7CED6] py-14 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
@@ -1508,58 +1869,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         </div>
       </section>
 
-      {/* 4. EXISTING ERP-CONNECTED PRODUCTS SHOWCASE + LIVE RATE SNAPSHOT */}
+      {/* 5. EXISTING ERP-CONNECTED PRODUCTS SHOWCASE */}
       <section id="products-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-8 scroll-mt-20">
-        {/* Live Section Basic Rate Summary Card */}
-        <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 sm:p-6 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="space-y-1">
-            <div className="text-xs font-extrabold uppercase tracking-wider text-[#105186]">
-              ERP Synchronized Daily Pricing
-            </div>
-            <h3 className="font-display text-xl font-extrabold text-[#263442]">
-              Current Structural Steel Section Basic Rates
-            </h3>
-            <p className="text-xs text-[#737D88]">
-              Synced directly from Nav Durga Ispat ERP • Ex-Plant Urla, Raipur
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[440px]">
-            <div className="bg-[#EAF2F8] rounded-xl border border-[#105186]/25 px-4 py-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
-                  Medium Section
-                </div>
-                <div className="text-xs font-semibold text-[#263442]">Nav Durga Ispat</div>
-              </div>
-              <div className="text-base sm:text-lg font-extrabold text-[#0B3A60] tabular-nums">
-                {formatRateText(rates?.mediumSectionRate)}
-              </div>
-            </div>
-
-            <div className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#0B3A60]">
-                  Light Section
-                </div>
-                <div className="text-xs font-semibold text-[#263442]">Unit-2 NS Ispat</div>
-              </div>
-              <div className="text-base sm:text-lg font-extrabold text-[#105186] tabular-nums">
-                {formatRateText(rates?.lightSectionRate)}
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onNavigate('/product-rates')}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer shrink-0 transition-colors"
-          >
-            <span>View Live Rates</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div className="max-w-2xl space-y-1.5">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
@@ -1730,7 +2041,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setDetailProduct(item)}
+                        onClick={() => onNavigate(getProductDetailPath(item))}
                         className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -1908,18 +2219,28 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         </div>
       </section>
 
-      {/* 8. EXISTING CONTACT / DIRECT ENQUIRY SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      {/* 9B. AEO FREQUENTLY ASKED QUESTIONS SECTION */}
+      <FaqSection cms={cms} onNavigate={onNavigate} />
+
+      {/* 10. CUSTOMER QUICK ENQUIRY SECTION (ERP-CONNECTED) */}
+      <section
+        id="quick-enquiry-section"
+        aria-labelledby="quick-enquiry-heading"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 scroll-mt-20"
+      >
         <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-5 space-y-4">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-              Contact Us
+              Customer Quick Enquiry
             </span>
-            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442]">
-              Connect With Our Sales Team
+            <h2
+              id="quick-enquiry-heading"
+              className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442]"
+            >
+              Request Steel Products &amp; Latest Ex-Plant Rates
             </h2>
             <p className="text-sm text-[#737D88] leading-relaxed">
-              Send your steel requirement directly to Nav Durga Ispat ERP or connect with our Raipur office for current dispatch rates.
+              Choose a steel product and size directly from our active ERP catalog, enter your required quantity, and submit your enquiry straight to our Urla Industrial Area sales desk.
             </p>
             <div className="space-y-2.5 text-xs text-[#263442] pt-1">
               <div className="flex items-start gap-2.5">
@@ -1942,86 +2263,15 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           </div>
 
           <div className="lg:col-span-7">
-            {contactSuccess && (
-              <div className="mb-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold">Enquiry Recorded ({contactSuccess.enquiryNumber}). </span>
-                  Our commercial desk has received your request.
-                </div>
-              </div>
-            )}
-            {contactError && (
-              <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-bold text-amber-900">
-                {contactError}
-              </div>
-            )}
-
-            <form onSubmit={handleContactSubmit} className="space-y-3.5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <input
-                  type="text"
-                  required
-                  placeholder="Full Name *"
-                  value={contactForm.name}
-                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                />
-                <input
-                  type="tel"
-                  required
-                  placeholder="Phone / WhatsApp Number *"
-                  value={contactForm.phone}
-                  onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                />
-                <input
-                  type="text"
-                  placeholder="Company / Firm Name"
-                  value={contactForm.companyName}
-                  onChange={(e) => setContactForm({ ...contactForm, companyName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                />
-                <input
-                  type="text"
-                  placeholder="Product & Quantity (e.g. MS Channel 25 MT)"
-                  value={contactForm.product}
-                  onChange={(e) => setContactForm({ ...contactForm, product: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-                />
-              </div>
-              <textarea
-                rows={2}
-                placeholder="City, required sizes, or commercial remarks..."
-                value={contactForm.notes}
-                onChange={(e) => setContactForm({ ...contactForm, notes: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] text-sm outline-none focus:ring-2 focus:ring-[#105186]"
-              />
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="submit"
-                  disabled={contactSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{contactSubmitting ? 'Sending...' : 'Submit Sales Enquiry'}</span>
-                </button>
-                <a
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>WhatsApp Sales</span>
-                </a>
-              </div>
-            </form>
+            <QuickEnquiryForm
+              products={allProducts}
+              contactWhatsapp={cms.contactWhatsapp}
+              compact
+              onEnquirySubmitted={onEnquirySubmitted}
+            />
           </div>
         </div>
       </section>
-
-      {renderProductDetailModal()}
     </>
   );
 };

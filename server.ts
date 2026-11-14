@@ -81,6 +81,8 @@ app.get('/robots.txt', (req, res) => {
 app.get('/sitemap.xml', (req, res) => {
   const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
   const today = new Date().toISOString().split('T')[0];
+  const store = loadServerStore();
+
   const publicRoutes = [
     { path: '/', priority: '1.0', changefreq: 'daily' },
     { path: '/product-rates', priority: '0.95', changefreq: 'hourly' },
@@ -96,7 +98,15 @@ app.get('/sitemap.xml', (req, res) => {
     { path: '/terms', priority: '0.4', changefreq: 'yearly' },
   ];
 
-  const urlsXml = publicRoutes
+  const activeProductRoutes = (store.products || [])
+    .filter((p) => p.status === 'Active')
+    .map((p) => ({
+      path: `/products/${encodeURIComponent(p.id)}`,
+      priority: '0.85',
+      changefreq: 'daily',
+    }));
+
+  const urlsXml = [...publicRoutes, ...activeProductRoutes]
     .map(
       (r) =>
         `  <url>\n    <loc>${baseUrl}${r.path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
@@ -131,34 +141,112 @@ app.get('/api/public/rates', (req, res) => {
 });
 
 app.post('/api/public/enquiries', (req, res) => {
-  const { name, companyName, phone, email, city, product, grade, quantity, unit, notes } = req.body || {};
-  if (!name || !phone) {
-    return res.status(400).json({ error: 'Contact name and phone number are required.' });
+  const { name, companyName, phone, email, city, productId, product, size, grade, quantity, unit, notes } =
+    req.body || {};
+
+  const cleanName = typeof name === 'string' ? name.trim().slice(0, 100) : '';
+  const cleanPhone = typeof phone === 'string' ? phone.trim().slice(0, 24) : '';
+  const phoneDigits = cleanPhone.replace(/\D/g, '');
+  const cleanEmail = typeof email === 'string' ? email.trim().slice(0, 120) : '';
+  const cleanCompany = typeof companyName === 'string' ? companyName.trim().slice(0, 120) : '';
+  const cleanCity = typeof city === 'string' ? city.trim().slice(0, 80) : '';
+  const cleanProductId = typeof productId === 'string' ? productId.trim().slice(0, 80) : '';
+  const cleanProduct = typeof product === 'string' && product.trim() ? product.trim().slice(0, 140) : 'Structural Steel Enquiry';
+  const cleanSize = typeof size === 'string' ? size.trim().slice(0, 80) : '';
+  const cleanGrade = typeof grade === 'string' && grade.trim() ? grade.trim().slice(0, 80) : 'Standard';
+  const cleanNotes = typeof notes === 'string' ? notes.trim().slice(0, 800) : '';
+
+  if (cleanName.length < 2) {
+    return res.status(400).json({ error: 'Please enter a valid contact name (at least 2 characters).' });
+  }
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+    return res.status(400).json({ error: 'Please enter a valid 10-digit mobile or WhatsApp number.' });
+  }
+  if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address or leave the email field blank.' });
   }
 
+  const parsedQty = quantity === undefined || quantity === '' ? 10 : Number(quantity);
+  if (!Number.isFinite(parsedQty) || parsedQty <= 0 || parsedQty > 100000) {
+    return res.status(400).json({ error: 'Please enter a valid positive quantity.' });
+  }
+
+  const allowedUnits = ['MT', 'Kg', 'Piece', 'Bundle'];
+  const cleanUnit = typeof unit === 'string' && allowedUnits.includes(unit.trim()) ? unit.trim() : 'MT';
+
   const store = loadServerStore();
-  const today = new Date().toISOString().split('T')[0];
-  const enquiryNumber = `WEB-${today.replace(/-/g, '').slice(2)}-${Math.floor(100 + Math.random() * 900)}`;
+  const nowMs = Date.now();
+  const nowIso = new Date(nowMs).toISOString();
+  const today = nowIso.split('T')[0];
+  const phoneTail = phoneDigits.slice(-10);
+
+  // Duplicate submission guard within 3 minutes
+  const recentDuplicate = store.enquiries.find((enq) => {
+    const enqPhone = (enq.phone || '').replace(/\D/g, '').slice(-10);
+    const matchesNotesPhone = !enqPhone && enq.notes?.replace(/\D/g, '').includes(phoneTail);
+    if (enqPhone !== phoneTail && !matchesNotesPhone) return false;
+
+    const enqTs = enq.createdAt ? Date.parse(enq.createdAt) : Number(enq.id.split('-').pop()) || 0;
+    if (!Number.isFinite(enqTs) || nowMs - enqTs > 3 * 60 * 1000) return false;
+
+    return (
+      enq.product.trim().toLowerCase() === cleanProduct.toLowerCase() &&
+      (enq.size || '').trim().toLowerCase() === cleanSize.toLowerCase() &&
+      Number(enq.quantity) === parsedQty &&
+      enq.unit === cleanUnit
+    );
+  });
+
+  if (recentDuplicate) {
+    return res.status(409).json({
+      error: `This enquiry was already logged recently (Ref: ${recentDuplicate.enquiryNumber}). Our sales desk has your request.`,
+      existingEnquiryNumber: recentDuplicate.enquiryNumber,
+    });
+  }
+
+  const todaysWebCount = store.enquiries.filter((e) => e.date === today && e.source === 'Website').length;
+  const seqSuffix = String(todaysWebCount + 1).padStart(3, '0');
+  const randomSuffix = Math.floor(10 + Math.random() * 90);
+  const enquiryNumber = `WEB-${today.replace(/-/g, '').slice(2)}-${seqSuffix}${randomSuffix}`;
+
+  const matchedErpProduct = cleanProductId
+    ? store.products.find((p) => p.id === cleanProductId && p.status === 'Active')
+    : undefined;
+
+  const displayProduct = matchedErpProduct ? matchedErpProduct.name : cleanProduct;
+  const displaySize = matchedErpProduct ? matchedErpProduct.size : cleanSize;
+  const displayGrade = matchedErpProduct ? matchedErpProduct.grade : cleanGrade;
 
   const newEnquiry = {
-    id: `enq-web-${Date.now()}`,
+    id: `enq-web-${nowMs}-${randomSuffix}`,
     enquiryNumber,
-    customerId: `web-lead-${Date.now()}`,
-    customerName: companyName ? `${companyName} (${name})` : String(name).trim(),
-    product: product ? String(product).trim() : 'Structural Steel Enquiry',
-    grade: grade ? String(grade).trim() : 'Medium',
-    quantity: Number(quantity) || 10,
-    unit: unit ? String(unit).trim() : 'MT',
+    customerId: `web-lead-${nowMs}`,
+    customerName: cleanCompany ? `${cleanCompany} (${cleanName})` : cleanName,
+    phone: cleanPhone,
+    email: cleanEmail || undefined,
+    city: cleanCity || undefined,
+    productId: matchedErpProduct?.id || (cleanProductId || undefined),
+    product: displayProduct,
+    size: displaySize || undefined,
+    grade: displayGrade,
+    quantity: parsedQty,
+    unit: cleanUnit,
+    quotedPrice:
+      matchedErpProduct && store.rateStatus === 'Published' && matchedErpProduct.finalRate > 0
+        ? matchedErpProduct.finalRate
+        : undefined,
     source: 'Website' as const,
     date: today,
-    salesperson: 'Rajesh Sharma',
+    createdAt: nowIso,
+    salesperson: 'Unassigned',
     status: 'New' as const,
     notes: [
-      `Contact: ${String(name).trim()}`,
-      `Phone: ${String(phone).trim()}`,
-      email ? `Email: ${String(email).trim()}` : '',
-      city ? `Location: ${String(city).trim()}` : '',
-      notes ? `Requirement: ${String(notes).trim()}` : '',
+      `Contact: ${cleanName}`,
+      `Phone: ${cleanPhone}`,
+      displaySize ? `Size: ${displaySize}` : '',
+      cleanEmail ? `Email: ${cleanEmail}` : '',
+      cleanCity ? `Location: ${cleanCity}` : '',
+      cleanNotes ? `Requirement: ${cleanNotes}` : '',
     ]
       .filter(Boolean)
       .join(' | '),
@@ -167,11 +255,11 @@ app.post('/api/public/enquiries', (req, res) => {
   store.enquiries.unshift(newEnquiry);
   addActivityLog(store, {
     actorId: 'public-portal',
-    actorName: String(name).trim(),
+    actorName: cleanName,
     actorRole: 'PUBLIC_LEAD',
     action: 'PUBLIC_ENQUIRY_SUBMITTED',
     target: newEnquiry.enquiryNumber,
-    details: `${newEnquiry.customerName} requested ${newEnquiry.quantity} ${newEnquiry.unit} of ${newEnquiry.product}`,
+    details: `${newEnquiry.customerName} requested ${newEnquiry.quantity} ${newEnquiry.unit} of ${newEnquiry.product}${displaySize ? ` (${displaySize})` : ''}`,
   });
   saveServerStore(store);
 
@@ -340,14 +428,17 @@ app.get('/api/erp/bootstrap', (req, res) => {
   if (!user) return;
 
   const store = loadServerStore();
+  const canSeeTeamRoster =
+    user.permissions.manageTeamUsers ||
+    user.permissions.manageEnquiries ||
+    user.rbacRole === 'SUPER_ADMIN' ||
+    user.rbacRole === 'ADMIN';
   res.json({
     user: sanitizeUser(user),
     cms: store.cms,
     publicRates: getPublicRatesPayload(store),
     enquiries: store.enquiries,
-    users: user.permissions.manageTeamUsers || user.rbacRole === 'SUPER_ADMIN' || user.rbacRole === 'ADMIN'
-      ? store.users.map(sanitizeUser)
-      : [sanitizeUser(user)],
+    users: canSeeTeamRoster ? store.users.map(sanitizeUser) : [sanitizeUser(user)],
     activityLogs:
       user.rbacRole === 'SUPER_ADMIN' || user.rbacRole === 'ADMIN'
         ? store.activityLogs.slice(0, 60)
@@ -543,12 +634,40 @@ app.get('/api/erp/enquiries', (req, res) => {
 app.patch('/api/erp/enquiries/:id', (req, res) => {
   const user = requireAuth(req, res);
   if (!user) return;
+  if (!user.permissions.manageEnquiries && user.rbacRole !== 'SUPER_ADMIN' && user.rbacRole !== 'ADMIN') {
+    return res.status(403).json({ error: 'You do not have permission to update enquiries.' });
+  }
+
   const store = loadServerStore();
   const idx = store.enquiries.findIndex((e) => e.id === req.params.id);
   if (idx < 0) return res.status(404).json({ error: 'Enquiry not found' });
-  store.enquiries[idx] = { ...store.enquiries[idx], ...req.body };
+
+  const existing = store.enquiries[idx];
+  const { status, salesperson, assignedToUserId, followUpDate, notes, quotedPrice } = req.body || {};
+
+  const updated = {
+    ...existing,
+    status: status !== undefined ? status : existing.status,
+    salesperson: salesperson !== undefined ? String(salesperson).trim() : existing.salesperson,
+    assignedToUserId:
+      assignedToUserId !== undefined ? String(assignedToUserId).trim() || undefined : existing.assignedToUserId,
+    followUpDate: followUpDate !== undefined ? String(followUpDate).trim() || undefined : existing.followUpDate,
+    notes: notes !== undefined ? String(notes).trim() : existing.notes,
+    quotedPrice:
+      quotedPrice !== undefined && Number.isFinite(Number(quotedPrice)) ? Number(quotedPrice) : existing.quotedPrice,
+  };
+
+  store.enquiries[idx] = updated;
+  addActivityLog(store, {
+    actorId: user.id,
+    actorName: user.name,
+    actorRole: user.rbacRole,
+    action: 'ENQUIRY_UPDATED',
+    target: updated.enquiryNumber,
+    details: `Status: ${updated.status}${updated.salesperson ? `, Assigned: ${updated.salesperson}` : ''}`,
+  });
   saveServerStore(store);
-  res.json({ success: true, enquiry: store.enquiries[idx] });
+  res.json({ success: true, enquiry: updated });
 });
 
 // ============================================================================

@@ -15,15 +15,17 @@ import {
   Building2,
   Calendar,
 } from 'lucide-react';
-import { SalesEnquiry, Customer, Product } from '../types';
+import { SalesEnquiry, Customer, Product, AppUser } from '../types';
 import { WhatsAppService } from '../services/whatsappService';
 
 interface EnquiriesViewProps {
   enquiries: SalesEnquiry[];
   customers: Customer[];
   products: Product[];
+  users?: AppUser[];
   onAddEnquiry: (enquiryData: Partial<SalesEnquiry>) => void;
   onUpdateStatus: (enquiryId: string, newStatus: SalesEnquiry['status']) => void;
+  onUpdateEnquiry?: (enquiryId: string, patch: Partial<SalesEnquiry>) => void;
   onConvertToQuotation: (enquiry: SalesEnquiry) => void;
   onConvertToOrder: (enquiry: SalesEnquiry) => void;
   onSelectCustomer: (customerId: string) => void;
@@ -33,8 +35,10 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
   enquiries,
   customers,
   products,
+  users = [],
   onAddEnquiry,
   onUpdateStatus,
+  onUpdateEnquiry,
   onConvertToQuotation,
   onConvertToOrder,
   onSelectCustomer,
@@ -154,6 +158,7 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
               className="w-full py-2 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50/50 text-slate-700 font-medium"
             >
               <option value="All">All Lead Sources</option>
+              <option value="Website">Website Enquiry</option>
               <option value="WhatsApp">WhatsApp Inbound</option>
               <option value="Phone">Phone</option>
               <option value="Direct">Direct / Walk-in</option>
@@ -169,11 +174,12 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
           <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
             <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 select-none">
               <tr>
-                <th className="py-3.5 px-4">Enquiry ID & Date</th>
-                <th className="py-3.5 px-4">Customer</th>
+                <th className="py-3.5 px-4">Enquiry ID &amp; Date</th>
+                <th className="py-3.5 px-4">Customer / Contact</th>
                 <th className="py-3.5 px-4">Requirement</th>
                 <th className="py-3.5 px-4">Quoted Rate</th>
                 <th className="py-3.5 px-4">Source</th>
+                <th className="py-3.5 px-4">Assigned Staff</th>
                 <th className="py-3.5 px-4 text-center">Status</th>
                 <th className="py-3.5 px-4 text-right">Convert / Actions</th>
               </tr>
@@ -182,6 +188,7 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
               {filteredEnquiries.length > 0 ? (
                 filteredEnquiries.map((enq) => {
                   const cust = customers.find((c) => c.id === enq.customerId);
+                  const displayPhone = enq.phone || cust?.mobile;
                   return (
                     <tr key={enq.id} className="hover:bg-slate-50/80 transition-colors">
                       {/* ID & Date */}
@@ -200,9 +207,14 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
                         >
                           {enq.customerName}
                         </div>
-                        {cust && (
+                        {displayPhone && (
                           <div className="text-[11px] text-slate-500 font-mono">
-                            {cust.mobile}
+                            {displayPhone}
+                          </div>
+                        )}
+                        {(enq.city || enq.email) && (
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            {[enq.city, enq.email].filter(Boolean).join(' • ')}
                           </div>
                         )}
                       </td>
@@ -210,7 +222,8 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
                       {/* Requirement */}
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-slate-800">
-                          {enq.product} — <span className="text-blue-900">{enq.grade}</span>
+                          {enq.product}{enq.size ? ` (${enq.size})` : ''} —{' '}
+                          <span className="text-blue-900">{enq.grade}</span>
                         </div>
                         <div className="text-xs font-extrabold text-slate-700">
                           Qty: {enq.quantity} {enq.unit}
@@ -220,11 +233,16 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
                             &ldquo;{enq.whatsappMessage}&rdquo;
                           </div>
                         )}
+                        {!enq.whatsappMessage && enq.notes && (
+                          <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 max-w-xs">
+                            {enq.notes}
+                          </div>
+                        )}
                       </td>
 
                       {/* Quoted Rate */}
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-                        ₹{enq.quotedPrice ? enq.quotedPrice.toLocaleString('en-IN') : 'Pending'}
+                        {enq.quotedPrice ? `₹${enq.quotedPrice.toLocaleString('en-IN')}` : 'Pending'}
                         {enq.quotedPrice && (
                           <span className="text-[11px] font-normal text-slate-500"> /{enq.unit}</span>
                         )}
@@ -236,12 +254,47 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
                           className={`px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 w-fit ${
                             enq.source === 'WhatsApp'
                               ? 'bg-emerald-100 text-emerald-800'
+                              : enq.source === 'Website'
+                              ? 'bg-blue-100 text-blue-800'
                               : 'bg-slate-100 text-slate-700'
                           }`}
                         >
                           {enq.source === 'WhatsApp' && <MessageSquare className="w-3 h-3" />}
                           {enq.source}
                         </span>
+                      </td>
+
+                      {/* Assigned Staff */}
+                      <td className="py-3.5 px-4">
+                        <select
+                          aria-label={`Assign staff for ${enq.enquiryNumber}`}
+                          value={enq.assignedToUserId || enq.salesperson || 'Unassigned'}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const matchedUser = users.find((u) => u.id === val || u.name === val);
+                            if (onUpdateEnquiry) {
+                              onUpdateEnquiry(enq.id, {
+                                assignedToUserId: matchedUser?.id || '',
+                                salesperson: matchedUser ? matchedUser.name : val,
+                              });
+                            }
+                          }}
+                          className="text-xs px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 font-medium cursor-pointer max-w-[140px]"
+                        >
+                          <option value="Unassigned">Unassigned</option>
+                          {users
+                            .filter((u) => u.status === 'Active')
+                            .map((u) => (
+                              <option key={u.id} value={u.id}>
+                                {u.name}
+                              </option>
+                            ))}
+                          {enq.salesperson &&
+                            enq.salesperson !== 'Unassigned' &&
+                            !users.some((u) => u.id === enq.assignedToUserId || u.name === enq.salesperson) && (
+                              <option value={enq.salesperson}>{enq.salesperson}</option>
+                            )}
+                        </select>
                       </td>
 
                       {/* Status */}
@@ -298,7 +351,7 @@ export const EnquiriesView: React.FC<EnquiriesViewProps> = ({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-slate-500 text-sm">
+                  <td colSpan={8} className="py-10 text-center text-slate-500 text-sm">
                     No enquiries found matching your criteria.
                   </td>
                 </tr>

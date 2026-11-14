@@ -5,6 +5,12 @@ import bcrypt from 'bcryptjs';
 import { CANONICAL_GAUGE_DIFFERENCE_RECORDS } from '../src/data/productMasterData';
 import { DEFAULT_HERO_SLIDES } from '../src/data/heroSlidesDefaults';
 import { DEFAULT_SOLUTIONS_SERVICES } from '../src/data/solutionsDefaults';
+import {
+  DEFAULT_JOURNEY_DESCRIPTION,
+  DEFAULT_JOURNEY_HEADING,
+  DEFAULT_JOURNEY_MILESTONES,
+  DEFAULT_JOURNEY_SUBHEADING,
+} from '../src/data/journeyDefaults';
 import type {
   AppUser,
   ErpRole,
@@ -229,6 +235,10 @@ function buildInitialCms(): WebsiteCmsContent {
     heroSlides: DEFAULT_HERO_SLIDES.map((s) => ({ ...s })),
     defaultHeroSlideId: DEFAULT_HERO_SLIDES[0].id,
     solutionsServices: DEFAULT_SOLUTIONS_SERVICES.map((item) => ({ ...item })),
+    journeyHeading: DEFAULT_JOURNEY_HEADING,
+    journeySubheading: DEFAULT_JOURNEY_SUBHEADING,
+    journeyDescription: DEFAULT_JOURNEY_DESCRIPTION,
+    journeyMilestones: DEFAULT_JOURNEY_MILESTONES.map((m) => ({ ...m })),
     additionalLocations: [],
     announcementBanner:
       'Nav Durga Ispat Pvt. Ltd. — Direct Commercial Enquiries & Live Structural Steel Rates (Urla Industrial Area, Raipur)',
@@ -348,6 +358,8 @@ export function loadServerStore(): ServerStoreState {
           saveServerStore(cachedStore);
           return cachedStore;
         }
+        let cmsDirty = false;
+
         if (!Array.isArray(parsed.cms?.heroSlides) || parsed.cms.heroSlides.length === 0) {
           parsed.cms = {
             ...parsed.cms,
@@ -361,10 +373,9 @@ export function loadServerStore(): ServerStoreState {
             heroSlides: DEFAULT_HERO_SLIDES.map((s) => ({ ...s })),
             defaultHeroSlideId: DEFAULT_HERO_SLIDES[0].id,
           };
-          cachedStore = parsed;
-          saveServerStore(cachedStore);
-          return cachedStore;
+          cmsDirty = true;
         }
+
         if (!Array.isArray(parsed.cms?.solutionsServices) || parsed.cms.solutionsServices.length === 0) {
           parsed.cms = {
             ...parsed.cms,
@@ -373,11 +384,24 @@ export function loadServerStore(): ServerStoreState {
               ? parsed.cms.additionalLocations
               : [],
           };
-          cachedStore = parsed;
-          saveServerStore(cachedStore);
-          return cachedStore;
+          cmsDirty = true;
         }
+
+        if (!Array.isArray(parsed.cms?.journeyMilestones) || parsed.cms.journeyMilestones.length === 0) {
+          parsed.cms = {
+            ...parsed.cms,
+            journeyHeading: parsed.cms?.journeyHeading || DEFAULT_JOURNEY_HEADING,
+            journeySubheading: parsed.cms?.journeySubheading || DEFAULT_JOURNEY_SUBHEADING,
+            journeyDescription: parsed.cms?.journeyDescription || DEFAULT_JOURNEY_DESCRIPTION,
+            journeyMilestones: DEFAULT_JOURNEY_MILESTONES.map((m) => ({ ...m })),
+          };
+          cmsDirty = true;
+        }
+
         cachedStore = parsed;
+        if (cmsDirty) {
+          saveServerStore(cachedStore);
+        }
         return cachedStore;
       }
     }

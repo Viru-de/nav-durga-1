@@ -15,12 +15,14 @@ import { PublicRateProductItem, PublicRatesPayload, WebsiteCmsContent } from '..
 import { PlatformApi } from '../services/platformApi';
 import { SeoHead } from './SeoHead';
 import { NavDurgaLogo } from './NavDurgaLogo';
+import { InnerPageBanner } from './InnerPageBanner';
 
 interface LiveProductRatesViewProps {
   initialRates: PublicRatesPayload | null;
   cms: WebsiteCmsContent;
   onOpenQuoteModal: (presetProduct?: string, presetGrade?: string) => void;
   onRatesRefreshed?: (rates: PublicRatesPayload) => void;
+  onNavigate?: (path: string) => void;
 }
 
 function formatInr(amount: number): string {
@@ -33,6 +35,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
   cms,
   onOpenQuoteModal,
   onRatesRefreshed,
+  onNavigate,
 }) => {
   const [rates, setRates] = useState<PublicRatesPayload | null>(initialRates);
   const [loading, setLoading] = useState(!initialRates);
@@ -265,6 +268,24 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
         ]}
       />
 
+      <InnerPageBanner
+        theme="products"
+        title="Live Product Rates"
+        subtitle="Synced directly from Nav Durga Ispat ERP • Ex-Plant Urla, Raipur"
+        breadcrumbs={[
+          { label: 'Home', path: '/' },
+          { label: 'Live Product Rates' },
+        ]}
+        onNavigate={(path) => {
+          if (onNavigate) {
+            onNavigate(path);
+          } else {
+            window.history.pushState({}, '', path);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        }}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
         {/* Print-Only PDF Header */}
         <div className="hidden print:block border-b-2 border-slate-800 pb-4 mb-6">
@@ -272,9 +293,9 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
             <div className="flex items-center gap-3">
               <NavDurgaLogo size="md" />
               <div>
-                <h1 className="text-xl font-extrabold text-slate-900">
+                <h2 className="text-xl font-extrabold text-slate-900">
                   NAV DURGA ISPAT — LIVE PRODUCT RATES
-                </h1>
+                </h2>
                 <p className="text-xs text-slate-600">
                   Nav Durga Ispat Pvt. Ltd. &amp; Unit-2 NS Ispat (I) Pvt. Ltd. • {cms.contactAddress}
                 </p>
@@ -295,9 +316,9 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Synced Live from ERP Daily Rate Management</span>
               </div>
-              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
                 NAV DURGA ISPAT — LIVE PRODUCT RATES
-              </h1>
+              </h2>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#737D88]">
                 <span className="flex items-center gap-1.5 font-semibold text-[#263442]">
                   <Clock className="w-4 h-4 text-[#105186]" />
@@ -466,7 +487,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                 setSectionFilter('ALL');
                 setGradeFilter('ALL');
               }}
-              className="mt-2 px-4 py-2 rounded-xl bg-blue-700 text-white text-xs font-bold cursor-pointer"
+              className="mt-2 px-4 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
             >
               Reset Filters
             </button>

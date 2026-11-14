@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, Send, CheckCircle2, MessageSquare, Building2, Package } from 'lucide-react';
 import { PlatformApi } from '../services/platformApi';
-import { SalesEnquiry } from '../types';
+import { PublicRateProductItem, SalesEnquiry } from '../types';
 
 interface QuotationRequestModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface QuotationRequestModalProps {
   presetProduct?: string;
   presetGrade?: string;
   contactWhatsapp?: string;
+  products?: PublicRateProductItem[];
   onEnquirySubmitted?: (enquiry: SalesEnquiry) => void;
 }
 
@@ -18,6 +19,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
   presetProduct = '',
   presetGrade = '',
   contactWhatsapp = '919752183053',
+  products = [],
   onEnquirySubmitted,
 }) => {
   const [name, setName] = useState('');
@@ -25,45 +27,83 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [product, setProduct] = useState(presetProduct || 'MS Channel');
   const [grade, setGrade] = useState(presetGrade || 'Standard');
   const [quantity, setQuantity] = useState('25');
+  const [unit, setUnit] = useState<'MT' | 'Kg' | 'Piece' | 'Bundle'>('MT');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submittedEnquiry, setSubmittedEnquiry] = useState<SalesEnquiry | null>(null);
 
+  const matchedErpProduct = useMemo(
+    () => products.find((p) => p.id === selectedProductId) || null,
+    [products, selectedProductId]
+  );
+
   useEffect(() => {
     if (isOpen) {
-      if (presetProduct) setProduct(presetProduct);
+      if (presetProduct) {
+        setProduct(presetProduct);
+        const found = products.find(
+          (p) =>
+            `${p.name} (${p.size})`.toLowerCase() === presetProduct.toLowerCase() ||
+            p.name.toLowerCase() === presetProduct.toLowerCase()
+        );
+        setSelectedProductId(found ? found.id : '');
+      } else {
+        setSelectedProductId('');
+      }
       if (presetGrade) setGrade(presetGrade);
       setError(null);
       setSubmittedEnquiry(null);
     }
-  }, [isOpen, presetProduct, presetGrade]);
+  }, [isOpen, presetProduct, presetGrade, products]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setError(null);
-    if (!name.trim() || !phone.trim()) {
-      setError('Please enter your name and mobile/WhatsApp number.');
+
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
+    const digits = cleanPhone.replace(/\D/g, '');
+    const parsedQty = Number(quantity);
+
+    if (cleanName.length < 2) {
+      setError('Please enter your name (at least 2 characters).');
+      return;
+    }
+    if (digits.length < 10 || digits.length > 15) {
+      setError('Please enter a valid 10-digit mobile or WhatsApp number.');
+      return;
+    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address or leave it blank.');
+      return;
+    }
+    if (!Number.isFinite(parsedQty) || parsedQty <= 0) {
+      setError('Please enter a valid positive quantity.');
       return;
     }
 
     setSubmitting(true);
     try {
       const res = await PlatformApi.submitPublicEnquiry({
-        name: name.trim(),
+        name: cleanName,
         companyName: companyName.trim(),
-        phone: phone.trim(),
+        phone: cleanPhone,
         email: email.trim(),
         city: city.trim(),
-        product: product.trim(),
-        grade: grade.trim(),
-        quantity: Number(quantity) || 10,
-        unit: 'MT',
+        productId: matchedErpProduct?.id,
+        product: matchedErpProduct ? matchedErpProduct.name : product.trim(),
+        size: matchedErpProduct?.size || '',
+        grade: matchedErpProduct ? matchedErpProduct.grade : grade.trim(),
+        quantity: parsedQty,
+        unit,
         notes: notes.trim(),
       });
       setSubmittedEnquiry(res.enquiry);
@@ -77,25 +117,30 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
 
   const waDigits = contactWhatsapp.replace(/\D/g, '');
   const waHref = `https://wa.me/${waDigits.startsWith('91') ? waDigits : `91${waDigits}`}?text=${encodeURIComponent(
-    `Hello Nav Durga Ispat, I submitted Quotation Request${submittedEnquiry ? ` (${submittedEnquiry.enquiryNumber})` : ''} for ${product} (${grade}), Qty: ${quantity} MT. Name: ${name || 'Buyer'}.`
+    `Hello Nav Durga Ispat, I submitted Quotation Request${submittedEnquiry ? ` (${submittedEnquiry.enquiryNumber})` : ''} for ${product} (${grade}), Qty: ${quantity} ${unit}. Name: ${name || 'Buyer'}.`
   )}`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-xl overflow-hidden">
-        <div className="px-6 py-4 bg-[#F7F9FB] border-b border-[#C7CED6] flex items-center justify-between">
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quote-modal-heading"
+    >
+      <div className="bg-white rounded-2xl border border-[#C7CED6] shadow-2xl w-full max-w-xl overflow-hidden max-h-[92vh] flex flex-col">
+        <div className="px-6 py-4 bg-[#F7F9FB] border-b border-[#C7CED6] flex items-center justify-between shrink-0">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
               Nav Durga Ispat Sales Desk
             </span>
-            <h3 className="font-display text-lg font-extrabold text-[#263442]">
+            <h3 id="quote-modal-heading" className="font-display text-lg font-extrabold text-[#263442]">
               Request Industrial Quotation
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-200/70 cursor-pointer"
+            className="p-2 rounded-lg text-[#737D88] hover:bg-[#EAF2F8] hover:text-[#105186] cursor-pointer transition-colors"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -103,7 +148,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
         </div>
 
         {submittedEnquiry ? (
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-4 overflow-y-auto">
             <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-emerald-700 shrink-0 mt-0.5" />
               <div>
@@ -116,18 +161,26 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 text-xs space-y-1.5 text-slate-700">
+            <div className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] p-4 text-xs space-y-1.5 text-[#263442]">
               <div className="flex justify-between">
-                <span className="text-slate-500">Product:</span>
-                <span className="font-bold text-slate-900">{submittedEnquiry.product}</span>
+                <span className="text-[#737D88]">Product:</span>
+                <span className="font-bold">{submittedEnquiry.product}</span>
+              </div>
+              {submittedEnquiry.size && (
+                <div className="flex justify-between">
+                  <span className="text-[#737D88]">Size / Spec:</span>
+                  <span className="font-semibold">{submittedEnquiry.size}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-[#737D88]">Grade:</span>
+                <span className="font-semibold">{submittedEnquiry.grade}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Specification / Grade:</span>
-                <span className="font-semibold text-slate-900">{submittedEnquiry.grade}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Estimated Quantity:</span>
-                <span className="font-bold text-slate-900">{submittedEnquiry.quantity} MT</span>
+                <span className="text-[#737D88]">Estimated Quantity:</span>
+                <span className="font-bold tabular-nums">
+                  {submittedEnquiry.quantity} {submittedEnquiry.unit}
+                </span>
               </div>
             </div>
 
@@ -144,23 +197,51 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] text-[#0B3A60] text-xs font-bold cursor-pointer"
               >
                 Close
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
             {error && (
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-semibold text-amber-900">
+              <div role="alert" className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-semibold text-amber-900">
                 {error}
+              </div>
+            )}
+
+            {products.length > 0 && (
+              <div>
+                <label className="block text-xs font-bold text-[#263442] mb-1">
+                  Quick Select Active ERP Product &amp; Size
+                </label>
+                <select
+                  value={selectedProductId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedProductId(id);
+                    const found = products.find((p) => p.id === id);
+                    if (found) {
+                      setProduct(`${found.name} (${found.size})`);
+                      setGrade(found.grade);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] text-sm text-[#263442] focus:ring-2 focus:ring-[#105186] outline-none"
+                >
+                  <option value="">Custom / Manual Entry Below</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} — {p.size} ({p.grade}) • {p.section}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#263442] mb-1">
                   Your Name *
                 </label>
                 <input
@@ -169,28 +250,28 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Suresh Agrawal"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#263442] mb-1">
                   Company / Firm Name
                 </label>
                 <div className="relative">
-                  <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Building2 className="w-4 h-4 text-[#737D88] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="e.g. Mahavir Infra Pvt. Ltd."
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#263442] mb-1">
                   Mobile / WhatsApp Number *
                 </label>
                 <input
@@ -199,12 +280,12 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 98XXX XXXXX"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#263442] mb-1">
                   City / Delivery Location
                 </label>
                 <input
@@ -212,83 +293,102 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Raipur / Bilaspur / Nagpur"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#263442] mb-1">
                   Product / Profile
                 </label>
                 <div className="relative">
-                  <Package className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Package className="w-4 h-4 text-[#737D88] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     value={product}
-                    onChange={(e) => setProduct(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                    onChange={(e) => {
+                      setSelectedProductId('');
+                      setProduct(e.target.value);
+                    }}
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Section / Grade
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-[#263442] mb-1">
+                    Grade
                   </label>
                   <input
                     type="text"
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+                    className="w-full px-2.5 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Qty (MT)
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-[#263442] mb-1">
+                    Qty
                   </label>
                   <input
                     type="number"
-                    min="1"
+                    min="0.1"
+                    step="any"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none tabular-nums"
+                    className="w-full px-2.5 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none tabular-nums"
                   />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-[#263442] mb-1">
+                    Unit
+                  </label>
+                  <select
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value as 'MT' | 'Kg' | 'Piece' | 'Bundle')}
+                    className="w-full px-2 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
+                  >
+                    <option value="MT">MT</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Piece">Pc</option>
+                    <option value="Bundle">Bdl</option>
+                  </select>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-[#263442] mb-1">
                 Email (Optional) &amp; Length / Delivery Notes
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="buyer@company.com"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
                 />
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Standard 6m/12m length or custom spec"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
                 />
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
-              <span className="text-[11px] text-slate-500">
-                Ex-Plant Urla, Raipur • Direct Mill Dispatch
+            <div className="pt-2 border-t border-[#C7CED6]/60 flex items-center justify-between gap-3">
+              <span className="text-[11px] text-[#737D88]">
+                Ex-Plant Urla, Raipur • Direct Mill Sales
               </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#737D88] hover:bg-[#EAF2F8] cursor-pointer"
                 >
                   Cancel
                 </button>

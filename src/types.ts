@@ -278,7 +278,12 @@ export interface SalesEnquiry {
   enquiryNumber: string;
   customerId: string;
   customerName: string;
+  phone?: string;
+  email?: string;
+  city?: string;
+  productId?: string;
   product: string;
+  size?: string;
   grade: string;
   quantity: number;
   unit: string;
@@ -287,7 +292,9 @@ export interface SalesEnquiry {
   source: 'WhatsApp' | 'Phone' | 'Website' | 'Manual' | 'Referral' | 'Direct' | 'Other';
   whatsappMessage?: string;
   date: string;
+  createdAt?: string;
   salesperson?: string;
+  assignedToUserId?: string;
   followUpDate?: string;
   status: 'New' | 'Contacted' | 'Quotation Sent' | 'Negotiation' | 'Won' | 'Lost' | 'Follow-up' | 'Quoted';
   notes: string;
@@ -497,6 +504,16 @@ export interface PresenceLocationItem {
   isHeadOffice?: boolean;
 }
 
+export interface JourneyMilestoneItem {
+  id: string;
+  dateLabel?: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  enabled: boolean;
+  order: number;
+}
+
 export interface WebsiteCmsContent {
   id: string;
   heroBadge: string;
@@ -506,6 +523,10 @@ export interface WebsiteCmsContent {
   defaultHeroSlideId?: string;
   solutionsServices?: SolutionServiceCmsItem[];
   additionalLocations?: PresenceLocationItem[];
+  journeyHeading?: string;
+  journeySubheading?: string;
+  journeyDescription?: string;
+  journeyMilestones?: JourneyMilestoneItem[];
   announcementBanner: string;
   showAnnouncementBanner: boolean;
   aboutTitle: string;

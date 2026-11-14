@@ -15,10 +15,18 @@ import {
   Trash2,
   RotateCcw,
   Star,
+  History,
+  X,
 } from 'lucide-react';
-import { HeroSlideItem, WebsiteCmsContent } from '../types';
+import { HeroSlideItem, JourneyMilestoneItem, WebsiteCmsContent } from '../types';
 import { PlatformApi } from '../services/platformApi';
 import { DEFAULT_HERO_SLIDES } from '../data/heroSlidesDefaults';
+import {
+  DEFAULT_JOURNEY_DESCRIPTION,
+  DEFAULT_JOURNEY_HEADING,
+  DEFAULT_JOURNEY_MILESTONES,
+  DEFAULT_JOURNEY_SUBHEADING,
+} from '../data/journeyDefaults';
 
 interface WebsiteCmsViewProps {
   cms: WebsiteCmsContent;
@@ -33,6 +41,18 @@ function normalizeSlides(slides?: HeroSlideItem[]): HeroSlideItem[] {
     .map((s, idx) => ({
       ...s,
       enabled: s.enabled !== false,
+      order: idx + 1,
+    }));
+}
+
+function normalizeMilestones(milestones?: JourneyMilestoneItem[]): JourneyMilestoneItem[] {
+  const source =
+    milestones && milestones.length > 0 ? milestones : DEFAULT_JOURNEY_MILESTONES;
+  return [...source]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((m, idx) => ({
+      ...m,
+      enabled: m.enabled !== false,
       order: idx + 1,
     }));
 }
@@ -78,11 +98,16 @@ export const WebsiteCmsView: React.FC<WebsiteCmsViewProps> = ({
     ...cms,
     heroSlides: normalizeSlides(cms.heroSlides),
     defaultHeroSlideId: cms.defaultHeroSlideId || normalizeSlides(cms.heroSlides)[0]?.id || 'slide-1',
+    journeyHeading: cms.journeyHeading || DEFAULT_JOURNEY_HEADING,
+    journeySubheading: cms.journeySubheading || DEFAULT_JOURNEY_SUBHEADING,
+    journeyDescription: cms.journeyDescription || DEFAULT_JOURNEY_DESCRIPTION,
+    journeyMilestones: normalizeMilestones(cms.journeyMilestones),
   }));
   const [saving, setSaving] = useState(false);
   const [savedBanner, setSavedBanner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploadingSlideId, setUploadingSlideId] = useState<string | null>(null);
+  const [uploadingMilestoneId, setUploadingMilestoneId] = useState<string | null>(null);
 
   useEffect(() => {
     const normalized = normalizeSlides(cms.heroSlides);
@@ -90,10 +115,15 @@ export const WebsiteCmsView: React.FC<WebsiteCmsViewProps> = ({
       ...cms,
       heroSlides: normalized,
       defaultHeroSlideId: cms.defaultHeroSlideId || normalized[0]?.id || 'slide-1',
+      journeyHeading: cms.journeyHeading || DEFAULT_JOURNEY_HEADING,
+      journeySubheading: cms.journeySubheading || DEFAULT_JOURNEY_SUBHEADING,
+      journeyDescription: cms.journeyDescription || DEFAULT_JOURNEY_DESCRIPTION,
+      journeyMilestones: normalizeMilestones(cms.journeyMilestones),
     });
   }, [cms]);
 
   const slides = normalizeSlides(form.heroSlides);
+  const milestones = normalizeMilestones(form.journeyMilestones);
 
   const updateSlides = (nextSlides: HeroSlideItem[], nextDefaultId?: string) => {
     const reordered = nextSlides.map((s, idx) => ({ ...s, order: idx + 1 }));
@@ -199,6 +229,80 @@ export const WebsiteCmsView: React.FC<WebsiteCmsViewProps> = ({
     }
   };
 
+  const updateMilestones = (nextMilestones: JourneyMilestoneItem[]) => {
+    const reordered = nextMilestones.map((m, idx) => ({ ...m, order: idx + 1 }));
+    setForm((prev) => ({
+      ...prev,
+      journeyMilestones: reordered,
+    }));
+  };
+
+  const handleUpdateMilestoneField = <K extends keyof JourneyMilestoneItem>(
+    milestoneId: string,
+    field: K,
+    value: JourneyMilestoneItem[K]
+  ) => {
+    const next = milestones.map((m) => (m.id === milestoneId ? { ...m, [field]: value } : m));
+    updateMilestones(next);
+  };
+
+  const handleMoveMilestone = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= milestones.length) return;
+    const copy = [...milestones];
+    const [moved] = copy.splice(index, 1);
+    copy.splice(target, 0, moved);
+    updateMilestones(copy);
+  };
+
+  const handleAddMilestone = () => {
+    const newId = `milestone-${Date.now()}`;
+    const nextItem: JourneyMilestoneItem = {
+      id: newId,
+      order: milestones.length + 1,
+      enabled: true,
+      dateLabel: '',
+      title: 'New Company Milestone',
+      description: 'Add verified milestone details for Nav Durga Ispat Pvt. Ltd.',
+      imageUrl: undefined,
+    };
+    updateMilestones([...milestones, nextItem]);
+  };
+
+  const handleRemoveMilestone = (milestoneId: string) => {
+    if (milestones.length <= 1) return;
+    updateMilestones(milestones.filter((m) => m.id !== milestoneId));
+  };
+
+  const handleResetDefaultMilestones = () => {
+    setForm((prev) => ({
+      ...prev,
+      journeyHeading: DEFAULT_JOURNEY_HEADING,
+      journeySubheading: DEFAULT_JOURNEY_SUBHEADING,
+      journeyDescription: DEFAULT_JOURNEY_DESCRIPTION,
+      journeyMilestones: normalizeMilestones(DEFAULT_JOURNEY_MILESTONES),
+    }));
+  };
+
+  const handleMilestoneImageUpload = async (
+    milestoneId: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError(null);
+    setUploadingMilestoneId(milestoneId);
+    try {
+      const compressedDataUrl = await compressHeroImageFile(file);
+      handleUpdateMilestoneField(milestoneId, 'imageUrl', compressedDataUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to process uploaded milestone image.');
+    } finally {
+      setUploadingMilestoneId(null);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -208,6 +312,10 @@ export const WebsiteCmsView: React.FC<WebsiteCmsViewProps> = ({
       const payload: WebsiteCmsContent = {
         ...form,
         heroSlides: slides,
+        journeyHeading: (form.journeyHeading || '').trim() || DEFAULT_JOURNEY_HEADING,
+        journeySubheading: (form.journeySubheading || '').trim() || DEFAULT_JOURNEY_SUBHEADING,
+        journeyDescription: (form.journeyDescription || '').trim() || DEFAULT_JOURNEY_DESCRIPTION,
+        journeyMilestones: milestones,
       };
       const res = await PlatformApi.saveWebsiteCms(payload);
       onCmsUpdated(res.cms);
@@ -215,6 +323,10 @@ export const WebsiteCmsView: React.FC<WebsiteCmsViewProps> = ({
         ...res.cms,
         heroSlides: normalizeSlides(res.cms.heroSlides),
         defaultHeroSlideId: res.cms.defaultHeroSlideId || 'slide-1',
+        journeyHeading: res.cms.journeyHeading || DEFAULT_JOURNEY_HEADING,
+        journeySubheading: res.cms.journeySubheading || DEFAULT_JOURNEY_SUBHEADING,
+        journeyDescription: res.cms.journeyDescription || DEFAULT_JOURNEY_DESCRIPTION,
+        journeyMilestones: normalizeMilestones(res.cms.journeyMilestones),
       });
       setSavedBanner(`Website CMS published at ${new Date(res.cms.updatedAt).toLocaleTimeString('en-IN')}`);
     } catch (err) {
@@ -674,6 +786,261 @@ export const WebsiteCmsView: React.FC<WebsiteCmsViewProps> = ({
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
+          </div>
+        </div>
+
+        {/* About Us Page — Our Journey Timeline Management */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-[#105186]" />
+              <div>
+                <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                  About Us Page — Our Journey Timeline ({milestones.filter((m) => m.enabled).length} Active / {milestones.length} Total)
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Displayed exclusively on the About Us page. Add, edit, reorder, or remove verified company milestones and optional photos.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              {onOpenPublicSite && (
+                <button
+                  type="button"
+                  onClick={() => onOpenPublicSite('/about')}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] border border-[#105186]/25 text-[#105186] text-xs font-bold cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>View About Page</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResetDefaultMilestones}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-bold cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Defaults</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleAddMilestone}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Milestone</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/70 rounded-xl border border-slate-200 p-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Timeline Section Heading</label>
+              <input
+                type="text"
+                value={form.journeyHeading || ''}
+                onChange={(e) => setForm({ ...form, journeyHeading: e.target.value })}
+                placeholder="Our Journey"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Supporting Heading</label>
+              <input
+                type="text"
+                value={form.journeySubheading || ''}
+                onChange={(e) => setForm({ ...form, journeySubheading: e.target.value })}
+                placeholder="From Foundation to Forward Progress"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-bold outline-none focus:ring-2 focus:ring-[#105186]"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-slate-700 mb-1">Section Description</label>
+              <textarea
+                rows={2}
+                value={form.journeyDescription || ''}
+                onChange={(e) => setForm({ ...form, journeyDescription: e.target.value })}
+                placeholder="Every milestone reflects our journey, experience and continued presence in the steel industry."
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {milestones.map((milestone, idx) => (
+              <div
+                key={milestone.id}
+                className={`rounded-2xl border p-4 sm:p-5 space-y-4 ${
+                  milestone.enabled
+                    ? 'bg-slate-50/70 border-slate-200'
+                    : 'bg-slate-100/80 border-slate-200 opacity-75'
+                }`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-xs font-extrabold text-slate-900 tabular-nums">
+                      Milestone #{idx + 1}
+                    </span>
+
+                    <label className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={milestone.enabled}
+                        onChange={(e) =>
+                          handleUpdateMilestoneField(milestone.id, 'enabled', e.target.checked)
+                        }
+                        className="rounded border-slate-300 text-[#105186]"
+                      />
+                      <span>{milestone.enabled ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveMilestone(idx, -1)}
+                      disabled={idx === 0}
+                      aria-label={`Move milestone ${idx + 1} up`}
+                      className="p-2 rounded-lg bg-white hover:bg-slate-100 disabled:opacity-40 border border-slate-300 text-slate-700 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveMilestone(idx, 1)}
+                      disabled={idx === milestones.length - 1}
+                      aria-label={`Move milestone ${idx + 1} down`}
+                      className="p-2 rounded-lg bg-white hover:bg-slate-100 disabled:opacity-40 border border-slate-300 text-slate-700 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMilestone(milestone.id)}
+                      disabled={milestones.length <= 1}
+                      aria-label={`Remove milestone ${idx + 1}`}
+                      className="p-2 rounded-lg bg-white hover:bg-slate-100 disabled:opacity-40 border border-slate-300 text-slate-700 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                  <div className="lg:col-span-4 space-y-2.5">
+                    {milestone.imageUrl ? (
+                      <div className="aspect-video w-full rounded-xl overflow-hidden border border-slate-300 bg-slate-100 relative">
+                        <img
+                          src={milestone.imageUrl}
+                          alt={milestone.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover object-center"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateMilestoneField(milestone.id, 'imageUrl', undefined)}
+                          aria-label="Remove milestone image"
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/95 hover:bg-white border border-slate-300 text-slate-700 shadow-xs cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="aspect-video w-full rounded-xl border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center text-center px-3 text-xs text-slate-500">
+                        <Images className="w-5 h-5 text-slate-400 mb-1" />
+                        <span>Optional milestone image (none attached)</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold cursor-pointer">
+                        <Upload className="w-3.5 h-3.5 text-[#105186]" />
+                        <span>
+                          {uploadingMilestoneId === milestone.id ? 'Processing...' : 'Upload Image'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleMilestoneImageUpload(milestone.id, e)}
+                          className="sr-only"
+                        />
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Optional Image URL
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          milestone.imageUrl?.startsWith('data:')
+                            ? 'Uploaded Custom Image (Embedded JPEG)'
+                            : milestone.imageUrl || ''
+                        }
+                        placeholder="https://... or /assets/..."
+                        onChange={(e) => {
+                          if (!e.target.value.startsWith('Uploaded Custom Image')) {
+                            handleUpdateMilestoneField(
+                              milestone.id,
+                              'imageUrl',
+                              e.target.value.trim() || undefined
+                            );
+                          }
+                        }}
+                        className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-mono outline-none focus:ring-2 focus:ring-[#105186]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Year / Date (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={milestone.dateLabel || ''}
+                        onChange={(e) =>
+                          handleUpdateMilestoneField(milestone.id, 'dateLabel', e.target.value)
+                        }
+                        placeholder="Leave blank if undated"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold outline-none focus:ring-2 focus:ring-[#105186]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Milestone Title
+                      </label>
+                      <input
+                        type="text"
+                        value={milestone.title}
+                        onChange={(e) =>
+                          handleUpdateMilestoneField(milestone.id, 'title', e.target.value)
+                        }
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-[#105186]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3">
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Milestone Description
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={milestone.description}
+                        onChange={(e) =>
+                          handleUpdateMilestoneField(milestone.id, 'description', e.target.value)
+                        }
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs outline-none focus:ring-2 focus:ring-[#105186]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
