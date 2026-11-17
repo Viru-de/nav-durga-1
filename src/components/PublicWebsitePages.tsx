@@ -1986,15 +1986,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         )}
       </section>
 
-      {/* 5. OUR PRESENCE — URLA INDUSTRIAL AREA, RAIPUR + INTERACTIVE MAP */}
-      <PresenceMapSection
-        cms={cms}
-        mapsApiKey={mapsApiKey}
-        onOpenQuoteModal={onOpenQuoteModal}
-      />
-
       {/* 6. ABOUT NAV DURGA ISPAT PVT. LTD. (FACTUAL OVERVIEW) */}
-      <section className="bg-[#F7F9FB] border-b border-[#C7CED6] nd-section-py">
+      <section className="bg-[#F7F9FB] border-y border-[#C7CED6] nd-section-py">
         <div className="nd-container grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-center">
           <div className="lg:col-span-7 space-y-4">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
@@ -2182,6 +2175,13 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           </div>
         </div>
       </section>
+
+      {/* OUR PRESENCE — REGISTERED PLANT & OFFICE LOCATION (IMMEDIATELY ABOVE FOOTER) */}
+      <PresenceMapSection
+        cms={cms}
+        mapsApiKey={mapsApiKey}
+        onOpenQuoteModal={onOpenQuoteModal}
+      />
     </>
   );
 };

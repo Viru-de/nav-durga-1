@@ -308,7 +308,7 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
   return (
     <section
       id="our-presence-section"
-      className="bg-[#FFFFFF] border-y border-[#C7CED6] nd-section-py scroll-mt-20"
+      className="bg-[#FFFFFF] border-t border-[#C7CED6] nd-section-py scroll-mt-20"
     >
       <div className="nd-container space-y-8 xl:space-y-10">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
