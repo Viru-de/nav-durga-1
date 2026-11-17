@@ -118,36 +118,36 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ cms, onNavigate }) => {
     <section
       id="faq-section"
       aria-labelledby="faq-section-heading"
-      className="bg-[#F7F9FB] border-b border-[#C7CED6] py-14"
+      className="bg-[#F7F9FB] border-b border-[#C7CED6] nd-section-py"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-          <div className="max-w-2xl space-y-2">
+      <div className="nd-container space-y-8 xl:space-y-10">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
+          <div className="max-w-3xl space-y-2">
             <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#105186]">
               <HelpCircle className="w-3.5 h-3.5" />
               <span>Frequently Asked Questions</span>
             </span>
             <h2
               id="faq-section-heading"
-              className="font-display text-3xl font-extrabold text-[#263442] tracking-tight"
+              className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight"
             >
               Answers About Our Steel Products, Rates &amp; Enquiries
             </h2>
-            <p className="text-sm sm:text-base text-[#737D88] leading-relaxed">
+            <p className="nd-lead text-[#737D88]">
               Clear, factual information about Nav Durga Ispat Pvt. Ltd., Urla Industrial Area, Raipur, and how to access live rates and quotations.
             </p>
           </div>
           <button
             type="button"
             onClick={() => onNavigate('/contact')}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#105186] text-xs font-bold cursor-pointer shrink-0 transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#105186] text-xs font-bold cursor-pointer shrink-0 transition-colors"
           >
             <span>Need More Details? Contact Us</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 xl:gap-6 items-start">
           {faqs.map((faq) => {
             const isOpen = openId === faq.id;
             return (
@@ -163,7 +163,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ cms, onNavigate }) => {
                     aria-expanded={isOpen}
                     aria-controls={`faq-panel-${faq.id}`}
                     onClick={() => setOpenId((prev) => (prev === faq.id ? null : faq.id))}
-                    className="w-full px-5 py-4 text-left flex items-center justify-between gap-3 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#105186] rounded-2xl"
+                    className="w-full min-h-[52px] px-5 py-4 text-left flex items-center justify-between gap-3 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#105186] rounded-2xl"
                   >
                     <span className="font-display text-sm sm:text-base font-extrabold text-[#263442]">
                       {faq.question}

@@ -156,7 +156,7 @@ function createExtrudedAngle(
 
 export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
   initialMode = 'channel',
-  heightClass = 'h-[420px] sm:h-[480px]',
+  heightClass = 'h-[360px] sm:h-[460px] lg:h-[520px] min-[1920px]:h-[580px]',
   onRequestQuote,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -563,64 +563,69 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
         </div>
       )}
 
-      {/* Top Left Engineering Specification Readout */}
-      <div className="absolute top-3.5 left-3.5 z-10 pointer-events-none max-w-[300px]">
-        <div className="bg-white/92 backdrop-blur-md border border-[#C7CED6] rounded-xl px-3.5 py-2.5 shadow-xs">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
-            Interactive 3D Engineering Spec
-          </div>
-          <div className="text-sm font-extrabold text-[#263442] mt-0.5">{meta.label}</div>
-          <div className="text-[11px] font-medium text-[#737D88] mt-0.5">{meta.specs}</div>
-          <div className="mt-1.5 pt-1.5 border-t border-[#C7CED6]/80 flex items-center justify-between gap-3 text-[10px] font-mono text-[#263442]">
-            <span>{meta.standard}</span>
-            <span className="font-semibold text-[#105186]">{meta.section}</span>
+      {/* Top Overlay Bar: Engineering Readout + Quick Actions (flex prevents mobile overlap) */}
+      <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 z-10 flex items-start justify-between gap-2 pointer-events-none">
+        <div className="min-w-0 flex-1 max-w-[300px]">
+          <div className="bg-white/92 backdrop-blur-md border border-[#C7CED6] rounded-xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 shadow-xs">
+            <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#105186] truncate">
+              3D Engineering Spec
+            </div>
+            <div className="text-xs sm:text-sm font-extrabold text-[#263442] mt-0.5 truncate">{meta.label}</div>
+            <div className="hidden min-[480px]:block text-[11px] font-medium text-[#737D88] mt-0.5">{meta.specs}</div>
+            <div className="hidden min-[480px]:flex mt-1.5 pt-1.5 border-t border-[#C7CED6]/80 items-center justify-between gap-3 text-[10px] font-mono text-[#263442]">
+              <span>{meta.standard}</span>
+              <span className="font-semibold text-[#105186]">{meta.section}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Top Right Quick Actions */}
-      <div className="absolute top-3.5 right-3.5 z-10 flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => setExploded((v) => !v)}
-          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
-            exploded
-              ? 'bg-[#105186] text-white border-[#105186]'
-              : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
-          }`}
-          title="Toggle exploded assembly view"
-        >
-          <Layers className="w-3.5 h-3.5" />
-          <span>{exploded ? 'Assembled' : 'Explode'}</span>
-        </button>
+        {/* Top Right Quick Actions */}
+        <div className="pointer-events-auto flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setExploded((v) => !v)}
+            className={`min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
+              exploded
+                ? 'bg-[#105186] text-white border-[#105186]'
+                : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
+            }`}
+            title="Toggle exploded assembly view"
+            aria-label={exploded ? 'Switch to assembled view' : 'Switch to exploded view'}
+          >
+            <Layers className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden min-[380px]:inline">{exploded ? 'Assembled' : 'Explode'}</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setAutoRotate((v) => !v)}
-          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
-            autoRotate
-              ? 'bg-[#0B3A60] text-white border-[#0B3A60]'
-              : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
-          }`}
-          title="Toggle turntable rotation"
-        >
-          <Eye className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">{autoRotate ? 'Spinning' : 'Static'}</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setAutoRotate((v) => !v)}
+            className={`min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
+              autoRotate
+                ? 'bg-[#0B3A60] text-white border-[#0B3A60]'
+                : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
+            }`}
+            title="Toggle turntable rotation"
+            aria-label={autoRotate ? 'Pause rotation' : 'Enable rotation'}
+          >
+            <Eye className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">{autoRotate ? 'Spinning' : 'Static'}</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => resetCameraFnRef.current?.()}
-          className="p-1.5 rounded-lg bg-white/90 text-[#263442] border border-[#C7CED6] hover:bg-white shadow-2xs cursor-pointer"
-          title="Reset camera angle"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-        </button>
+          <button
+            type="button"
+            onClick={() => resetCameraFnRef.current?.()}
+            className="min-h-[36px] min-w-[36px] sm:min-h-[38px] sm:min-w-[38px] p-1.5 rounded-lg bg-white/90 text-[#263442] border border-[#C7CED6] hover:bg-white shadow-2xs cursor-pointer inline-flex items-center justify-center"
+            title="Reset camera angle"
+            aria-label="Reset 3D camera angle"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Bottom Profile Switcher Dock (Light Metallic Glass) */}
       <div className="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="pointer-events-auto inline-flex flex-wrap items-center gap-1 bg-white/92 backdrop-blur-md border border-[#C7CED6] p-1 rounded-xl shadow-xs">
+        <div className="pointer-events-auto inline-flex flex-wrap items-center gap-1 bg-white/92 backdrop-blur-md border border-[#C7CED6] p-1 rounded-xl shadow-xs max-w-full">
           {(
             [
               { id: 'channel', label: 'MS Channel' },
@@ -633,7 +638,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
               key={item.id}
               type="button"
               onClick={() => setMode(item.id)}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
+              className={`min-h-[34px] px-2 sm:px-2.5 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
                 mode === item.id
                   ? 'bg-[#105186] text-white'
                   : 'text-[#263442] hover:bg-[#EAF2F8]'
@@ -648,7 +653,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
           <button
             type="button"
             onClick={() => onRequestQuote(meta.label)}
-            className="pointer-events-auto px-3 py-1.5 rounded-xl bg-white/95 hover:bg-[#EAF2F8] text-[#105186] border border-[#105186]/30 text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
+            className="pointer-events-auto min-h-[36px] px-3 py-1.5 rounded-xl bg-white/95 hover:bg-[#EAF2F8] text-[#105186] border border-[#105186]/30 text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
           >
             Quote {meta.label.split(' ')[0]} {meta.label.split(' ')[1]} →
           </button>

@@ -17,17 +17,65 @@
     scroll-behavior: smooth;
     background-color: #FFFFFF;
     color: #263442;
+    overflow-x: clip;
   }
 
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #F7F9FB;
     color: #263442;
+    overflow-x: clip;
   }
 
   h1, h2, h3, h4, .font-display {
     font-family: 'Manrope', 'Plus Jakarta Sans', system-ui, sans-serif;
   }
+}
+
+/* ==========================================================================
+   Full-Width Fluid Container & Responsive Typography System (320px -> 3840px)
+   ========================================================================== */
+.nd-container {
+  width: 100%;
+  max-width: clamp(1280px, 92vw, 2640px);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 2.75vw, 4rem);
+}
+
+.nd-container-narrow {
+  width: 100%;
+  max-width: clamp(960px, 84vw, 1520px);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 2.75vw, 4rem);
+}
+
+.nd-section-py {
+  padding-block: clamp(2.5rem, 1.8rem + 2.5vw, 5.25rem);
+}
+
+.nd-h1-hero {
+  font-size: clamp(1.875rem, 1.15rem + 2.75vw, 4.375rem);
+  line-height: 1.07;
+}
+
+.nd-h1-banner {
+  font-size: clamp(1.625rem, 1.15rem + 1.85vw, 3.25rem);
+  line-height: 1.13;
+}
+
+.nd-h2-section {
+  font-size: clamp(1.5rem, 1.12rem + 1.35vw, 2.75rem);
+  line-height: 1.16;
+}
+
+.nd-lead {
+  font-size: clamp(0.9375rem, 0.875rem + 0.32vw, 1.25rem);
+  line-height: 1.65;
+}
+
+.nd-body {
+  font-size: clamp(0.875rem, 0.84rem + 0.16vw, 1.0625rem);
+  line-height: 1.65;
 }
 
 .tabular-nums {
@@ -50,6 +98,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .nd-reveal {
     animation: none !important;
   }

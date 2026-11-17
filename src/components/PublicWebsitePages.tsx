@@ -287,16 +287,16 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           ]}
           onNavigate={onNavigate}
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="nd-container nd-section-py space-y-12 xl:space-y-14">
+          <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
             <div className="lg:col-span-7 space-y-5">
               <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#EAF2F8] border border-[#105186]/25 text-[#105186] text-xs font-bold uppercase tracking-wider">
                 Established Steel Industry • Raipur, Chhattisgarh
               </span>
-              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
                 {cms.aboutTitle}
               </h2>
-              <p className="text-base text-[#737D88] leading-relaxed">{cms.aboutSummary}</p>
+              <p className="nd-lead text-[#737D88]">{cms.aboutSummary}</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="bg-white rounded-xl border border-[#C7CED6] p-4 space-y-1">
@@ -485,10 +485,10 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             ]}
             onNavigate={onNavigate}
           />
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center space-y-4">
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-10 space-y-4 shadow-xs">
+          <div className="nd-container-narrow nd-section-py text-center space-y-4">
+            <div className="bg-white rounded-2xl border border-[#C7CED6] p-8 sm:p-10 space-y-4 shadow-xs">
               <Package className="w-10 h-10 text-[#105186] mx-auto" />
-              <h2 className="font-display text-2xl font-extrabold text-[#263442]">
+              <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
                 {ratesLoading ? 'Loading Product Specification...' : 'Product Unavailable or Inactive'}
               </h2>
               <p className="text-sm text-[#737D88]">
@@ -500,14 +500,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate('/products')}
-                  className="px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
+                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
                 >
                   View All Active Products
                 </button>
                 <button
                   type="button"
                   onClick={() => onOpenQuoteModal(slug, 'Standard')}
-                  className="px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] text-[#105186] text-xs font-bold cursor-pointer"
+                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] text-[#105186] text-xs font-bold cursor-pointer"
                 >
                   Request Custom Quote
                 </button>
@@ -586,10 +586,10 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           onNavigate={onNavigate}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+        <div className="nd-container nd-section-py space-y-10">
           {/* Main Product Detail Card */}
           <div className="bg-white rounded-2xl border border-[#C7CED6] shadow-xs overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-            <div className="lg:col-span-5 h-64 sm:h-80 lg:h-auto min-h-[280px] relative bg-[#F7F9FB] border-b lg:border-b-0 lg:border-r border-[#C7CED6]">
+            <div className="lg:col-span-5 h-64 sm:h-80 lg:h-auto min-h-[280px] min-[1920px]:min-h-[380px] relative bg-[#F7F9FB] border-b lg:border-b-0 lg:border-r border-[#C7CED6]">
               <ProductCardMedia item={matchedItem} />
               <span
                 className={`absolute top-4 left-4 px-3 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider shadow-xs z-20 ${
@@ -600,7 +600,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               </span>
             </div>
 
-            <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between gap-6">
+            <div className="lg:col-span-7 p-6 sm:p-8 xl:p-10 flex flex-col justify-between gap-6">
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs font-mono font-bold text-[#105186]">
@@ -611,11 +611,11 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   </span>
                 </div>
 
-                <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
+                <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
                   {matchedItem.name} — {matchedItem.size}
                 </h2>
 
-                <p className="text-sm text-[#737D88] leading-relaxed">
+                <p className="nd-body text-[#737D88]">
                   {matchedItem.description ||
                     `${matchedItem.name} (${matchedItem.size}, Grade: ${matchedItem.grade}) supplied under ${matchedItem.section} from Urla Industrial Area, Raipur, Chhattisgarh.`}
                 </p>
@@ -664,7 +664,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                     href={itemWaHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+                    className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
                   >
                     <MessageSquare className="w-4 h-4" />
                     <span>Enquire on WhatsApp</span>
@@ -672,7 +672,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   <button
                     type="button"
                     onClick={() => onOpenQuoteModal(`${matchedItem.name} (${matchedItem.size})`, matchedItem.grade)}
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                    className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
                   >
                     <span>Request a Quote</span>
                     <ArrowRight className="w-4 h-4" />
@@ -795,20 +795,20 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           ]}
           onNavigate={onNavigate}
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-          <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
+        <div className="nd-container nd-section-py space-y-8 xl:space-y-10">
+          <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-3xl">
               <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
                 ERP Synchronized Product Catalogue
               </span>
-              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
                 {activeSection === 'MEDIUM SECTION'
                   ? `Medium Section Steel — ${cms.unit1Name}`
                   : activeSection === 'LIGHT SECTION'
                   ? `Light Section Steel — ${cms.unit2Name}`
                   : 'Available Structural Steel Catalogue'}
               </h2>
-              <p className="text-sm text-[#737D88]">
+              <p className="nd-body text-[#737D88]">
                 Explore our available steel product range and current product information directly from Nav Durga Ispat ERP.
               </p>
             </div>
@@ -817,7 +817,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/products')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
+                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   activeSection === 'ALL'
                     ? 'bg-[#105186] text-white border-[#105186]'
                     : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
@@ -828,7 +828,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/products/medium-section')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
+                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   activeSection === 'MEDIUM SECTION'
                     ? 'bg-[#105186] text-white border-[#105186]'
                     : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
@@ -839,7 +839,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/products/light-section')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
+                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   activeSection === 'LIGHT SECTION'
                     ? 'bg-[#0B3A60] text-white border-[#0B3A60]'
                     : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
@@ -850,7 +850,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/product-rates')}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#EAF2F8] text-[#105186] border border-[#105186]/25 hover:bg-[#d8e8f4] cursor-pointer"
+                className="min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold bg-[#EAF2F8] text-[#105186] border border-[#105186]/25 hover:bg-[#d8e8f4] cursor-pointer"
               >
                 View Live Rates →
               </button>
@@ -869,13 +869,13 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenQuoteModal('Custom Steel Requirement', '')}
-                className="px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
+                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
               >
                 Request a Quote
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 min-[1920px]:grid-cols-4 gap-5 xl:gap-6">
               {visibleItems.map((item) => {
                 const isMedium = item.section === 'MEDIUM SECTION';
                 const hasApprovedRate = item.finalRate > 0;
@@ -885,7 +885,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                     className="bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                   >
                     <div>
-                      <div className="h-44 relative overflow-hidden">
+                      <div className="h-44 min-[1920px]:h-48 relative overflow-hidden">
                         <ProductCardMedia item={item} />
                         <span
                           className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow-xs z-20 ${
@@ -913,7 +913,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       </div>
                     </div>
 
-                    <div className="px-5 py-4 bg-[#F7F9FB] border-t border-[#C7CED6] flex items-center justify-between gap-2">
+                    <div className="px-5 py-4 bg-[#F7F9FB] border-t border-[#C7CED6] flex flex-wrap items-center justify-between gap-2.5">
                       <div>
                         <div className="text-[10px] font-bold uppercase tracking-wider text-[#737D88]">
                           Approved Rate
@@ -930,7 +930,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                         <button
                           type="button"
                           onClick={() => onNavigate(getProductDetailPath(item))}
-                          className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                          className="min-h-[40px] inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Details</span>
@@ -938,7 +938,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenQuoteModal(`${item.name} (${item.size})`, item.grade)}
-                          className="px-3 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                          className="min-h-[40px] px-3 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
                         >
                           Quote
                         </button>
@@ -1002,20 +1002,20 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           ]}
           onNavigate={onNavigate}
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+        <div className="nd-container nd-section-py space-y-10">
           <div className="max-w-3xl space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
               Industries &amp; Applications
             </span>
-            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#263442]">
+            <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
               Serving Industrial, Structural &amp; Infrastructure Requirements
             </h2>
-            <p className="text-sm sm:text-base text-[#737D88]">
+            <p className="nd-lead text-[#737D88]">
               Delivering structural steel products from Urla Industrial Area, Raipur with straightforward service and reliable customer support.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 xl:gap-8">
             {sectors.map((sec) => (
               <div key={sec.title} className="bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-xs space-y-3">
                 <span className="inline-flex px-2.5 py-1 rounded-md bg-[#EAF2F8] text-[#105186] border border-[#105186]/25 text-[11px] font-bold">
@@ -1069,16 +1069,16 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           ]}
           onNavigate={onNavigate}
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="nd-container nd-section-py space-y-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
             <div className="lg:col-span-7 space-y-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wider">
                 Quality &amp; Customer Commitment
               </span>
-              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900">
+              <h2 className="font-display nd-h2-section font-extrabold text-slate-900">
                 Dependable Specifications &amp; Commercial Transparency
               </h2>
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+              <p className="nd-lead text-slate-600">
                 {cms.qualityCommitment}
               </p>
               <div className="space-y-3 pt-2">
@@ -1124,7 +1124,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenQuoteModal('Product Specification Enquiry', '')}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
               >
                 Connect With Our Sales Team
               </button>
@@ -1160,17 +1160,17 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           ]}
           onNavigate={onNavigate}
         />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
+        <div className="nd-container-narrow nd-section-py space-y-6">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
               Product Documentation
             </span>
-            <h2 className="font-display text-3xl font-extrabold text-[#263442] mt-1">
+            <h2 className="font-display nd-h2-section font-extrabold text-[#263442] mt-1">
               Specification Sheets &amp; Live Rate Portal
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 xl:gap-6">
             <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 flex flex-col justify-between gap-4">
               <div>
                 <FileText className="w-7 h-7 text-[#105186] mb-3" />
@@ -1184,7 +1184,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => handleDownloadSpecSheet('Medium Section Specification', mediumProducts)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Medium Section Spec</span>
@@ -1204,7 +1204,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => handleDownloadSpecSheet('Light Section Specification', lightProducts)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B3A60] hover:bg-[#105186] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B3A60] hover:bg-[#105186] text-white text-xs font-bold cursor-pointer transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Light Section Spec</span>
@@ -1224,7 +1224,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate('/product-rates')}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] border border-[#105186]/25 text-[#105186] text-xs font-bold cursor-pointer shrink-0 transition-colors"
+                  className="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] border border-[#105186]/25 text-[#105186] text-xs font-bold cursor-pointer shrink-0 transition-colors"
                 >
                   <TrendingUp className="w-4 h-4 text-[#105186]" />
                   <span>Open Live Rate Portal</span>
@@ -1277,17 +1277,17 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           ]}
           onNavigate={onNavigate}
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="nd-container nd-section-py">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10">
             <div className="lg:col-span-5 space-y-5">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
                   Direct Commercial Sales Desk
                 </span>
-                <h2 className="font-display text-3xl font-extrabold text-[#263442] mt-1">
+                <h2 className="font-display nd-h2-section font-extrabold text-[#263442] mt-1">
                   Connect With Our Team
                 </h2>
-                <p className="text-sm text-[#737D88] mt-2">
+                <p className="nd-body text-[#737D88] mt-2">
                   Submit your structural steel requirement or reach our Urla Industrial Area, Raipur desk for product availability and current rates.
                 </p>
               </div>
@@ -1329,7 +1329,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-xs"
+                className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-xs"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Chat With Sales on WhatsApp</span>
@@ -1378,8 +1378,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           ]}
           onNavigate={onNavigate}
         />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 space-y-4">
+        <div className="nd-container-narrow nd-section-py">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 xl:p-10 space-y-4">
             <h2 className="font-display text-2xl font-extrabold text-slate-900">
               {isPrivacy ? 'Privacy Policy' : 'Terms of Supply & Dispatch Conditions'}
             </h2>
@@ -1540,19 +1540,19 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         aria-labelledby="erp-daily-pricing-heading"
         className="bg-[#F7F9FB] border-b border-[#C7CED6] py-6 sm:py-8"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 sm:p-6 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="nd-container">
+          <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 sm:p-6 xl:p-7 shadow-2xs flex flex-col xl:flex-row xl:items-center justify-between gap-5">
             <div className="space-y-1">
               <div className="text-xs font-extrabold uppercase tracking-wider text-[#105186]">
                 ERP Synchronized Daily Pricing
               </div>
               <h2
                 id="erp-daily-pricing-heading"
-                className="font-display text-xl font-extrabold text-[#263442]"
+                className="font-display text-xl xl:text-2xl font-extrabold text-[#263442]"
               >
                 Current Structural Steel Section Basic Rates
               </h2>
-              <p className="text-xs text-[#737D88]">
+              <p className="text-xs sm:text-sm text-[#737D88]">
                 <span>Synced directly from Nav Durga Ispat ERP • Ex-Plant Urla, Raipur</span>
                 {formattedRatesUpdatedAt && (
                   <>
@@ -1568,7 +1568,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             {ratesLoading && !rates ? (
               <div
                 aria-live="polite"
-                className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[440px]"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-auto xl:min-w-[460px] min-[1920px]:min-w-[540px]"
               >
                 <div className="bg-[#EAF2F8] rounded-xl border border-[#105186]/25 px-4 py-3 flex items-center justify-between gap-3">
                   <div>
@@ -1593,7 +1593,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             ) : ratesError && !rates ? (
               <div
                 role="status"
-                className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex flex-wrap items-center justify-between gap-3 lg:min-w-[440px]"
+                className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex flex-wrap items-center justify-between gap-3 w-full xl:w-auto xl:min-w-[460px] min-[1920px]:min-w-[540px]"
               >
                 <div className="space-y-0.5">
                   <div className="text-xs font-bold text-[#0B3A60]">
@@ -1607,14 +1607,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   <button
                     type="button"
                     onClick={onRefreshRates}
-                    className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#105186] text-xs font-bold cursor-pointer transition-colors"
+                    className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#105186] text-xs font-bold cursor-pointer transition-colors"
                   >
                     Retry
                   </button>
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[440px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-auto xl:min-w-[460px] min-[1920px]:min-w-[540px]">
                 <div className="bg-[#EAF2F8] rounded-xl border border-[#105186]/25 px-4 py-3 flex items-center justify-between gap-3">
                   <div>
                     <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
@@ -1644,7 +1644,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/product-rates')}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer shrink-0 transition-colors"
+              className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer shrink-0 transition-colors"
             >
               <span>View Live Rates</span>
               <ArrowRight className="w-4 h-4" />
@@ -1661,18 +1661,18 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         onNavigate={onNavigate}
       />
 
-      {/* 3. SOLUTIONS & SERVICES (ERP-GROUNDED PRODUCT OFFERINGS & BUSINESS SERVICES) */}
-      <section className="bg-[#F7F9FB] border-b border-[#C7CED6] py-14 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-            <div className="max-w-2xl space-y-2">
+      {/* 4. SOLUTIONS & SERVICES (ERP-GROUNDED PRODUCT OFFERINGS & BUSINESS SERVICES) */}
+      <section className="bg-[#F7F9FB] border-b border-[#C7CED6] nd-section-py">
+        <div className="nd-container space-y-8 xl:space-y-10">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
+            <div className="max-w-3xl space-y-2">
               <span className="text-xs font-extrabold uppercase tracking-wider text-[#105186]">
                 Products &amp; Commercial Services
               </span>
-              <h2 className="font-display text-3xl font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
                 Solutions &amp; Services
               </h2>
-              <p className="text-sm sm:text-base text-[#737D88] leading-relaxed">
+              <p className="nd-lead text-[#737D88]">
                 Explore our steel product offerings and business services.
               </p>
             </div>
@@ -1681,14 +1681,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/products')}
-                className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
               >
                 Explore All Products
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('/product-rates')}
-                className="px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
               >
                 Live Rate Portal →
               </button>
@@ -1780,32 +1780,32 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       </section>
 
       {/* 5. EXISTING ERP-CONNECTED PRODUCTS SHOWCASE */}
-      <section id="products-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-8 scroll-mt-20">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-          <div className="max-w-2xl space-y-1.5">
+      <section id="products-section" className="nd-container nd-section-py space-y-8 xl:space-y-10 scroll-mt-20">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
+          <div className="max-w-3xl space-y-1.5">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
               Live ERP Product Range
             </span>
-            <h2 className="font-display text-3xl font-extrabold text-[#263442]">
+            <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
               Our Steel Products
             </h2>
-            <p className="text-sm sm:text-base text-[#737D88]">
+            <p className="nd-lead text-[#737D88]">
               Explore our available steel product range and current product information.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => onNavigate('/products')}
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
             >
               Full Product Catalogue ({allProducts.length})
             </button>
             <button
               type="button"
               onClick={() => onNavigate('/product-rates')}
-              className="px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
             >
               Rate Sheet Portal →
             </button>
@@ -1815,13 +1815,13 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         {/* ERP Product Filters */}
         <div className="bg-white rounded-2xl border border-[#C7CED6] p-4 flex flex-col md:flex-row items-stretch md:items-center gap-3 shadow-2xs">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-[#737D88] absolute left-3.5 top-3" />
+            <Search className="w-4 h-4 text-[#737D88] absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={productSearch}
               onChange={(e) => setProductSearch(e.target.value)}
               placeholder="Search steel products by name, size (e.g. 100 x 50, 75 x 40), or grade..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] focus:bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full min-h-[44px] pl-10 pr-4 py-2.5 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] focus:bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
             />
           </div>
 
@@ -1831,7 +1831,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 key={sec}
                 type="button"
                 onClick={() => setSectionFilter(sec)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
+                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   sectionFilter === sec
                     ? 'bg-[#105186] text-white border-[#105186]'
                     : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
@@ -1846,7 +1846,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 aria-label="Filter by product category"
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-[#C7CED6] bg-white text-[#263442] outline-none cursor-pointer"
+                className="min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold border border-[#C7CED6] bg-white text-[#263442] outline-none cursor-pointer"
               >
                 {availableCategories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -1895,7 +1895,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 xl:gap-6">
             {filteredHomeProducts.slice(0, 9).map((item) => {
               const isMedium = item.section === 'MEDIUM SECTION';
               const hasApprovedRate = item.finalRate > 0;
@@ -1905,7 +1905,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   className="bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                 >
                   <div>
-                    <div className="h-40 relative overflow-hidden">
+                    <div className="h-40 min-[1920px]:h-48 relative overflow-hidden">
                       <ProductCardMedia item={item} />
                       <span
                         className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow-xs z-20 ${
@@ -1934,7 +1934,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                     </div>
                   </div>
 
-                  <div className="px-5 py-4 bg-[#F7F9FB] border-t border-[#C7CED6] flex items-center justify-between gap-2">
+                  <div className="px-5 py-4 bg-[#F7F9FB] border-t border-[#C7CED6] flex flex-wrap items-center justify-between gap-2.5">
                     <div>
                       <div className="text-[10px] font-bold uppercase tracking-wider text-[#737D88]">
                         Approved Rate
@@ -1952,7 +1952,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       <button
                         type="button"
                         onClick={() => onNavigate(getProductDetailPath(item))}
-                        className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                        className="min-h-[40px] inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View Details</span>
@@ -1960,7 +1960,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       <button
                         type="button"
                         onClick={() => onOpenQuoteModal(`${item.name} (${item.size})`, item.grade)}
-                        className="px-3 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                        className="min-h-[40px] px-3 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
                       >
                         Request a Quote
                       </button>
@@ -1977,7 +1977,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/products')}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold cursor-pointer transition-colors"
+              className="min-h-[44px] inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold cursor-pointer transition-colors"
             >
               <span>View All {filteredHomeProducts.length} Active Products</span>
               <ArrowRight className="w-4 h-4" />
@@ -1994,23 +1994,23 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       />
 
       {/* 6. ABOUT NAV DURGA ISPAT PVT. LTD. (FACTUAL OVERVIEW) */}
-      <section className="bg-[#F7F9FB] border-b border-[#C7CED6] py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <section className="bg-[#F7F9FB] border-b border-[#C7CED6] nd-section-py">
+        <div className="nd-container grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-center">
           <div className="lg:col-span-7 space-y-4">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
               About Nav Durga Ispat
             </span>
-            <h2 className="font-display text-3xl font-extrabold text-[#263442]">
+            <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
               {cms.aboutTitle}
             </h2>
-            <p className="text-sm sm:text-base text-[#737D88] leading-relaxed">
+            <p className="nd-lead text-[#737D88]">
               {cms.aboutSummary}
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => onNavigate('/about')}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="min-h-[44px] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
               >
                 <span>Company Overview</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -2018,14 +2018,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/quality')}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                className="min-h-[44px] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
               >
                 <span>Quality &amp; Reliability</span>
               </button>
             </div>
           </div>
 
-          <div className="lg:col-span-5 grid grid-cols-2 gap-4">
+          <div className="lg:col-span-5 grid grid-cols-1 min-[380px]:grid-cols-2 gap-4">
             <div className="bg-white rounded-2xl border border-[#C7CED6] p-5">
               <div className="text-[11px] font-bold uppercase tracking-wider text-[#737D88]">Established</div>
               <div className="font-display text-2xl font-extrabold text-[#263442] mt-1 tabular-nums">
@@ -2040,7 +2040,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               </div>
               <div className="text-xs text-[#737D88] mt-1">Medium &amp; Light sections</div>
             </div>
-            <div className="col-span-2 bg-white rounded-2xl border border-[#C7CED6] p-5 space-y-1.5">
+            <div className="min-[380px]:col-span-2 bg-white rounded-2xl border border-[#C7CED6] p-5 space-y-1.5">
               <div className="text-[11px] font-bold uppercase tracking-wider text-[#105186]">
                 Registered Industrial Address
               </div>
@@ -2056,25 +2056,25 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       </section>
 
       {/* 7. QUALITY AND MANUFACTURING / INTERACTIVE 3D ENGINEERING SHOWCASE */}
-      <section className="bg-[#FFFFFF] border-b border-[#C7CED6] py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="max-w-2xl">
+      <section className="bg-[#FFFFFF] border-b border-[#C7CED6] nd-section-py">
+        <div className="nd-container space-y-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 xl:gap-6">
+            <div className="max-w-3xl">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#105186]">
                 <Cpu className="w-3.5 h-3.5" />
                 <span>Interactive 3D Engineering Preview</span>
               </span>
-              <h2 className="font-display text-3xl font-extrabold text-[#263442] mt-1">
+              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] mt-1">
                 Structural Steel Profiles in 3D
               </h2>
-              <p className="text-sm text-[#737D88] mt-1">
+              <p className="nd-lead text-[#737D88] mt-1">
                 Inspect MS Channel, I-Beam, Equal Angle, and rolling pass geometry before requesting your commercial quote.
               </p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate('/product-rates')}
-              className="px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold cursor-pointer shrink-0 transition-colors"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold cursor-pointer shrink-0 transition-colors"
             >
               View Live Rates →
             </button>
@@ -2136,16 +2136,16 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       <section
         id="quick-enquiry-section"
         aria-labelledby="quick-enquiry-heading"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 scroll-mt-20"
+        className="nd-container nd-section-py scroll-mt-20"
       >
-        <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 xl:p-10 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start">
           <div className="lg:col-span-5 space-y-4">
             <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
               Customer Quick Enquiry
             </span>
             <h2
               id="quick-enquiry-heading"
-              className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442]"
+              className="font-display nd-h2-section font-extrabold text-[#263442]"
             >
               Request Steel Products &amp; Latest Ex-Plant Rates
             </h2>

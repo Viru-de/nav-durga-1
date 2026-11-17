@@ -77,7 +77,7 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
   return (
     <section
       aria-label={`${title} page header`}
-      className="relative w-full min-h-[230px] sm:min-h-[280px] lg:h-[340px] flex items-center overflow-hidden bg-[#0B3A60] border-b border-[#C7CED6] no-print"
+      className="relative w-full min-h-[210px] sm:min-h-[270px] lg:h-[330px] min-[1920px]:h-[360px] min-[2560px]:h-[380px] flex items-center overflow-hidden bg-[#0B3A60] border-b border-[#C7CED6] no-print"
     >
       {/* Edge-to-edge industrial photographic backdrop */}
       {!imgFailed ? (
@@ -117,17 +117,17 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
       />
 
       {/* Foreground Title & Breadcrumb */}
-      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-        <div className="max-w-3xl space-y-3 nd-reveal">
+      <div className="relative z-10 nd-container py-9 sm:py-12">
+        <div className="max-w-3xl min-[1920px]:max-w-4xl space-y-3 nd-reveal">
           <h1
-            className="font-display text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-white tracking-tight leading-[1.15] drop-shadow-xs"
+            className="font-display nd-h1-banner font-extrabold text-white tracking-tight drop-shadow-xs"
             style={{ textWrap: 'balance' }}
           >
             {title}
           </h1>
 
           {subtitle && (
-            <p className="text-sm sm:text-base text-[#EAF2F8]/90 leading-relaxed max-w-2xl font-medium">
+            <p className="nd-lead text-[#EAF2F8]/90 max-w-2xl min-[1920px]:max-w-3xl font-medium">
               {subtitle}
             </p>
           )}

@@ -66,11 +66,11 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
       {/* Top Info & Dispatch Strip (Light Industrial Blue & Silver) */}
       {cms.showAnnouncementBanner && cms.announcementBanner && (
         <div className="bg-[#EAF2F8] border-b border-[#C7CED6] text-[#263442] text-xs no-print">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-semibold text-[#0B3A60]">
-              <span>{cms.announcementBanner}</span>
+          <div className="nd-container py-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 font-semibold text-[#0B3A60] min-w-0">
+              <span className="truncate sm:whitespace-normal">{cms.announcementBanner}</span>
             </div>
-            <div className="hidden md:flex items-center gap-4 text-[11px] font-semibold text-[#263442]">
+            <div className="hidden md:flex items-center gap-4 text-[11px] font-semibold text-[#263442] shrink-0">
               <span className="flex items-center gap-1 whitespace-nowrap">
                 <Phone className="w-3 h-3 text-[#105186]" />
                 {cms.contactPhone}
@@ -86,20 +86,20 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
 
       {/* Sticky Light Industrial Navbar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#C7CED6] shadow-2xs no-print">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-18 py-2.5 flex items-center justify-between gap-3">
+        <div className="nd-container">
+          <div className="min-h-[68px] py-2 flex items-center justify-between gap-2 sm:gap-4">
             {/* Brand Anchor */}
             <button
               type="button"
               onClick={() => handleNavClick('/')}
-              className="flex items-center gap-3 text-left group cursor-pointer shrink-0"
+              className="flex items-center gap-2 sm:gap-3 text-left group cursor-pointer min-w-0 shrink"
             >
-              <NavDurgaLogo size="md" withCard className="group-hover:scale-[1.02] transition-transform" priority />
-              <div className="flex flex-col">
-                <span className="font-display font-extrabold text-[#263442] text-sm sm:text-base tracking-tight leading-tight whitespace-nowrap">
+              <NavDurgaLogo size="md" withCard className="group-hover:scale-[1.02] transition-transform shrink-0" priority />
+              <div className="flex flex-col min-w-0">
+                <span className="font-display font-extrabold text-[#263442] text-xs min-[360px]:text-sm sm:text-base tracking-tight leading-tight whitespace-nowrap truncate">
                   NAV DURGA ISPAT
                 </span>
-                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#105186] whitespace-nowrap">
+                <span className="text-[9.5px] sm:text-[11px] font-bold uppercase tracking-wider text-[#105186] whitespace-nowrap truncate">
                   Pvt. Ltd. • Est. {companyEst}
                 </span>
               </div>
@@ -191,32 +191,35 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
             </nav>
 
             {/* Right Actions + ERP LOGIN */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {authUser ? (
                 <button
                   type="button"
                   onClick={() => handleNavClick('/erp')}
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-[#105186] hover:bg-[#0B3A60] text-white shadow-xs whitespace-nowrap transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2.5 sm:px-4 min-h-[40px] py-2 rounded-xl text-[11px] sm:text-xs font-bold bg-[#105186] hover:bg-[#0B3A60] text-white shadow-xs whitespace-nowrap transition-colors cursor-pointer"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                  <span>Open ERP ({authUser.name.split(' ')[0]})</span>
+                  <span className="hidden min-[380px]:inline">Open ERP ({authUser.name.split(' ')[0]})</span>
+                  <span className="min-[380px]:hidden">ERP</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={() => handleNavClick('/login')}
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-[#105186] hover:bg-[#0B3A60] text-white shadow-xs whitespace-nowrap transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2.5 sm:px-4 min-h-[40px] py-2 rounded-xl text-[11px] sm:text-xs font-bold bg-[#105186] hover:bg-[#0B3A60] text-white shadow-xs whitespace-nowrap transition-colors cursor-pointer"
                 >
                   <Lock className="w-3.5 h-3.5 shrink-0" />
-                  <span>ERP Login</span>
+                  <span className="hidden min-[360px]:inline">ERP Login</span>
+                  <span className="min-[360px]:hidden">Login</span>
                 </button>
               )}
 
               <button
                 type="button"
                 onClick={() => setMobileOpen((v) => !v)}
-                className="xl:hidden p-2 rounded-lg text-[#263442] hover:bg-[#EAF2F8] border border-[#C7CED6] cursor-pointer"
+                className="xl:hidden min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-[#263442] hover:bg-[#EAF2F8] border border-[#C7CED6] cursor-pointer"
                 aria-label="Toggle Menu"
+                aria-expanded={mobileOpen}
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -226,7 +229,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
 
         {/* Mobile / Tablet Dropdown Menu */}
         {mobileOpen && (
-          <div className="xl:hidden bg-white border-t border-[#C7CED6] px-4 py-4 space-y-2 shadow-lg">
+          <div className="xl:hidden bg-white border-t border-[#C7CED6] px-4 py-4 space-y-2.5 shadow-lg">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {navItems.map((item) => {
                 const isActive = currentPath === item.path;
@@ -235,7 +238,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
                     key={item.path}
                     type="button"
                     onClick={() => handleNavClick(item.path)}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold text-left border cursor-pointer ${
+                    className={`px-3 min-h-[44px] py-2.5 rounded-xl text-xs font-bold text-left border cursor-pointer ${
                       isActive
                         ? 'bg-[#EAF2F8] text-[#105186] border-[#105186]/40'
                         : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]/60'
@@ -248,14 +251,14 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
               <button
                 type="button"
                 onClick={() => handleNavClick('/products/medium-section')}
-                className="px-3 py-2.5 rounded-xl text-xs font-bold text-left border bg-[#EAF2F8] text-[#105186] border-[#105186]/25 cursor-pointer"
+                className="px-3 min-h-[44px] py-2.5 rounded-xl text-xs font-bold text-left border bg-[#EAF2F8] text-[#105186] border-[#105186]/25 cursor-pointer"
               >
                 Medium Section
               </button>
               <button
                 type="button"
                 onClick={() => handleNavClick('/products/light-section')}
-                className="px-3 py-2.5 rounded-xl text-xs font-bold text-left border bg-[#EAF2F8]/70 text-[#0B3A60] border-[#105186]/25 cursor-pointer"
+                className="px-3 min-h-[44px] py-2.5 rounded-xl text-xs font-bold text-left border bg-[#EAF2F8]/70 text-[#0B3A60] border-[#105186]/25 cursor-pointer"
               >
                 Light Section
               </button>
@@ -268,14 +271,14 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
                   setMobileOpen(false);
                   onOpenQuoteModal();
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold border border-[#C7CED6] bg-white text-[#263442] hover:bg-[#F7F9FB] cursor-pointer"
+                className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold border border-[#C7CED6] bg-white text-[#263442] hover:bg-[#F7F9FB] cursor-pointer"
               >
                 Request Quotation
               </button>
               <button
                 type="button"
                 onClick={() => handleNavClick(authUser ? '/erp' : '/login')}
-                className="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#105186] hover:bg-[#0B3A60] text-white cursor-pointer"
+                className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold bg-[#105186] hover:bg-[#0B3A60] text-white cursor-pointer"
               >
                 {authUser ? 'Open ERP Workspace' : 'ERP LOGIN'}
               </button>
@@ -290,8 +293,8 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({
       {/* Clean Light-Industrial Footer (Strictly NO Dark Theme) */}
       <footer className="bg-[#FFFFFF] border-t-2 border-[#105186]/15 text-[#263442] no-print">
         <div className="h-1 w-full bg-gradient-to-r from-[#105186] via-[#0B3A60] to-[#C7CED6]" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="nd-container py-12 lg:py-14 2xl:py-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 xl:gap-12">
             {/* Brand & Group Info */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">

@@ -174,7 +174,85 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Card View (< md) — Zero horizontal table scroll */}
+        <div className="md:hidden print:hidden divide-y divide-slate-200">
+          {items.map((item) => {
+            const hasRate = item.finalRate > 0;
+            return (
+              <div key={item.id} className="p-4 space-y-3 bg-white">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-bold text-sm text-slate-900 leading-snug">{item.name}</div>
+                    <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
+                      {item.code} • {item.category}
+                    </div>
+                  </div>
+                  {item.inStock ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold shrink-0">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Ready Stock
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-bold shrink-0">
+                      Booking Open
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-[#F7F9FB] rounded-xl border border-slate-200 p-2.5">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase text-slate-500">Size</div>
+                    <div className="font-bold text-slate-800 mt-0.5">{item.size || 'Standard'}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase text-slate-500">Grade</div>
+                    <div className="font-bold text-slate-800 mt-0.5">{item.grade}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase text-slate-500">Basic Rate</div>
+                    <div className="font-semibold text-slate-700 tabular-nums mt-0.5">
+                      {item.baseRate > 0 ? formatInr(item.baseRate) : '—'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase text-slate-500">Gauge Diff.</div>
+                    <div className="font-semibold text-slate-700 tabular-nums mt-0.5">
+                      {item.baseRate > 0 ? `+ ₹${Math.round(item.gaugeDifference).toLocaleString('en-IN')}` : '—'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-0.5">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      Final Ex-Plant Rate
+                    </div>
+                    <div
+                      className={`font-extrabold tabular-nums ${
+                        hasRate ? 'text-base text-slate-900' : 'text-xs text-amber-700'
+                      }`}
+                    >
+                      {formatInr(item.finalRate)}
+                      {hasRate && (
+                        <span className="text-[11px] font-medium text-slate-500 ml-1">/ {item.unit || 'MT'}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onOpenQuoteModal(`${item.name} (${item.size})`, item.grade)}
+                    className="min-h-[40px] px-4 py-2 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold transition-colors cursor-pointer shrink-0"
+                  >
+                    Quote
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Tablet & Desktop Table View */}
+        <div className="hidden md:block print:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
@@ -286,7 +364,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
+      <div className="nd-container py-8 sm:py-10 lg:py-12 space-y-6 xl:space-y-8">
         {/* Print-Only PDF Header */}
         <div className="hidden print:block border-b-2 border-slate-800 pb-4 mb-6">
           <div className="flex items-center justify-between">
@@ -310,13 +388,13 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
 
         {/* Public Rate Portal Header */}
         <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 sm:p-7 shadow-xs no-print">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#EAF2F8] border border-[#105186]/25 text-[#105186] text-[11px] font-bold uppercase tracking-wider">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Synced Live from ERP Daily Rate Management</span>
               </div>
-              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
                 NAV DURGA ISPAT — LIVE PRODUCT RATES
               </h2>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#737D88]">
@@ -339,7 +417,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                 type="button"
                 onClick={loadLatestRates}
                 disabled={refreshing}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-[#F7F9FB] hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3.5 py-2.5 rounded-xl bg-[#F7F9FB] hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
                 <span>Refresh Rates</span>
@@ -348,7 +426,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5 text-[#105186]" />
                 <span>Download Rate List PDF</span>
@@ -358,7 +436,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>WhatsApp Enquiry</span>
@@ -367,7 +445,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenQuoteModal('Structural Steel Rate List', 'Medium / Light Section')}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Request Quotation</span>
@@ -377,10 +455,10 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
 
           {/* Benchmark Section Rate Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#C7CED6]">
-            <div className="rounded-xl border border-[#105186]/25 bg-gradient-to-br from-[#EAF2F8] via-white to-[#F7F9FB] p-4 flex items-center justify-between gap-4">
+            <div className="rounded-xl border border-[#105186]/25 bg-gradient-to-br from-[#EAF2F8] via-white to-[#F7F9FB] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div>
                 <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#105186]">
-                  <Building2 className="w-3.5 h-3.5" />
+                  <Building2 className="w-3.5 h-3.5 shrink-0" />
                   <span>{cms.unit1Name || 'NAVDURGA ISPAT PVT. LTD.'}</span>
                 </div>
                 <div className="font-display text-lg font-extrabold text-[#263442] mt-0.5">
@@ -390,7 +468,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                   MS Channel (100mm–250mm), Heavy Beams &amp; Medium Angles • Gauge Diff Applied Per Size
                 </div>
               </div>
-              <div className="text-right shrink-0">
+              <div className="sm:text-right shrink-0">
                 <div className="text-2xl sm:text-3xl font-extrabold text-[#105186] tabular-nums">
                   {formatInr(rates?.mediumSectionRate || 0)}
                 </div>
@@ -400,10 +478,10 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
               </div>
             </div>
 
-            <div className="rounded-xl border border-[#C7CED6] bg-gradient-to-br from-[#F7F9FB] via-white to-[#EAF2F8]/60 p-4 flex items-center justify-between gap-4">
+            <div className="rounded-xl border border-[#C7CED6] bg-gradient-to-br from-[#F7F9FB] via-white to-[#EAF2F8]/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div>
                 <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0B3A60]">
-                  <Building2 className="w-3.5 h-3.5" />
+                  <Building2 className="w-3.5 h-3.5 shrink-0" />
                   <span>{cms.unit2Name || 'UNIT-2 - NS ISPAT (I) PVT. LTD.'}</span>
                 </div>
                 <div className="font-display text-lg font-extrabold text-[#263442] mt-0.5">
@@ -413,7 +491,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                   MS Channel 70×35 / 75×40, Light Angles, Flats &amp; Square Sections • SL / Light Gauge
                 </div>
               </div>
-              <div className="text-right shrink-0">
+              <div className="sm:text-right shrink-0">
                 <div className="text-2xl sm:text-3xl font-extrabold text-[#0B3A60] tabular-nums">
                   {formatInr(rates?.lightSectionRate || 0)}
                 </div>
@@ -427,13 +505,13 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
           {/* Search & Filters */}
           <div className="mt-5 flex flex-col md:flex-row items-stretch md:items-center gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-[#737D88] absolute left-3.5 top-3" />
+              <Search className="w-4 h-4 text-[#737D88] absolute left-3.5 top-3.5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by product name, size (e.g. 100 x 50, 75 x 40), grade, or code..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] focus:bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
+                className="w-full min-h-[44px] pl-10 pr-4 py-2.5 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] focus:bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
               />
             </div>
 
@@ -443,7 +521,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
                   key={sec}
                   type="button"
                   onClick={() => setSectionFilter(sec)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
+                  className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                     sectionFilter === sec
                       ? 'bg-[#105186] text-white border-[#105186]'
                       : 'bg-white text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]/60'
@@ -456,7 +534,7 @@ export const LiveProductRatesView: React.FC<LiveProductRatesViewProps> = ({
               <select
                 value={gradeFilter}
                 onChange={(e) => setGradeFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 outline-none cursor-pointer"
+                className="min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 outline-none cursor-pointer"
                 aria-label="Filter by grade"
               >
                 {distinctGrades.map((g) => (

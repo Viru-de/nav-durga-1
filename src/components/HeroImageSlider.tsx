@@ -235,7 +235,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
-      className="relative w-full overflow-hidden border-b border-[#C7CED6] h-[64vh] min-h-[480px] max-h-[660px] lg:h-[78vh] lg:min-h-[600px] lg:max-h-[820px] flex items-center bg-[#EAF2F8] outline-none focus-visible:ring-2 focus-visible:ring-[#105186]"
+      className="relative w-full overflow-hidden border-b border-[#C7CED6] h-[62vh] min-h-[450px] max-h-[640px] md:h-[70vh] md:min-h-[520px] lg:h-[76vh] lg:min-h-[600px] lg:max-h-[840px] min-[2200px]:max-h-[960px] flex items-center bg-[#EAF2F8] outline-none focus-visible:ring-2 focus-visible:ring-[#105186]"
     >
       {/* Full-Width Slide Stack */}
       <div className="absolute inset-0 w-full h-full select-none" aria-hidden="true">
@@ -305,42 +305,42 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
       {/* Consistent Foreground Hero Copy & Dual Primary CTAs */}
       <div
         aria-live="polite"
-        className="relative z-[3] max-w-7xl mx-auto w-full px-5 sm:px-12 lg:px-16 py-12 sm:py-16"
+        className="relative z-[3] nd-container py-10 sm:py-16"
       >
         <div
           key={activeSlide.id}
-          className={`max-w-3xl space-y-5 ${
+          className={`max-w-3xl min-[1920px]:max-w-4xl space-y-4 sm:space-y-5 ${
             prefersReducedMotion ? '' : 'transition-opacity duration-500 ease-out'
           }`}
         >
-          <p className="inline-block px-3.5 py-1.5 rounded-lg bg-white/95 border border-[#C7CED6] text-[#105186] text-[11px] sm:text-xs font-extrabold uppercase tracking-widest shadow-xs">
+          <p className="inline-block px-3 sm:px-3.5 py-1.5 rounded-lg bg-white/95 border border-[#C7CED6] text-[#105186] text-[10px] sm:text-xs font-extrabold uppercase tracking-widest shadow-xs">
             {smallHeading}
           </p>
 
-          <h1 className="font-display text-3xl sm:text-5xl lg:text-[58px] font-extrabold text-white tracking-tight leading-[1.05] uppercase drop-shadow-xs">
+          <h1 className="font-display nd-h1-hero font-extrabold text-white tracking-tight uppercase drop-shadow-xs">
             {mainHeadline}
           </h1>
 
-          <p className="text-sm sm:text-lg text-slate-100 leading-relaxed max-w-2xl font-medium">
+          <p className="nd-lead text-slate-100 max-w-2xl min-[1920px]:max-w-3xl font-medium">
             {supportingText}
           </p>
 
-          <div className="flex flex-wrap items-center gap-3.5 pt-2">
+          <div className="flex flex-wrap items-center gap-3 pt-1 sm:pt-2">
             <button
               type="button"
               onClick={() => handleCtaAction(primaryTarget, onExploreProducts)}
-              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs sm:text-sm font-bold uppercase tracking-wide shadow-md cursor-pointer transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 min-h-[44px] py-2.5 sm:py-3.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs sm:text-sm font-bold uppercase tracking-wide shadow-md cursor-pointer transition-colors"
             >
               <span>{primaryLabel}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </button>
 
             <button
               type="button"
               onClick={() => handleCtaAction(secondaryTarget, () => onNavigate('/product-rates'))}
-              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-white hover:bg-[#EAF2F8] text-[#263442] text-xs sm:text-sm font-bold uppercase tracking-wide shadow-md cursor-pointer transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 min-h-[44px] py-2.5 sm:py-3.5 rounded-xl bg-white hover:bg-[#EAF2F8] text-[#263442] text-xs sm:text-sm font-bold uppercase tracking-wide shadow-md cursor-pointer transition-colors"
             >
-              <TrendingUp className="w-4 h-4 text-[#105186]" />
+              <TrendingUp className="w-4 h-4 text-[#105186] shrink-0" />
               <span>{secondaryLabel}</span>
             </button>
           </div>

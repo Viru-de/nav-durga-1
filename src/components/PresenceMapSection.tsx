@@ -308,19 +308,19 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
   return (
     <section
       id="our-presence-section"
-      className="bg-[#FFFFFF] border-y border-[#C7CED6] py-14 sm:py-16 scroll-mt-20"
+      className="bg-[#FFFFFF] border-y border-[#C7CED6] nd-section-py scroll-mt-20"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-          <div className="max-w-2xl space-y-2">
+      <div className="nd-container space-y-8 xl:space-y-10">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
+          <div className="max-w-3xl space-y-2">
             <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#105186]">
               <MapPin className="w-3.5 h-3.5" />
               <span>Registered Plant &amp; Office Location</span>
             </span>
-            <h2 className="font-display text-3xl font-extrabold text-[#263442] tracking-tight">
+            <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
               Our Presence
             </h2>
-            <p className="text-sm sm:text-base text-[#737D88] leading-relaxed">
+            <p className="nd-lead text-[#737D88]">
               Rooted in Raipur, Chhattisgarh, with a presence in the steel industry.
             </p>
           </div>
@@ -330,7 +330,7 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
               href={directionsHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] border border-[#105186]/25 text-[#105186] text-xs font-bold transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] border border-[#105186]/25 text-[#105186] text-xs font-bold transition-colors"
             >
               <Navigation className="w-3.5 h-3.5" />
               <span>Get Directions</span>
@@ -339,14 +339,14 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
             <button
               type="button"
               onClick={() => onOpenQuoteModal('Structural Steel Enquiry — Raipur', '')}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
             >
               <span>Connect With Sales</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-stretch">
           {/* Verified Location Cards */}
           <div className="lg:col-span-5 flex flex-col justify-between gap-4">
             <div className="space-y-3">
@@ -420,7 +420,7 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
 
           {/* Interactive Google Map Container */}
           <div className="lg:col-span-7">
-            <div className="h-[360px] sm:h-[420px] w-full rounded-2xl border border-[#C7CED6] overflow-hidden shadow-xs bg-[#F7F9FB]">
+            <div className="h-[340px] sm:h-[420px] lg:h-full lg:min-h-[460px] min-[1920px]:min-h-[540px] w-full rounded-2xl border border-[#C7CED6] overflow-hidden shadow-xs bg-[#F7F9FB]">
               {effectiveApiKey ? (
                 <APIProvider
                   apiKey={effectiveApiKey}

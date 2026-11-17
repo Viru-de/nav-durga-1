@@ -144,12 +144,12 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
     <section
       ref={sectionRef}
       aria-labelledby="our-advantage-heading"
-      className="bg-gradient-to-b from-[#FFFFFF] via-[#FFFFFF] to-[#F7F9FB] border-b border-[#C7CED6] py-14 sm:py-20"
+      className="bg-gradient-to-b from-[#FFFFFF] via-[#FFFFFF] to-[#F7F9FB] border-b border-[#C7CED6] nd-section-py"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
+      <div className="nd-container space-y-10 sm:space-y-12">
         {/* Editorial Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="max-w-2xl space-y-3">
+          <div className="max-w-2xl min-[1920px]:max-w-3xl space-y-3">
             <div className="inline-flex items-center gap-2.5">
               <span className="w-6 h-[2px] bg-[#105186]" aria-hidden="true" />
               <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#105186]">
@@ -158,12 +158,12 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
             </div>
             <h2
               id="our-advantage-heading"
-              className="font-display text-3xl sm:text-4xl font-extrabold text-[#263442] tracking-tight"
+              className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight"
               style={{ textWrap: 'balance' }}
             >
               Why Choose Nav Durga Ispat?
             </h2>
-            <p className="text-sm sm:text-base text-[#737D88] leading-relaxed max-w-xl">
+            <p className="nd-lead text-[#737D88] max-w-xl min-[1920px]:max-w-2xl">
               Building lasting business relationships through experience, steel products and a commitment to dependable service.
             </p>
           </div>
@@ -172,7 +172,7 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
             <button
               type="button"
               onClick={() => onNavigate('/about')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F7F9FB] hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] hover:text-[#105186] text-xs font-bold transition-colors cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 min-h-[44px] py-2.5 rounded-xl bg-[#F7F9FB] hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] hover:text-[#105186] text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap"
             >
               <span>Since {estYear} · Raipur</span>
             </button>
@@ -180,7 +180,7 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
             <button
               type="button"
               onClick={onConnectSalesDesk}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-5 min-h-[44px] py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer whitespace-nowrap"
             >
               <span>Connect With Sales Desk</span>
               <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
