@@ -18,10 +18,6 @@ import {
   Search,
   Eye,
   Package,
-  Compass,
-  Handshake,
-  Globe,
-  Boxes,
   Wrench,
 } from 'lucide-react';
 import {
@@ -39,6 +35,7 @@ import { OurJourneyTimeline } from './OurJourneyTimeline';
 import { FaqSection, buildFaqJsonLd, buildPublicFaqs } from './FaqSection';
 import { QuickEnquiryForm } from './QuickEnquiryForm';
 import { InnerPageBanner } from './InnerPageBanner';
+import { NavDurgaAdvantageSection } from './NavDurgaAdvantageSection';
 import { DEFAULT_SOLUTIONS_SERVICES } from '../data/solutionsDefaults';
 
 interface PublicWebsitePagesProps {
@@ -1406,44 +1403,6 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
   // ===========================================================================
   // ROUTE: HOME (/) — Exact Requested Section Order + #105186 Light Industrial Theme
   // ===========================================================================
-  const whyChooseFeatures = [
-    {
-      icon: Compass,
-      title: 'Established Industry Presence',
-      meta: `Since ${companyEst} · Raipur`,
-      desc: `Serving industrial and structural steel requirements since ${companyEst} as a registered private limited steel enterprise.`,
-    },
-    {
-      icon: Boxes,
-      title: 'ERP-Backed Steel Product Range',
-      meta: `${allProducts.length} Active Profiles`,
-      desc: 'Structural Medium Section and Light Section steel profiles synchronized directly from our Nav Durga ERP catalog.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Convenient Product & Rate Info',
-      meta: 'Live Daily Pricing',
-      desc: 'Check active sizes, gauge specifications, and published section basic rates anytime through the online rate portal.',
-    },
-    {
-      icon: Handshake,
-      title: 'Customer-Focused Approach',
-      meta: 'Direct Sales Desk',
-      desc: 'Straightforward commercial coordination from requirement enquiry through quotation and dispatch scheduling.',
-    },
-    {
-      icon: MapPin,
-      title: 'Urla Industrial Area Location',
-      meta: 'Raipur, Chhattisgarh',
-      desc: 'Located in Plot No. 435-A, Sector-C, Urla Industrial Area — supporting buyers across regional industrial corridors.',
-    },
-    {
-      icon: Globe,
-      title: 'Digital Accessibility',
-      meta: 'Web & WhatsApp',
-      desc: 'Quickly inspect 3D steel profiles, submit online quotation requests, or reach our commercial desk via WhatsApp.',
-    },
-  ];
 
   const configuredSolutions: SolutionServiceCmsItem[] = (
     cms.solutionsServices && cms.solutionsServices.length > 0
@@ -1694,62 +1653,13 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         </div>
       </section>
 
-      {/* 3. WHY CHOOSE NAV DURGA ISPAT? */}
-      <section className="bg-[#FFFFFF] border-b border-[#C7CED6] py-14 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-            <div className="max-w-2xl space-y-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#105186]">
-                Nav Durga Ispat Advantage
-              </span>
-              <h2 className="font-display text-3xl font-extrabold text-[#263442] tracking-tight">
-                Why Choose Nav Durga Ispat?
-              </h2>
-              <p className="text-sm sm:text-base text-[#737D88] leading-relaxed">
-                Building lasting business relationships through experience, steel products and a commitment to dependable service.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onOpenQuoteModal('General Industrial Steel Enquiry', '')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold transition-colors cursor-pointer shrink-0"
-            >
-              <span>Connect With Sales Desk</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {whyChooseFeatures.map((feat) => {
-              const Icon = feat.icon;
-              return (
-                <div
-                  key={feat.title}
-                  className="bg-[#F7F9FB] hover:bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] p-6 transition-all shadow-2xs hover:shadow-md flex flex-col justify-between gap-4"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="w-11 h-11 rounded-xl bg-[#EAF2F8] border border-[#105186]/20 flex items-center justify-center text-[#105186]">
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#737D88]">
-                        {feat.meta}
-                      </span>
-                    </div>
-                    <h3 className="font-display text-lg font-extrabold text-[#263442]">
-                      {feat.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-[#737D88] leading-relaxed">
-                      {feat.desc}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      {/* 3. WHY CHOOSE NAV DURGA ISPAT? (STAGGERED EDITORIAL INDUSTRIAL LAYOUT) */}
+      <NavDurgaAdvantageSection
+        establishedYear={companyEst}
+        activeProfilesCount={allProducts.length}
+        onConnectSalesDesk={() => onOpenQuoteModal('General Industrial Steel Enquiry', '')}
+        onNavigate={onNavigate}
+      />
 
       {/* 3. SOLUTIONS & SERVICES (ERP-GROUNDED PRODUCT OFFERINGS & BUSINESS SERVICES) */}
       <section className="bg-[#F7F9FB] border-b border-[#C7CED6] py-14 sm:py-16">
