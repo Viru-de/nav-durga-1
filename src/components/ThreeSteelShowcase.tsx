@@ -212,8 +212,8 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
     renderer.domElement.style.display = 'block';
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf4f7fb);
-    scene.fog = new THREE.Fog(0xf4f7fb, 11, 24);
+    scene.background = new THREE.Color(0xf1ece3);
+    scene.fog = new THREE.Fog(0xf1ece3, 11, 24);
 
     const pmrem = new THREE.PMREMGenerator(renderer);
     const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
@@ -233,7 +233,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
     controls.target.set(0, 0.2, 0);
 
     // Three-point light studio rig
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    const keyLight = new THREE.DirectionalLight(0xfff8eb, 1.85);
     keyLight.position.set(5, 7, 4);
     if (!softwareGl) {
       keyLight.castShadow = true;
@@ -248,21 +248,21 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
     }
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.9);
+    const fillLight = new THREE.DirectionalLight(0xf1ece3, 0.9);
     fillLight.position.set(-5, 3, -3);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xeaf2f8, 0.75);
+    const rimLight = new THREE.DirectionalLight(0xffcf70, 0.55);
     rimLight.position.set(0, 4, -6);
     scene.add(rimLight);
 
-    const hemi = new THREE.HemisphereLight(0xffffff, 0xcbd5e1, 0.6);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xd8d0c3, 0.65);
     scene.add(hemi);
 
-    // Light Studio Ground Grid + Stage Plinth
+    // Warm Linen Studio Ground Grid + Stage Plinth
     const floorGeo = new THREE.PlaneGeometry(24, 24);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0xf1f5f9,
+      color: 0xeae3d7,
       roughness: 0.85,
       metalness: 0.05,
     });
@@ -272,7 +272,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
     floor.receiveShadow = !softwareGl;
     scene.add(floor);
 
-    const grid = new THREE.GridHelper(14, 28, 0xcbd5e1, 0xe2e8f0);
+    const grid = new THREE.GridHelper(14, 28, 0xc7bfb2, 0xddd6c9);
     grid.position.y = -0.84;
     scene.add(grid);
 
@@ -285,15 +285,15 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
     });
 
     const darkSteelEdgeMat = new THREE.MeshStandardMaterial({
-      color: 0x475569,
+      color: 0x46536a,
       metalness: 0.82,
       roughness: 0.36,
     });
 
     const blueAccentMat = new THREE.MeshStandardMaterial({
-      color: 0x105186,
-      metalness: 0.48,
-      roughness: 0.34,
+      color: 0x14213d,
+      metalness: 0.45,
+      roughness: 0.32,
     });
 
     const timberSkidMat = new THREE.MeshStandardMaterial({
@@ -550,31 +550,32 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
   const meta = PROFILE_META[mode];
 
   return (
-    <div className={`relative w-full ${heightClass} bg-[#F7F9FB] rounded-2xl border border-[#C7CED6] overflow-hidden shadow-xs select-none`}>
+    <div className={`relative w-full ${heightClass} bg-[var(--color-linen)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-xs select-none`}>
       {/* 3D Canvas Container */}
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
       {/* Fallback when WebGL unavailable */}
       {webglError && (
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-[#F7F9FB] to-[#EAF2F8] flex flex-col items-center justify-center p-6 text-center">
-          <Cpu className="w-10 h-10 text-[#105186] mb-3" />
-          <h3 className="text-lg font-extrabold text-[#263442]">{meta.label}</h3>
-          <p className="text-xs text-[#737D88] mt-1 max-w-md">{meta.specs}</p>
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-surface)] via-[var(--color-linen)] to-[var(--color-linen)] flex flex-col items-center justify-center p-6 text-center">
+          <Cpu className="w-10 h-10 text-[var(--color-navy)] mb-3" />
+          <h3 className="text-lg font-extrabold text-[var(--color-navy)]">{meta.label}</h3>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-1 max-w-md">{meta.specs}</p>
         </div>
       )}
 
       {/* Top Overlay Bar: Engineering Readout + Quick Actions (flex prevents mobile overlap) */}
       <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 z-10 flex items-start justify-between gap-2 pointer-events-none">
         <div className="min-w-0 flex-1 max-w-[300px]">
-          <div className="bg-white/92 backdrop-blur-md border border-[#C7CED6] rounded-xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 shadow-xs">
-            <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#105186] truncate">
-              3D Engineering Spec
+          <div className="bg-[var(--color-surface)]/95 backdrop-blur-md border border-[var(--color-border)] rounded-xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 shadow-xs">
+            <div className="inline-flex items-center gap-1.5 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-navy)] truncate">
+              <span className="w-3 h-[2px] bg-[var(--color-amber)] shrink-0" aria-hidden="true" />
+              <span>3D Engineering Spec</span>
             </div>
-            <div className="text-xs sm:text-sm font-extrabold text-[#263442] mt-0.5 truncate">{meta.label}</div>
-            <div className="hidden min-[480px]:block text-[11px] font-medium text-[#737D88] mt-0.5">{meta.specs}</div>
-            <div className="hidden min-[480px]:flex mt-1.5 pt-1.5 border-t border-[#C7CED6]/80 items-center justify-between gap-3 text-[10px] font-mono text-[#263442]">
+            <div className="text-xs sm:text-sm font-extrabold text-[var(--color-navy)] mt-0.5 truncate">{meta.label}</div>
+            <div className="hidden min-[480px]:block text-[11px] font-medium text-[var(--color-text-secondary)] mt-0.5">{meta.specs}</div>
+            <div className="hidden min-[480px]:flex mt-1.5 pt-1.5 border-t border-[var(--color-border)] items-center justify-between gap-3 text-[10px] font-mono text-[var(--color-navy)]">
               <span>{meta.standard}</span>
-              <span className="font-semibold text-[#105186]">{meta.section}</span>
+              <span className="font-bold text-[var(--color-navy)]">{meta.section}</span>
             </div>
           </div>
         </div>
@@ -586,8 +587,8 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
             onClick={() => setExploded((v) => !v)}
             className={`min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
               exploded
-                ? 'bg-[#105186] text-white border-[#105186]'
-                : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
+                ? 'bg-[var(--color-amber)] text-[var(--color-navy)] border-[var(--color-amber)]'
+                : 'bg-[var(--color-surface)]/95 text-[var(--color-navy)] border-[var(--color-border)] hover:bg-[var(--color-surface)]'
             }`}
             title="Toggle exploded assembly view"
             aria-label={exploded ? 'Switch to assembled view' : 'Switch to exploded view'}
@@ -601,8 +602,8 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
             onClick={() => setAutoRotate((v) => !v)}
             className={`min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] font-bold border shadow-2xs transition-colors cursor-pointer flex items-center gap-1 ${
               autoRotate
-                ? 'bg-[#0B3A60] text-white border-[#0B3A60]'
-                : 'bg-white/90 text-[#263442] border-[#C7CED6] hover:bg-white'
+                ? 'bg-[var(--color-navy)] text-[var(--color-linen)] border-[var(--color-navy)]'
+                : 'bg-[var(--color-surface)]/95 text-[var(--color-navy)] border-[var(--color-border)] hover:bg-[var(--color-surface)]'
             }`}
             title="Toggle turntable rotation"
             aria-label={autoRotate ? 'Pause rotation' : 'Enable rotation'}
@@ -614,7 +615,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
           <button
             type="button"
             onClick={() => resetCameraFnRef.current?.()}
-            className="min-h-[36px] min-w-[36px] sm:min-h-[38px] sm:min-w-[38px] p-1.5 rounded-lg bg-white/90 text-[#263442] border border-[#C7CED6] hover:bg-white shadow-2xs cursor-pointer inline-flex items-center justify-center"
+            className="min-h-[36px] min-w-[36px] sm:min-h-[38px] sm:min-w-[38px] p-1.5 rounded-lg bg-[var(--color-surface)]/95 text-[var(--color-navy)] border border-[var(--color-border)] hover:bg-[var(--color-amber)] hover:border-[var(--color-amber)] shadow-2xs cursor-pointer inline-flex items-center justify-center transition-colors"
             title="Reset camera angle"
             aria-label="Reset 3D camera angle"
           >
@@ -623,9 +624,9 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
         </div>
       </div>
 
-      {/* Bottom Profile Switcher Dock (Light Metallic Glass) */}
+      {/* Bottom Profile Switcher Dock */}
       <div className="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="pointer-events-auto inline-flex flex-wrap items-center gap-1 bg-white/92 backdrop-blur-md border border-[#C7CED6] p-1 rounded-xl shadow-xs max-w-full">
+        <div className="pointer-events-auto inline-flex flex-wrap items-center gap-1 bg-[var(--color-surface)]/95 backdrop-blur-md border border-[var(--color-border)] p-1 rounded-xl shadow-xs max-w-full">
           {(
             [
               { id: 'channel', label: 'MS Channel' },
@@ -640,8 +641,8 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
               onClick={() => setMode(item.id)}
               className={`min-h-[34px] px-2 sm:px-2.5 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap ${
                 mode === item.id
-                  ? 'bg-[#105186] text-white'
-                  : 'text-[#263442] hover:bg-[#EAF2F8]'
+                  ? 'bg-[var(--color-amber)] text-[var(--color-navy)]'
+                  : 'text-[var(--color-navy)] hover:bg-[var(--color-linen)]'
               }`}
             >
               {item.label}
@@ -653,7 +654,7 @@ export const ThreeSteelShowcase: React.FC<ThreeSteelShowcaseProps> = ({
           <button
             type="button"
             onClick={() => onRequestQuote(meta.label)}
-            className="pointer-events-auto min-h-[36px] px-3 py-1.5 rounded-xl bg-white/95 hover:bg-[#EAF2F8] text-[#105186] border border-[#105186]/30 text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
+            className="nd-btn-primary pointer-events-auto min-h-[36px] px-3.5 py-1.5 rounded-xl text-[11px] font-bold shadow-xs cursor-pointer"
           >
             Quote {meta.label.split(' ')[0]} {meta.label.split(' ')[1]} →
           </button>

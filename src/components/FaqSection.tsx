@@ -118,32 +118,32 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ cms, onNavigate }) => {
     <section
       id="faq-section"
       aria-labelledby="faq-section-heading"
-      className="bg-[#F7F9FB] border-b border-[#C7CED6] nd-section-py"
+      className="bg-[var(--color-linen)] border-b border-[var(--color-border)] nd-section-py"
     >
       <div className="nd-container space-y-8 xl:space-y-10">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
           <div className="max-w-3xl space-y-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#105186]">
-              <HelpCircle className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[var(--color-navy)]">
+              <HelpCircle className="w-3.5 h-3.5 text-[var(--color-amber)]" />
               <span>Frequently Asked Questions</span>
             </span>
             <h2
               id="faq-section-heading"
-              className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight"
+              className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] tracking-tight"
             >
               Answers About Our Steel Products, Rates &amp; Enquiries
             </h2>
-            <p className="nd-lead text-[#737D88]">
+            <p className="nd-lead text-[var(--color-text-secondary)]">
               Clear, factual information about Nav Durga Ispat Pvt. Ltd., Urla Industrial Area, Raipur, and how to access live rates and quotations.
             </p>
           </div>
           <button
             type="button"
             onClick={() => onNavigate('/contact')}
-            className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#105186] text-xs font-bold cursor-pointer shrink-0 transition-colors"
+            className="nd-btn-secondary inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer shrink-0"
           >
             <span>Need More Details? Contact Us</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 text-[var(--color-amber)]" />
           </button>
         </div>
 
@@ -153,8 +153,8 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ cms, onNavigate }) => {
             return (
               <div
                 key={faq.id}
-                className={`bg-white rounded-2xl border transition-colors ${
-                  isOpen ? 'border-[#105186] shadow-xs' : 'border-[#C7CED6]'
+                className={`bg-[var(--color-surface)] rounded-2xl border transition-colors ${
+                  isOpen ? 'border-[var(--color-navy)] shadow-xs' : 'border-[var(--color-border)]'
                 }`}
               >
                 <h3>
@@ -163,14 +163,14 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ cms, onNavigate }) => {
                     aria-expanded={isOpen}
                     aria-controls={`faq-panel-${faq.id}`}
                     onClick={() => setOpenId((prev) => (prev === faq.id ? null : faq.id))}
-                    className="w-full min-h-[52px] px-5 py-4 text-left flex items-center justify-between gap-3 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#105186] rounded-2xl"
+                    className="w-full min-h-[52px] px-5 py-4 text-left flex items-center justify-between gap-3 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-amber)] rounded-2xl"
                   >
-                    <span className="font-display text-sm sm:text-base font-extrabold text-[#263442]">
+                    <span className="font-display text-sm sm:text-base font-extrabold text-[var(--color-navy)]">
                       {faq.question}
                     </span>
                     <ChevronDown
-                      className={`w-4 h-4 text-[#105186] shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180' : ''
+                      className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180 text-[var(--color-amber)]' : 'text-[var(--color-navy)]'
                       }`}
                     />
                   </button>
@@ -178,17 +178,17 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ cms, onNavigate }) => {
                 {isOpen && (
                   <div
                     id={`faq-panel-${faq.id}`}
-                    className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#737D88] leading-relaxed border-t border-[#C7CED6]/50 space-y-2.5"
+                    className="px-5 pb-5 pt-2 text-xs sm:text-sm text-[var(--color-text-secondary)] leading-relaxed border-t border-[var(--color-border)] space-y-2.5"
                   >
                     <p>{faq.answer}</p>
                     {faq.actionLabel && faq.actionPath && (
                       <button
                         type="button"
                         onClick={() => handleAction(faq.actionPath)}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-[#105186] hover:text-[#0B3A60] hover:underline cursor-pointer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-navy)] hover:underline underline-offset-4 cursor-pointer"
                       >
                         <span>{faq.actionLabel}</span>
-                        <ArrowRight className="w-3 h-3" />
+                        <ArrowRight className="w-3 h-3 text-[var(--color-amber)]" />
                       </button>
                     )}
                   </div>

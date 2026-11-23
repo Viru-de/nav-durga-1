@@ -144,26 +144,26 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
     <section
       ref={sectionRef}
       aria-labelledby="our-advantage-heading"
-      className="bg-gradient-to-b from-[#FFFFFF] via-[#FFFFFF] to-[#F7F9FB] border-b border-[#C7CED6] nd-section-py"
+      className="bg-[var(--color-surface)] border-b border-[var(--color-border)] nd-section-py"
     >
       <div className="nd-container space-y-10 sm:space-y-12">
         {/* Editorial Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="max-w-2xl min-[1920px]:max-w-3xl space-y-3">
             <div className="inline-flex items-center gap-2.5">
-              <span className="w-6 h-[2px] bg-[#105186]" aria-hidden="true" />
-              <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#105186]">
+              <span className="w-7 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+              <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-navy)]">
                 OUR ADVANTAGE
               </span>
             </div>
             <h2
               id="our-advantage-heading"
-              className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight"
+              className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] tracking-tight"
               style={{ textWrap: 'balance' }}
             >
               Why Choose Nav Durga Ispat?
             </h2>
-            <p className="nd-lead text-[#737D88] max-w-xl min-[1920px]:max-w-2xl">
+            <p className="nd-lead text-[var(--color-text-secondary)] max-w-xl min-[1920px]:max-w-2xl">
               Building lasting business relationships through experience, steel products and a commitment to dependable service.
             </p>
           </div>
@@ -172,7 +172,7 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
             <button
               type="button"
               onClick={() => onNavigate('/about')}
-              className="inline-flex items-center gap-2 px-4 min-h-[44px] py-2.5 rounded-xl bg-[#F7F9FB] hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] hover:text-[#105186] text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap"
+              className="nd-btn-secondary inline-flex items-center gap-2 px-4 min-h-[44px] py-2.5 rounded-xl text-xs sm:text-sm font-bold cursor-pointer whitespace-nowrap"
             >
               <span>Since {estYear} · Raipur</span>
             </button>
@@ -180,7 +180,7 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
             <button
               type="button"
               onClick={onConnectSalesDesk}
-              className="inline-flex items-center gap-2 px-5 min-h-[44px] py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+              className="nd-btn-primary inline-flex items-center gap-2 px-5 min-h-[44px] py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs cursor-pointer whitespace-nowrap"
             >
               <span>Connect With Sales Desk</span>
               <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
@@ -189,7 +189,7 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
         </div>
 
         {/* Staggered 3-Column Editorial Grid */}
-        <div className="border-t border-b border-[#C7CED6]/80">
+        <div className="border-t border-b border-[var(--color-border)]">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {blocks.map((block, idx) => {
               const imageFirst = idx % 2 === 1;
@@ -203,7 +203,7 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
                   }}
                   className={`group flex ${
                     imageFirst ? 'flex-col-reverse' : 'flex-col'
-                  } justify-between gap-6 py-8 md:px-6 lg:px-7 border-[#C7CED6]/80 transition-all duration-500 ease-out motion-reduce:transition-none ${getCellDividerClasses(
+                  } justify-between gap-6 py-8 md:px-6 lg:px-7 border-[var(--color-border)] transition-all duration-500 ease-out motion-reduce:transition-none ${getCellDividerClasses(
                     idx
                   )} ${
                     revealed
@@ -215,24 +215,25 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
                   <div className="flex-1 flex flex-col justify-between gap-5 py-1">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2.5">
-                        <span className="font-mono text-xs font-bold text-[#105186] tabular-nums">
+                        <span className="font-mono text-xs font-extrabold text-[var(--color-navy)] tabular-nums">
                           {block.numeral}
                         </span>
-                        <span className="h-px flex-1 bg-[#C7CED6]/70" aria-hidden="true" />
+                        <span className="w-4 h-[2px] bg-[var(--color-amber)]" aria-hidden="true" />
+                        <span className="h-px flex-1 bg-[var(--color-border)]" aria-hidden="true" />
                       </div>
 
-                      <h3 className="font-display text-lg sm:text-xl font-extrabold text-[#263442] tracking-tight group-hover:text-[#105186] transition-colors">
+                      <h3 className="font-display text-lg sm:text-xl font-extrabold text-[var(--color-navy)] tracking-tight">
                         {block.title}
                       </h3>
 
-                      <p className="text-sm text-[#737D88] leading-relaxed">
+                      <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
                         {block.description}
                       </p>
                     </div>
 
                     <div className="pt-1 flex items-center justify-between gap-3">
-                      <div className="inline-flex items-center gap-2 text-xs font-bold text-[#105186] tracking-wide">
-                        <span className="w-4 h-[2px] bg-[#105186]" aria-hidden="true" />
+                      <div className="inline-flex items-center gap-2 text-xs font-bold text-[var(--color-navy)] tracking-wide">
+                        <span className="w-4 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
                         <span>{block.highlight}</span>
                       </div>
 
@@ -241,17 +242,17 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
                           type="button"
                           onClick={() => onNavigate(block.actionPath!)}
                           aria-label={`Explore ${block.title}`}
-                          className="text-xs font-semibold text-[#737D88] hover:text-[#105186] inline-flex items-center gap-1 transition-colors cursor-pointer"
+                          className="text-xs font-bold text-[var(--color-text-secondary)] hover:text-[var(--color-navy)] inline-flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <span>Explore</span>
-                          <ArrowRight className="w-3 h-3" aria-hidden="true" />
+                          <ArrowRight className="w-3 h-3 text-[var(--color-amber)]" aria-hidden="true" />
                         </button>
                       )}
                     </div>
                   </div>
 
                   {/* Industrial Photograph Block */}
-                  <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-[#EAF2F8] border border-[#C7CED6]/70 relative">
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-[var(--color-linen)] border border-[var(--color-border)] relative">
                     {!imgHasFailed ? (
                       <picture className="block w-full h-full">
                         <source srcSet={block.imageWebp} type="image/webp" />
@@ -271,9 +272,9 @@ export const NavDurgaAdvantageSection: React.FC<NavDurgaAdvantageSectionProps> =
                         />
                       </picture>
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#EAF2F8] via-[#FFFFFF] to-[#F7F9FB] flex flex-col items-center justify-center p-6 text-center gap-2">
-                        <Building2 className="w-8 h-8 text-[#105186]" aria-hidden="true" />
-                        <span className="text-xs font-bold text-[#0B3A60]">
+                      <div className="w-full h-full bg-gradient-to-br from-[var(--color-linen)] via-[var(--color-surface)] to-[var(--color-linen)] flex flex-col items-center justify-center p-6 text-center gap-2">
+                        <Building2 className="w-8 h-8 text-[var(--color-navy)]" aria-hidden="true" />
+                        <span className="text-xs font-bold text-[var(--color-navy)]">
                           {block.title}
                         </span>
                       </div>

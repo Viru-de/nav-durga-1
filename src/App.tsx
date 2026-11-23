@@ -1118,9 +1118,9 @@ export default function App() {
   // Wait briefly while session token validates for /erp/*
   if (isErpRoute && !authChecked) {
     return (
-      <div className="min-h-screen bg-[#FAF9F6] flex flex-col items-center justify-center p-6 text-center space-y-3">
+      <div className="min-h-screen bg-[var(--color-linen)] flex flex-col items-center justify-center p-6 text-center space-y-3">
         <NavDurgaLogo size="lg" withCard priority />
-        <div className="text-sm font-bold text-slate-700">Verifying Nav Durga ERP Session...</div>
+        <div className="text-sm font-bold text-[var(--color-navy)]">Verifying Nav Durga ERP Session...</div>
       </div>
     );
   }

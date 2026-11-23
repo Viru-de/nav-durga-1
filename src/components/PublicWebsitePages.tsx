@@ -71,16 +71,16 @@ const SteelProfileVisual: React.FC<{
   const isAngle = label.includes('angle') || label.includes('isa');
   const isFlat = label.includes('flat') || label.includes('bar') || label.includes('square');
 
-  const accentStroke = isMedium ? '#105186' : '#0B3A60';
-  const accentFill = isMedium ? '#EAF2F8' : '#DCE9F5';
+  const accentStroke = '#14213D';
+  const accentFill = isMedium ? 'rgba(255, 176, 32, 0.16)' : '#F1ECE3';
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-[#F7F9FB] via-[#FFFFFF] to-[#EAF2F8]/60 flex flex-col items-center justify-center relative px-6 py-4 select-none border-b border-[#C7CED6]">
+    <div className="w-full h-full bg-gradient-to-br from-[#F1ECE3]/75 via-[#FFFFFF] to-[#F1ECE3]/40 flex flex-col items-center justify-center relative px-6 py-4 select-none border-b border-[var(--color-border)]">
       <div
         className="w-full h-full absolute inset-0 opacity-35 pointer-events-none"
         style={{
           backgroundImage:
-            'linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)',
+            'linear-gradient(to right, rgba(20, 33, 61, 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(20, 33, 61, 0.14) 1px, transparent 1px)',
           backgroundSize: '20px 20px',
         }}
       />
@@ -107,7 +107,7 @@ const SteelProfileVisual: React.FC<{
           </g>
         )}
       </svg>
-      <div className="relative z-10 mt-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+      <div className="relative z-10 mt-1 text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">
         {isMedium ? 'Medium Structural Profile' : 'Light Structural Profile'}
       </div>
     </div>
@@ -290,26 +290,28 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         <div className="nd-container nd-section-py space-y-12 xl:space-y-14">
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
             <div className="lg:col-span-7 space-y-5">
-              <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#EAF2F8] border border-[#105186]/25 text-[#105186] text-xs font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[var(--color-navy)] border border-[var(--color-amber)]/40 text-[var(--color-amber)] text-xs font-bold uppercase tracking-wider">
                 Established Steel Industry • Raipur, Chhattisgarh
               </span>
-              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] tracking-tight">
                 {cms.aboutTitle}
               </h2>
-              <p className="nd-lead text-[#737D88]">{cms.aboutSummary}</p>
+              <p className="nd-lead text-[var(--color-text-secondary)]">{cms.aboutSummary}</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="bg-white rounded-xl border border-[#C7CED6] p-4 space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[#105186]">Medium Section Division</div>
-                  <div className="font-bold text-[#263442] text-sm">{cms.unit1Name}</div>
-                  <div className="text-xs text-[#737D88]">
+                <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 space-y-1">
+                  <div className="h-[2.5px] w-8 bg-[var(--color-amber)] mb-1" aria-hidden="true" />
+                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">Medium Section Division</div>
+                  <div className="font-bold text-[var(--color-navy)] text-sm">{cms.unit1Name}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)]">
                     Structural steel profiles engineered for industrial and construction requirements.
                   </div>
                 </div>
-                <div className="bg-white rounded-xl border border-[#C7CED6] p-4 space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[#0B3A60]">Light Section Division</div>
-                  <div className="font-bold text-[#263442] text-sm">{cms.unit2Name}</div>
-                  <div className="text-xs text-[#737D88]">
+                <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 space-y-1">
+                  <div className="h-[2.5px] w-8 bg-[var(--color-amber)] mb-1" aria-hidden="true" />
+                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">Light Section Division</div>
+                  <div className="font-bold text-[var(--color-navy)] text-sm">{cms.unit2Name}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)]">
                     Light structural sections and channels supporting fabrication and general engineering.
                   </div>
                 </div>
@@ -317,33 +319,33 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             </div>
 
             {/* Verified Corporate Profile Card */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-xs space-y-4">
-              <div className="flex items-center gap-2 border-b border-[#C7CED6]/60 pb-3">
-                <Building2 className="w-5 h-5 text-[#105186]" />
-                <h2 className="font-display text-lg font-extrabold text-[#263442]">
+            <div className="lg:col-span-5 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 border-b border-[var(--color-border)] pb-3">
+                <Building2 className="w-5 h-5 text-[var(--color-navy)]" />
+                <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                   Corporate Profile
                 </h2>
               </div>
               <dl className="space-y-3 text-xs sm:text-sm">
-                <div className="flex flex-col border-b border-slate-100 pb-2.5">
-                  <dt className="text-[#737D88] font-semibold text-xs">Company Name</dt>
-                  <dd className="font-bold text-[#263442] mt-0.5">Nav Durga Ispat Pvt. Ltd.</dd>
+                <div className="flex flex-col border-b border-[var(--color-border)]/70 pb-2.5">
+                  <dt className="text-[var(--color-text-secondary)] font-semibold text-xs">Company Name</dt>
+                  <dd className="font-bold text-[var(--color-navy)] mt-0.5">Nav Durga Ispat Pvt. Ltd.</dd>
                 </div>
-                <div className="flex flex-col border-b border-slate-100 pb-2.5">
-                  <dt className="text-[#737D88] font-semibold text-xs">Business</dt>
-                  <dd className="font-semibold text-[#263442] mt-0.5">Steel manufacturing and steel products</dd>
+                <div className="flex flex-col border-b border-[var(--color-border)]/70 pb-2.5">
+                  <dt className="text-[var(--color-text-secondary)] font-semibold text-xs">Business</dt>
+                  <dd className="font-semibold text-[var(--color-navy)] mt-0.5">Steel manufacturing and steel products</dd>
                 </div>
-                <div className="flex flex-col border-b border-slate-100 pb-2.5">
-                  <dt className="text-[#737D88] font-semibold text-xs">Company CIN</dt>
-                  <dd className="font-mono font-bold text-[#263442] mt-0.5">{companyCin}</dd>
+                <div className="flex flex-col border-b border-[var(--color-border)]/70 pb-2.5">
+                  <dt className="text-[var(--color-text-secondary)] font-semibold text-xs">Company CIN</dt>
+                  <dd className="font-mono font-bold text-[var(--color-navy)] mt-0.5">{companyCin}</dd>
                 </div>
-                <div className="flex flex-col border-b border-slate-100 pb-2.5">
-                  <dt className="text-[#737D88] font-semibold text-xs">Established</dt>
-                  <dd className="font-bold text-[#263442] mt-0.5">{companyEst}</dd>
+                <div className="flex flex-col border-b border-[var(--color-border)]/70 pb-2.5">
+                  <dt className="text-[var(--color-text-secondary)] font-semibold text-xs">Established</dt>
+                  <dd className="font-bold text-[var(--color-navy)] mt-0.5">{companyEst}</dd>
                 </div>
                 <div className="flex flex-col">
-                  <dt className="text-[#737D88] font-semibold text-xs">Registered Location</dt>
-                  <dd className="font-medium text-[#263442] mt-0.5 leading-relaxed">{cms.contactAddress}</dd>
+                  <dt className="text-[var(--color-text-secondary)] font-semibold text-xs">Registered Location</dt>
+                  <dd className="font-medium text-[var(--color-navy)] mt-0.5 leading-relaxed">{cms.contactAddress}</dd>
                 </div>
               </dl>
             </div>
@@ -354,8 +356,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
 
           {/* Structural Steel Product Gallery & Approved Visuals */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <figure className="bg-white rounded-2xl border border-[#C7CED6] overflow-hidden shadow-2xs">
-              <div className="aspect-[16/9] w-full bg-[#EAF2F8] overflow-hidden">
+            <figure className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-2xs">
+              <div className="aspect-[16/9] w-full bg-[var(--color-linen)] overflow-hidden">
                 <picture>
                   <source srcSet="/assets/hero-slides/slide-2-structural-products.webp" type="image/webp" />
                   <img
@@ -368,22 +370,22 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   />
                 </picture>
               </div>
-              <figcaption className="px-5 py-3.5 text-xs text-[#737D88] border-t border-[#C7CED6]/60 flex items-center justify-between gap-2">
-                <span className="font-semibold text-[#263442]">
+              <figcaption className="px-5 py-3.5 text-xs text-[var(--color-text-secondary)] border-t border-[var(--color-border)] flex items-center justify-between gap-2">
+                <span className="font-semibold text-[var(--color-navy)]">
                   Medium &amp; Light Structural Steel Sections
                 </span>
                 <button
                   type="button"
                   onClick={() => onNavigate('/products')}
-                  className="font-bold text-[#105186] hover:underline cursor-pointer shrink-0"
+                  className="font-bold text-[var(--color-navy)] hover:underline cursor-pointer shrink-0"
                 >
                   Browse Catalogue →
                 </button>
               </figcaption>
             </figure>
 
-            <figure className="bg-white rounded-2xl border border-[#C7CED6] overflow-hidden shadow-2xs">
-              <div className="aspect-[16/9] w-full bg-[#EAF2F8] overflow-hidden">
+            <figure className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-2xs">
+              <div className="aspect-[16/9] w-full bg-[var(--color-linen)] overflow-hidden">
                 <picture>
                   <source srcSet="/assets/hero-slides/slide-5-finished-steel.webp" type="image/webp" />
                   <img
@@ -396,14 +398,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   />
                 </picture>
               </div>
-              <figcaption className="px-5 py-3.5 text-xs text-[#737D88] border-t border-[#C7CED6]/60 flex items-center justify-between gap-2">
-                <span className="font-semibold text-[#263442]">
+              <figcaption className="px-5 py-3.5 text-xs text-[var(--color-text-secondary)] border-t border-[var(--color-border)] flex items-center justify-between gap-2">
+                <span className="font-semibold text-[var(--color-navy)]">
                   Finished Structural Profiles &amp; Live ERP Pricing
                 </span>
                 <button
                   type="button"
                   onClick={() => onNavigate('/product-rates')}
-                  className="font-bold text-[#105186] hover:underline cursor-pointer shrink-0"
+                  className="font-bold text-[var(--color-navy)] hover:underline cursor-pointer shrink-0"
                 >
                   Live Rate Portal →
                 </button>
@@ -412,32 +414,38 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-2xs space-y-2">
-              <Award className="w-7 h-7 text-[#105186]" />
-              <h2 className="font-display text-lg font-extrabold text-[#263442]">Our Vision</h2>
-              <p className="text-sm text-[#737D88] leading-relaxed">{cms.visionText}</p>
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 shadow-2xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)] text-[var(--color-amber)] flex items-center justify-center">
+                <Award className="w-5 h-5" />
+              </div>
+              <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">Our Vision</h2>
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{cms.visionText}</p>
             </div>
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-2xs space-y-2">
-              <Factory className="w-7 h-7 text-[#105186]" />
-              <h2 className="font-display text-lg font-extrabold text-[#263442]">Our Mission</h2>
-              <p className="text-sm text-[#737D88] leading-relaxed">{cms.missionText}</p>
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 shadow-2xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)] text-[var(--color-amber)] flex items-center justify-center">
+                <Factory className="w-5 h-5" />
+              </div>
+              <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">Our Mission</h2>
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{cms.missionText}</p>
             </div>
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-2xs space-y-2">
-              <ShieldCheck className="w-7 h-7 text-[#0B3A60]" />
-              <h2 className="font-display text-lg font-extrabold text-[#263442]">Quality &amp; Documentation</h2>
-              <p className="text-sm text-[#737D88] leading-relaxed">{cms.qualityCommitment}</p>
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 shadow-2xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)] text-[var(--color-amber)] flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">Quality &amp; Documentation</h2>
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{cms.qualityCommitment}</p>
               <div className="pt-1 flex flex-wrap gap-3 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => onNavigate('/quality')}
-                  className="text-[#105186] hover:underline cursor-pointer"
+                  className="text-[var(--color-navy)] hover:underline cursor-pointer"
                 >
                   Quality Overview →
                 </button>
                 <button
                   type="button"
                   onClick={() => onNavigate('/resources')}
-                  className="text-[#0B3A60] hover:underline cursor-pointer"
+                  className="text-[var(--color-navy)] hover:underline cursor-pointer"
                 >
                   Specification Sheets →
                 </button>
@@ -486,12 +494,12 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             onNavigate={onNavigate}
           />
           <div className="nd-container-narrow nd-section-py text-center space-y-4">
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-8 sm:p-10 space-y-4 shadow-xs">
-              <Package className="w-10 h-10 text-[#105186] mx-auto" />
-              <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-8 sm:p-10 space-y-4 shadow-xs">
+              <Package className="w-10 h-10 text-[var(--color-navy)] mx-auto" />
+              <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)]">
                 {ratesLoading ? 'Loading Product Specification...' : 'Product Unavailable or Inactive'}
               </h2>
-              <p className="text-sm text-[#737D88]">
+              <p className="text-sm text-[var(--color-text-secondary)]">
                 {ratesLoading
                   ? 'Fetching live structural steel catalog details from Nav Durga ERP...'
                   : 'This steel item is currently not listed as an active ERP product. Browse our active catalog or submit a custom enquiry.'}
@@ -500,14 +508,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate('/products')}
-                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
+                  className="nd-btn-primary min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   View All Active Products
                 </button>
                 <button
                   type="button"
                   onClick={() => onOpenQuoteModal(slug, 'Standard')}
-                  className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] text-[#105186] text-xs font-bold cursor-pointer"
+                  className="nd-btn-secondary min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Request Custom Quote
                 </button>
@@ -588,12 +596,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
 
         <div className="nd-container nd-section-py space-y-10">
           {/* Main Product Detail Card */}
-          <div className="bg-white rounded-2xl border border-[#C7CED6] shadow-xs overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-            <div className="lg:col-span-5 h-64 sm:h-80 lg:h-auto min-h-[280px] min-[1920px]:min-h-[380px] relative bg-[#F7F9FB] border-b lg:border-b-0 lg:border-r border-[#C7CED6]">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-xs overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+            <div className="lg:col-span-5 h-64 sm:h-80 lg:h-auto min-h-[280px] min-[1920px]:min-h-[380px] relative bg-[var(--color-linen)]/55 border-b lg:border-b-0 lg:border-r border-[var(--color-border)]">
               <ProductCardMedia item={matchedItem} />
               <span
-                className={`absolute top-4 left-4 px-3 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider shadow-xs z-20 ${
-                  isMedium ? 'bg-[#105186] text-white' : 'bg-[#0B3A60] text-white'
+                className={`absolute top-4 left-4 px-3 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider shadow-xs z-20 bg-[var(--color-navy)] ${
+                  isMedium
+                    ? 'text-[var(--color-amber)] border border-[var(--color-amber)]/45'
+                    : 'text-[var(--color-linen)] border border-white/20'
                 }`}
               >
                 {matchedItem.section}
@@ -603,60 +613,60 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             <div className="lg:col-span-7 p-6 sm:p-8 xl:p-10 flex flex-col justify-between gap-6">
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-xs font-mono font-bold text-[#105186]">
+                  <span className="text-xs font-mono font-bold text-[var(--color-text-secondary)]">
                     {matchedItem.category} • Code: {matchedItem.code}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded bg-[#EAF2F8] border border-[#C7CED6] text-xs font-bold text-[#0B3A60]">
+                  <span className="px-2.5 py-0.5 rounded bg-[var(--color-linen)] border border-[var(--color-border)] text-xs font-bold text-[var(--color-navy)]">
                     Grade: {matchedItem.grade}
                   </span>
                 </div>
 
-                <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
+                <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] tracking-tight">
                   {matchedItem.name} — {matchedItem.size}
                 </h2>
 
-                <p className="nd-body text-[#737D88]">
+                <p className="nd-body text-[var(--color-text-secondary)]">
                   {matchedItem.description ||
                     `${matchedItem.name} (${matchedItem.size}, Grade: ${matchedItem.grade}) supplied under ${matchedItem.section} from Urla Industrial Area, Raipur, Chhattisgarh.`}
                 </p>
 
                 {/* ERP Spec Grid */}
-                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-[#F7F9FB] rounded-xl border border-[#C7CED6] p-4 text-xs">
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-[var(--color-linen)]/55 rounded-xl border border-[var(--color-border)] p-4 text-xs">
                   <div>
-                    <dt className="text-[#737D88] font-semibold">Size / Spec</dt>
-                    <dd className="font-bold text-[#263442] mt-0.5 tabular-nums">
+                    <dt className="text-[var(--color-text-secondary)] font-semibold">Size / Spec</dt>
+                    <dd className="font-bold text-[var(--color-navy)] mt-0.5 tabular-nums">
                       {matchedItem.size || 'Standard'}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[#737D88] font-semibold">Rolling Section</dt>
-                    <dd className="font-bold text-[#263442] mt-0.5">{matchedItem.section}</dd>
+                    <dt className="text-[var(--color-text-secondary)] font-semibold">Rolling Section</dt>
+                    <dd className="font-bold text-[var(--color-navy)] mt-0.5">{matchedItem.section}</dd>
                   </div>
                   <div>
-                    <dt className="text-[#737D88] font-semibold">Unit</dt>
-                    <dd className="font-bold text-[#263442] mt-0.5">{matchedItem.unit || 'MT'}</dd>
+                    <dt className="text-[var(--color-text-secondary)] font-semibold">Unit</dt>
+                    <dd className="font-bold text-[var(--color-navy)] mt-0.5">{matchedItem.unit || 'MT'}</dd>
                   </div>
                   <div>
-                    <dt className="text-[#737D88] font-semibold">Supplying Division</dt>
-                    <dd className="font-bold text-[#263442] mt-0.5">{matchedItem.rateSource}</dd>
+                    <dt className="text-[var(--color-text-secondary)] font-semibold">Supplying Division</dt>
+                    <dd className="font-bold text-[var(--color-navy)] mt-0.5">{matchedItem.rateSource}</dd>
                   </div>
                   <div>
-                    <dt className="text-[#737D88] font-semibold">Availability</dt>
-                    <dd className="font-bold text-emerald-700 mt-0.5">
+                    <dt className="text-[var(--color-text-secondary)] font-semibold">Availability</dt>
+                    <dd className="font-bold text-[var(--color-navy)] mt-0.5">
                       {matchedItem.inStock ? 'Ready Stock' : 'Booking Open'}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[#737D88] font-semibold">Ex-Plant Rate</dt>
-                    <dd className="font-extrabold text-[#105186] mt-0.5 tabular-nums">
+                    <dt className="text-[var(--color-text-secondary)] font-semibold">Ex-Plant Rate</dt>
+                    <dd className="font-extrabold text-[var(--color-navy)] mt-0.5 tabular-nums">
                       {formatRateText(matchedItem.finalRate)}
                     </dd>
                   </div>
                 </dl>
               </div>
 
-              <div className="pt-4 border-t border-[#C7CED6]/60 flex flex-wrap items-center justify-between gap-3">
-                <div className="text-[11px] text-[#737D88]">
+              <div className="pt-4 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-3">
+                <div className="text-[11px] text-[var(--color-text-secondary)]">
                   Synced from Nav Durga ERP • Ex-Plant Urla, Raipur (GST 18% Extra)
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
@@ -664,7 +674,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                     href={itemWaHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+                    className="nd-btn-secondary min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold"
                   >
                     <MessageSquare className="w-4 h-4" />
                     <span>Enquire on WhatsApp</span>
@@ -672,7 +682,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   <button
                     type="button"
                     onClick={() => onOpenQuoteModal(`${matchedItem.name} (${matchedItem.size})`, matchedItem.grade)}
-                    className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                    className="nd-btn-primary min-h-[44px] inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
                   >
                     <span>Request a Quote</span>
                     <ArrowRight className="w-4 h-4" />
@@ -686,13 +696,13 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           {relatedProducts.length > 0 && (
             <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-display text-xl font-extrabold text-[#263442]">
+                <h2 className="font-display text-xl font-extrabold text-[var(--color-navy)]">
                   More {matchedItem.section} Steel Products
                 </h2>
                 <button
                   type="button"
                   onClick={() => onNavigate(sectionPath)}
-                  className="text-xs font-bold text-[#105186] hover:underline cursor-pointer"
+                  className="text-xs font-bold text-[var(--color-navy)] hover:underline cursor-pointer"
                 >
                   View All →
                 </button>
@@ -701,23 +711,23 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 {relatedProducts.map((rel) => (
                   <article
                     key={rel.id}
-                    className="bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] p-5 flex flex-col justify-between gap-3 transition-colors"
+                    className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] hover:border-[var(--color-navy)] p-5 flex flex-col justify-between gap-3 transition-colors"
                   >
                     <div>
-                      <div className="text-[11px] font-mono text-[#737D88]">
+                      <div className="text-[11px] font-mono text-[var(--color-text-secondary)]">
                         {rel.category} • {rel.code}
                       </div>
-                      <h3 className="font-display text-base font-extrabold text-[#263442] mt-1">
+                      <h3 className="font-display text-base font-extrabold text-[var(--color-navy)] mt-1">
                         {rel.name} — {rel.size}
                       </h3>
-                      <div className="text-xs font-bold text-[#105186] mt-1 tabular-nums">
+                      <div className="text-xs font-bold text-[var(--color-navy)] mt-1 tabular-nums">
                         {formatRateText(rel.finalRate)}
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => onNavigate(getProductDetailPath(rel))}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-[#105186] hover:text-[#0B3A60] cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-navy)] hover:underline cursor-pointer"
                     >
                       <span>View Specification</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -796,19 +806,20 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           onNavigate={onNavigate}
         />
         <div className="nd-container nd-section-py space-y-8 xl:space-y-10">
-          <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 sm:p-8 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             <div className="space-y-2 max-w-3xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-                ERP Synchronized Product Catalogue
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
+                <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+                <span>ERP Synchronized Product Catalogue</span>
               </span>
-              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] tracking-tight">
                 {activeSection === 'MEDIUM SECTION'
                   ? `Medium Section Steel — ${cms.unit1Name}`
                   : activeSection === 'LIGHT SECTION'
                   ? `Light Section Steel — ${cms.unit2Name}`
                   : 'Available Structural Steel Catalogue'}
               </h2>
-              <p className="nd-body text-[#737D88]">
+              <p className="nd-body text-[var(--color-text-secondary)]">
                 Explore our available steel product range and current product information directly from Nav Durga Ispat ERP.
               </p>
             </div>
@@ -819,8 +830,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 onClick={() => onNavigate('/products')}
                 className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   activeSection === 'ALL'
-                    ? 'bg-[#105186] text-white border-[#105186]'
-                    : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
+                    ? 'bg-[var(--color-amber)] text-[var(--color-navy)] border-[var(--color-amber)]'
+                    : 'bg-[var(--color-linen)]/55 text-[var(--color-navy)] border-[var(--color-border)] hover:bg-[var(--color-linen)]'
                 }`}
               >
                 All ({allProducts.length})
@@ -830,8 +841,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 onClick={() => onNavigate('/products/medium-section')}
                 className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   activeSection === 'MEDIUM SECTION'
-                    ? 'bg-[#105186] text-white border-[#105186]'
-                    : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
+                    ? 'bg-[var(--color-amber)] text-[var(--color-navy)] border-[var(--color-amber)]'
+                    : 'bg-[var(--color-linen)]/55 text-[var(--color-navy)] border-[var(--color-border)] hover:bg-[var(--color-linen)]'
                 }`}
               >
                 Medium Section ({mediumProducts.length})
@@ -841,8 +852,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 onClick={() => onNavigate('/products/light-section')}
                 className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   activeSection === 'LIGHT SECTION'
-                    ? 'bg-[#0B3A60] text-white border-[#0B3A60]'
-                    : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
+                    ? 'bg-[var(--color-amber)] text-[var(--color-navy)] border-[var(--color-amber)]'
+                    : 'bg-[var(--color-linen)]/55 text-[var(--color-navy)] border-[var(--color-border)] hover:bg-[var(--color-linen)]'
                 }`}
               >
                 Light Section ({lightProducts.length})
@@ -850,7 +861,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/product-rates')}
-                className="min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold bg-[#EAF2F8] text-[#105186] border border-[#105186]/25 hover:bg-[#d8e8f4] cursor-pointer"
+                className="nd-btn-primary min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
               >
                 View Live Rates →
               </button>
@@ -858,18 +869,18 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           </div>
 
           {visibleItems.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-12 text-center space-y-3">
-              <Package className="w-10 h-10 text-[#737D88] mx-auto" />
-              <div className="font-display text-lg font-extrabold text-[#263442]">
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-12 text-center space-y-3">
+              <Package className="w-10 h-10 text-[var(--color-text-secondary)] mx-auto" />
+              <div className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                 No active products available in this section
               </div>
-              <p className="text-xs text-[#737D88] max-w-md mx-auto">
+              <p className="text-xs text-[var(--color-text-secondary)] max-w-md mx-auto">
                 Products added and activated in Nav Durga ERP automatically appear here. Contact our sales team for custom section enquiries.
               </p>
               <button
                 type="button"
                 onClick={() => onOpenQuoteModal('Custom Steel Requirement', '')}
-                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
+                className="nd-btn-primary min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 Request a Quote
               </button>
@@ -882,14 +893,16 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 return (
                   <article
                     key={item.id}
-                    className="bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
+                    className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] hover:border-[var(--color-navy)] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                   >
                     <div>
                       <div className="h-44 min-[1920px]:h-48 relative overflow-hidden">
                         <ProductCardMedia item={item} />
                         <span
-                          className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow-xs z-20 ${
-                            isMedium ? 'bg-[#105186] text-white' : 'bg-[#0B3A60] text-white'
+                          className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow-xs z-20 bg-[var(--color-navy)] ${
+                            isMedium
+                              ? 'text-[var(--color-amber)] border border-[var(--color-amber)]/45'
+                              : 'text-[var(--color-linen)] border border-white/20'
                           }`}
                         >
                           {item.section}
@@ -897,30 +910,30 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       </div>
                       <div className="p-5 space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-mono font-bold text-[#737D88]">
+                          <span className="text-[11px] font-mono font-bold text-[var(--color-text-secondary)]">
                             {item.category} • {item.code}
                           </span>
-                          <span className="px-2 py-0.5 rounded bg-[#EAF2F8] border border-[#C7CED6] text-[11px] font-bold text-[#0B3A60]">
+                          <span className="px-2 py-0.5 rounded bg-[var(--color-linen)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-navy)]">
                             {item.grade}
                           </span>
                         </div>
-                        <h2 className="font-display text-lg font-extrabold text-[#263442]">
+                        <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                           {item.name} — {item.size}
                         </h2>
-                        <p className="text-xs text-[#737D88] line-clamp-2">
+                        <p className="text-xs text-[var(--color-text-secondary)] line-clamp-2">
                           {item.description || `${item.category} (${item.size}) • ${item.rateSource}`}
                         </p>
                       </div>
                     </div>
 
-                    <div className="px-5 py-4 bg-[#F7F9FB] border-t border-[#C7CED6] flex flex-wrap items-center justify-between gap-2.5">
+                    <div className="px-5 py-4 bg-[var(--color-linen)]/50 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2.5">
                       <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-[#737D88]">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">
                           Approved Rate
                         </div>
                         <div
                           className={`font-extrabold tabular-nums ${
-                            hasApprovedRate ? 'text-base text-[#263442]' : 'text-xs text-[#105186]'
+                            hasApprovedRate ? 'text-base text-[var(--color-navy)]' : 'text-xs text-[var(--color-navy)]'
                           }`}
                         >
                           {formatRateText(item.finalRate)}
@@ -930,7 +943,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                         <button
                           type="button"
                           onClick={() => onNavigate(getProductDetailPath(item))}
-                          className="min-h-[40px] inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                          className="nd-btn-secondary min-h-[40px] inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-bold cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Details</span>
@@ -938,7 +951,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenQuoteModal(`${item.name} (${item.size})`, item.grade)}
-                          className="min-h-[40px] px-3 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                          className="nd-btn-primary min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold cursor-pointer"
                         >
                           Quote
                         </button>
@@ -1004,32 +1017,33 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         />
         <div className="nd-container nd-section-py space-y-10">
           <div className="max-w-3xl space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-              Industries &amp; Applications
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
+              <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+              <span>Industries &amp; Applications</span>
             </span>
-            <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
+            <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)]">
               Serving Industrial, Structural &amp; Infrastructure Requirements
             </h2>
-            <p className="nd-lead text-[#737D88]">
+            <p className="nd-lead text-[var(--color-text-secondary)]">
               Delivering structural steel products from Urla Industrial Area, Raipur with straightforward service and reliable customer support.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 xl:gap-8">
             {sectors.map((sec) => (
-              <div key={sec.title} className="bg-white rounded-2xl border border-[#C7CED6] p-6 shadow-xs space-y-3">
-                <span className="inline-flex px-2.5 py-1 rounded-md bg-[#EAF2F8] text-[#105186] border border-[#105186]/25 text-[11px] font-bold">
+              <div key={sec.title} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 shadow-xs space-y-3">
+                <span className="inline-flex px-2.5 py-1 rounded-md bg-[var(--color-linen)] text-[var(--color-navy)] border border-[var(--color-border)] text-[11px] font-bold">
                   {sec.specs}
                 </span>
-                <h2 className="font-display text-xl font-extrabold text-[#263442]">{sec.title}</h2>
-                <p className="text-sm text-[#737D88] leading-relaxed">{sec.desc}</p>
+                <h2 className="font-display text-xl font-extrabold text-[var(--color-navy)]">{sec.title}</h2>
+                <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{sec.desc}</p>
                 <button
                   type="button"
                   onClick={() => onOpenQuoteModal(sec.title, sec.specs)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#105186] hover:text-[#0B3A60] hover:underline cursor-pointer pt-1"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--color-navy)] hover:underline cursor-pointer pt-1"
                 >
                   <span>Request a Quote</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[var(--color-amber)]" />
                 </button>
               </div>
             ))}
@@ -1072,13 +1086,13 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         <div className="nd-container nd-section-py space-y-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
             <div className="lg:col-span-7 space-y-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[var(--color-navy)] border border-[var(--color-amber)]/40 text-[var(--color-amber)] text-xs font-bold uppercase tracking-wider">
                 Quality &amp; Customer Commitment
               </span>
-              <h2 className="font-display nd-h2-section font-extrabold text-slate-900">
+              <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)]">
                 Dependable Specifications &amp; Commercial Transparency
               </h2>
-              <p className="nd-lead text-slate-600">
+              <p className="nd-lead text-[var(--color-text-secondary)]">
                 {cms.qualityCommitment}
               </p>
               <div className="space-y-3 pt-2">
@@ -1088,43 +1102,43 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   'Live rate visibility synchronized directly with our ERP pricing system',
                   'Responsive commercial sales coordination from enquiry through dispatch',
                 ].map((point) => (
-                  <div key={point} className="flex items-start gap-2.5 text-sm text-slate-700">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-1" />
+                  <div key={point} className="flex items-start gap-2.5 text-sm text-[var(--color-navy)]">
+                    <CheckCircle2 className="w-4 h-4 text-[var(--color-navy)] shrink-0 mt-1" />
                     <span>{point}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-              <h2 className="font-display text-lg font-extrabold text-slate-900">
+            <div className="lg:col-span-5 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 shadow-xs space-y-4">
+              <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                 Company Credentials
               </h2>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
                 Nav Durga Ispat Pvt. Ltd. serves industrial and infrastructure buyers from Urla Industrial Area, Raipur with a focus on long-term customer relationships.
               </p>
-              <div className="space-y-2.5 text-xs bg-slate-50 rounded-xl border border-slate-200 p-4">
+              <div className="space-y-2.5 text-xs bg-[var(--color-linen)]/55 rounded-xl border border-[var(--color-border)] p-4">
                 <div>
-                  <span className="text-slate-500 font-semibold">Company: </span>
-                  <span className="font-bold text-slate-900">Nav Durga Ispat Pvt. Ltd.</span>
+                  <span className="text-[var(--color-text-secondary)] font-semibold">Company: </span>
+                  <span className="font-bold text-[var(--color-navy)]">Nav Durga Ispat Pvt. Ltd.</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 font-semibold">CIN: </span>
-                  <span className="font-mono font-bold text-slate-900">{companyCin}</span>
+                  <span className="text-[var(--color-text-secondary)] font-semibold">CIN: </span>
+                  <span className="font-mono font-bold text-[var(--color-navy)]">{companyCin}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 font-semibold">Established: </span>
-                  <span className="font-bold text-slate-900">{companyEst}</span>
+                  <span className="text-[var(--color-text-secondary)] font-semibold">Established: </span>
+                  <span className="font-bold text-[var(--color-navy)]">{companyEst}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 font-semibold">Location: </span>
-                  <span className="font-medium text-slate-700">{cms.contactAddress}</span>
+                  <span className="text-[var(--color-text-secondary)] font-semibold">Location: </span>
+                  <span className="font-medium text-[var(--color-navy)]">{cms.contactAddress}</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onOpenQuoteModal('Product Specification Enquiry', '')}
-                className="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="nd-btn-primary w-full min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 Connect With Our Sales Team
               </button>
@@ -1162,71 +1176,76 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         />
         <div className="nd-container-narrow nd-section-py space-y-6">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-              Product Documentation
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
+              <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+              <span>Product Documentation</span>
             </span>
-            <h2 className="font-display nd-h2-section font-extrabold text-[#263442] mt-1">
+            <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] mt-1">
               Specification Sheets &amp; Live Rate Portal
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 xl:gap-6">
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 flex flex-col justify-between gap-4">
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 flex flex-col justify-between gap-4">
               <div>
-                <FileText className="w-7 h-7 text-[#105186] mb-3" />
-                <h2 className="font-display text-lg font-extrabold text-[#263442]">
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)] text-[var(--color-amber)] flex items-center justify-center mb-3">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                   Medium Section Product Sheet
                 </h2>
-                <p className="text-xs text-[#737D88] mt-1">
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">
                   Current ERP product list and sizing for Medium Section products ({mediumProducts.length} active items).
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleDownloadSpecSheet('Medium Section Specification', mediumProducts)}
-                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="nd-btn-primary min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Medium Section Spec</span>
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 flex flex-col justify-between gap-4">
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 flex flex-col justify-between gap-4">
               <div>
-                <Layers className="w-7 h-7 text-[#0B3A60] mb-3" />
-                <h2 className="font-display text-lg font-extrabold text-[#263442]">
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)] text-[var(--color-amber)] flex items-center justify-center mb-3">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                   Light Section Product Sheet
                 </h2>
-                <p className="text-xs text-[#737D88] mt-1">
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">
                   Current ERP product list and gauge differences for Light Section products ({lightProducts.length} active items).
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleDownloadSpecSheet('Light Section Specification', lightProducts)}
-                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B3A60] hover:bg-[#105186] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="nd-btn-primary min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Light Section Spec</span>
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 flex flex-col justify-between gap-4 md:col-span-2">
+            <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 flex flex-col justify-between gap-4 md:col-span-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-lg font-extrabold text-[#263442]">
+                  <h2 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                     Printable Live Rate Sheet PDF
                   </h2>
-                  <p className="text-xs text-[#737D88] mt-1">
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
                     Open the Live Product Rate Portal and generate a formatted Ex-Plant Raipur PDF rate list directly from ERP pricing.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onNavigate('/product-rates')}
-                  className="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] border border-[#105186]/25 text-[#105186] text-xs font-bold cursor-pointer shrink-0 transition-colors"
+                  className="nd-btn-secondary min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer shrink-0"
                 >
-                  <TrendingUp className="w-4 h-4 text-[#105186]" />
+                  <TrendingUp className="w-4 h-4 text-[var(--color-navy)]" />
                   <span>Open Live Rate Portal</span>
                 </button>
               </div>
@@ -1281,44 +1300,45 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10">
             <div className="lg:col-span-5 space-y-5">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-                  Direct Commercial Sales Desk
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
+                  <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+                  <span>Direct Commercial Sales Desk</span>
                 </span>
-                <h2 className="font-display nd-h2-section font-extrabold text-[#263442] mt-1">
+                <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] mt-1">
                   Connect With Our Team
                 </h2>
-                <p className="nd-body text-[#737D88] mt-2">
+                <p className="nd-body text-[var(--color-text-secondary)] mt-2">
                   Submit your structural steel requirement or reach our Urla Industrial Area, Raipur desk for product availability and current rates.
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 space-y-4 text-sm">
+              <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-4 text-sm">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#105186] shrink-0 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-[var(--color-navy)] shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-[#263442]">Nav Durga Ispat Pvt. Ltd.</div>
-                    <div className="text-xs text-[#737D88] mt-0.5">{cms.contactAddress}</div>
+                    <div className="font-bold text-[var(--color-navy)]">Nav Durga Ispat Pvt. Ltd.</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{cms.contactAddress}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-[#105186] shrink-0 mt-0.5" />
+                  <Phone className="w-5 h-5 text-[var(--color-navy)] shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-[#263442]">Sales Helpline</div>
-                    <div className="text-xs text-[#737D88] mt-0.5">{cms.contactPhone}</div>
+                    <div className="font-bold text-[var(--color-navy)]">Sales Helpline</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{cms.contactPhone}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-[#737D88] shrink-0 mt-0.5" />
+                  <Mail className="w-5 h-5 text-[var(--color-navy)] shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-[#263442]">Official Email</div>
-                    <div className="text-xs text-[#737D88] mt-0.5">{cms.contactEmail}</div>
+                    <div className="font-bold text-[var(--color-navy)]">Official Email</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{cms.contactEmail}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Building2 className="w-5 h-5 text-[#737D88] shrink-0 mt-0.5" />
+                  <Building2 className="w-5 h-5 text-[var(--color-navy)] shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-[#263442]">Company CIN &amp; Timings</div>
-                    <div className="text-xs text-[#737D88] mt-0.5">
+                    <div className="font-bold text-[var(--color-navy)]">Company CIN &amp; Timings</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">
                       CIN: {companyCin} • Est. {companyEst} • {cms.dispatchHours}
                     </div>
                   </div>
@@ -1329,18 +1349,18 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-xs"
+                className="nd-btn-primary w-full min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold shadow-xs"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Chat With Sales on WhatsApp</span>
               </a>
             </div>
 
-            <div className="lg:col-span-7 bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 shadow-xs">
-              <h2 className="font-display text-xl font-extrabold text-[#263442] mb-1">
+            <div className="lg:col-span-7 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 sm:p-8 shadow-xs">
+              <h2 className="font-display text-xl font-extrabold text-[var(--color-navy)] mb-1">
                 Send Direct Commercial Enquiry
               </h2>
-              <p className="text-xs text-[#737D88] mb-5">
+              <p className="text-xs text-[var(--color-text-secondary)] mb-5">
                 Select your steel product, size or specification, and quantity to log a direct enquiry in Nav Durga ERP.
               </p>
 
@@ -1379,16 +1399,16 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           onNavigate={onNavigate}
         />
         <div className="nd-container-narrow nd-section-py">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 xl:p-10 space-y-4">
-            <h2 className="font-display text-2xl font-extrabold text-slate-900">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 sm:p-8 xl:p-10 space-y-4">
+            <h2 className="font-display text-2xl font-extrabold text-[var(--color-navy)]">
               {isPrivacy ? 'Privacy Policy' : 'Terms of Supply & Dispatch Conditions'}
             </h2>
             {isPrivacy ? (
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
                 Nav Durga Ispat Pvt. Ltd. collects commercial contact information submitted via quotation and enquiry forms solely for steel trade quotation, order processing, dispatch coordination, and customer service. Buyer contact data is never sold to third parties.
               </p>
             ) : (
-              <div className="space-y-3 text-sm text-slate-600 leading-relaxed">
+              <div className="space-y-3 text-sm text-[var(--color-text-secondary)] leading-relaxed">
                 <p>1. All published daily rates are Ex-Plant Urla, Raipur (Chhattisgarh) and exclude applicable GST unless explicitly stated on a formal signed quotation.</p>
                 <p>2. Material weight as recorded on our calibrated plant weighbridge shall be final and binding for billing.</p>
                 <p>3. Standard rates apply for rolling mill lengths; random or custom cut lengths carry commercial adjustments as defined in ERP pricing.</p>
@@ -1401,7 +1421,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
   }
 
   // ===========================================================================
-  // ROUTE: HOME (/) — Exact Requested Section Order + #105186 Light Industrial Theme
+  // ROUTE: HOME (/) — Exact Requested Section Order + 60/30/10 Linen/Navy/Amber Theme
   // ===========================================================================
 
   const configuredSolutions: SolutionServiceCmsItem[] = (
@@ -1538,26 +1558,27 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       {/* 2. ERP SYNCHRONIZED DAILY PRICING (DIRECTLY BELOW HERO SLIDER) */}
       <section
         aria-labelledby="erp-daily-pricing-heading"
-        className="bg-[#F7F9FB] border-b border-[#C7CED6] py-6 sm:py-8"
+        className="bg-[var(--color-linen)] border-b border-[var(--color-border)] py-6 sm:py-8"
       >
         <div className="nd-container">
-          <div className="bg-white rounded-2xl border border-[#C7CED6] p-5 sm:p-6 xl:p-7 shadow-2xs flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] border-t-4 border-t-[var(--color-amber)] p-5 sm:p-6 xl:p-7 shadow-2xs flex flex-col xl:flex-row xl:items-center justify-between gap-5">
             <div className="space-y-1">
-              <div className="text-xs font-extrabold uppercase tracking-wider text-[#105186]">
-                ERP Synchronized Daily Pricing
+              <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[var(--color-navy)]">
+                <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+                <span>ERP Synchronized Daily Pricing</span>
               </div>
               <h2
                 id="erp-daily-pricing-heading"
-                className="font-display text-xl xl:text-2xl font-extrabold text-[#263442]"
+                className="font-display text-xl xl:text-2xl font-extrabold text-[var(--color-navy)]"
               >
                 Current Structural Steel Section Basic Rates
               </h2>
-              <p className="text-xs sm:text-sm text-[#737D88]">
+              <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">
                 <span>Synced directly from Nav Durga Ispat ERP • Ex-Plant Urla, Raipur</span>
                 {formattedRatesUpdatedAt && (
                   <>
                     <span aria-hidden="true"> · </span>
-                    <span className="font-semibold text-[#0B3A60] tabular-nums">
+                    <span className="font-semibold text-[var(--color-navy)] tabular-nums">
                       Updated {formattedRatesUpdatedAt}
                     </span>
                   </>
@@ -1570,36 +1591,36 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 aria-live="polite"
                 className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-auto xl:min-w-[460px] min-[1920px]:min-w-[540px]"
               >
-                <div className="bg-[#EAF2F8] rounded-xl border border-[#105186]/25 px-4 py-3 flex items-center justify-between gap-3">
+                <div className="bg-[var(--color-navy)] text-[var(--color-linen)] rounded-xl border border-[var(--color-amber)]/40 px-4 py-3 flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-amber)]">
                       Medium Section
                     </div>
-                    <div className="text-xs font-semibold text-[#263442]">Nav Durga Ispat</div>
+                    <div className="text-xs font-semibold text-[var(--color-linen)]">Nav Durga Ispat</div>
                   </div>
-                  <div className="text-xs font-bold text-[#0B3A60]">Syncing ERP rates...</div>
+                  <div className="text-xs font-bold text-[var(--color-amber)]">Syncing ERP rates...</div>
                 </div>
 
-                <div className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex items-center justify-between gap-3">
+                <div className="bg-[var(--color-navy)] text-[var(--color-linen)] rounded-xl border border-[var(--color-amber)]/40 px-4 py-3 flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#0B3A60]">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-amber)]">
                       Light Section
                     </div>
-                    <div className="text-xs font-semibold text-[#263442]">Unit-2 NS Ispat</div>
+                    <div className="text-xs font-semibold text-[var(--color-linen)]">Unit-2 NS Ispat</div>
                   </div>
-                  <div className="text-xs font-bold text-[#105186]">Syncing ERP rates...</div>
+                  <div className="text-xs font-bold text-[var(--color-amber)]">Syncing ERP rates...</div>
                 </div>
               </div>
             ) : ratesError && !rates ? (
               <div
                 role="status"
-                className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex flex-wrap items-center justify-between gap-3 w-full xl:w-auto xl:min-w-[460px] min-[1920px]:min-w-[540px]"
+                className="bg-[var(--color-linen)]/65 rounded-xl border border-[var(--color-border)] px-4 py-3 flex flex-wrap items-center justify-between gap-3 w-full xl:w-auto xl:min-w-[460px] min-[1920px]:min-w-[540px]"
               >
                 <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-[#0B3A60]">
+                  <div className="text-xs font-bold text-[var(--color-navy)]">
                     Live ERP rate feed temporarily unavailable
                   </div>
-                  <div className="text-[11px] text-[#737D88]">
+                  <div className="text-[11px] text-[var(--color-text-secondary)]">
                     Retry connection or view the Live Rate Portal.
                   </div>
                 </div>
@@ -1607,7 +1628,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                   <button
                     type="button"
                     onClick={onRefreshRates}
-                    className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#105186] text-xs font-bold cursor-pointer transition-colors"
+                    className="nd-btn-secondary min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer"
                   >
                     Retry
                   </button>
@@ -1615,26 +1636,26 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-auto xl:min-w-[460px] min-[1920px]:min-w-[540px]">
-                <div className="bg-[#EAF2F8] rounded-xl border border-[#105186]/25 px-4 py-3 flex items-center justify-between gap-3">
+                <div className="bg-[var(--color-navy)] text-[var(--color-linen)] rounded-xl border border-[var(--color-amber)]/40 px-4 py-3 flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-amber)]">
                       Medium Section
                     </div>
-                    <div className="text-xs font-semibold text-[#263442]">Nav Durga Ispat</div>
+                    <div className="text-xs font-semibold text-[var(--color-linen)]/85">Nav Durga Ispat</div>
                   </div>
-                  <div className="text-base sm:text-lg font-extrabold text-[#0B3A60] tabular-nums">
+                  <div className="text-base sm:text-lg font-extrabold text-[var(--color-amber)] tabular-nums">
                     {formatRateText(rates?.mediumSectionRate)}
                   </div>
                 </div>
 
-                <div className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] px-4 py-3 flex items-center justify-between gap-3">
+                <div className="bg-[var(--color-navy)] text-[var(--color-linen)] rounded-xl border border-[var(--color-amber)]/40 px-4 py-3 flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#0B3A60]">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-amber)]">
                       Light Section
                     </div>
-                    <div className="text-xs font-semibold text-[#263442]">Unit-2 NS Ispat</div>
+                    <div className="text-xs font-semibold text-[var(--color-linen)]/85">Unit-2 NS Ispat</div>
                   </div>
-                  <div className="text-base sm:text-lg font-extrabold text-[#105186] tabular-nums">
+                  <div className="text-base sm:text-lg font-extrabold text-[var(--color-amber)] tabular-nums">
                     {formatRateText(rates?.lightSectionRate)}
                   </div>
                 </div>
@@ -1644,7 +1665,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/product-rates')}
-              className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer shrink-0 transition-colors"
+              className="nd-btn-primary w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold shadow-xs cursor-pointer shrink-0"
             >
               <span>View Live Rates</span>
               <ArrowRight className="w-4 h-4" />
@@ -1662,17 +1683,18 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       />
 
       {/* 4. SOLUTIONS & SERVICES (ERP-GROUNDED PRODUCT OFFERINGS & BUSINESS SERVICES) */}
-      <section className="bg-[#F7F9FB] border-b border-[#C7CED6] nd-section-py">
+      <section className="bg-[var(--color-linen)] border-b border-[var(--color-border)] nd-section-py">
         <div className="nd-container space-y-8 xl:space-y-10">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
             <div className="max-w-3xl space-y-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#105186]">
-                Products &amp; Commercial Services
+              <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[var(--color-navy)]">
+                <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+                <span>Products &amp; Commercial Services</span>
               </span>
-              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
+              <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] tracking-tight">
                 Solutions &amp; Services
               </h2>
-              <p className="nd-lead text-[#737D88]">
+              <p className="nd-lead text-[var(--color-text-secondary)]">
                 Explore our steel product offerings and business services.
               </p>
             </div>
@@ -1681,14 +1703,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/products')}
-                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                className="nd-btn-secondary min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 Explore All Products
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('/product-rates')}
-                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="nd-btn-primary min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 Live Rate Portal →
               </button>
@@ -1713,11 +1735,11 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               return (
                 <article
                   key={sol.id}
-                  className="bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
+                  className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] hover:border-[var(--color-navy)] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                 >
                   <div>
                     {erpPhoto ? (
-                      <div className="h-36 w-full overflow-hidden border-b border-[#C7CED6] bg-[#EAF2F8]">
+                      <div className="h-36 w-full overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-linen)]">
                         <img
                           src={erpPhoto}
                           alt={sol.title}
@@ -1727,10 +1749,10 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       </div>
                     ) : (
                       <div className="px-5 pt-5 flex items-center justify-between gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-[#EAF2F8] border border-[#105186]/20 flex items-center justify-center text-[#105186]">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--color-navy)] border border-[var(--color-amber)]/35 flex items-center justify-center text-[var(--color-amber)]">
                           <Icon className="w-5 h-5" />
                         </div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#0B3A60]">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-navy)]">
                           {isService
                             ? 'Business Service'
                             : count > 0
@@ -1742,7 +1764,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
 
                     <div className="p-5 space-y-2">
                       {erpPhoto && (
-                        <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#105186]">
+                        <div className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-navy)]">
                           {isService
                             ? 'Business Service'
                             : count > 0
@@ -1750,25 +1772,25 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                             : 'Available on Request'}
                         </div>
                       )}
-                      <h3 className="font-display text-lg font-extrabold text-[#263442]">
+                      <h3 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                         {sol.title}
                       </h3>
-                      <p className="text-xs text-[#737D88] leading-relaxed">
+                      <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
                         {sol.description}
                       </p>
                     </div>
                   </div>
 
-                  <div className="px-5 py-3.5 bg-[#F7F9FB] border-t border-[#C7CED6] flex items-center justify-between">
+                  <div className="px-5 py-3.5 bg-[var(--color-linen)]/50 border-t border-[var(--color-border)] flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() => handleSolutionCardAction(sol, isService || count > 0)}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#105186] hover:text-[#0B3A60] cursor-pointer transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--color-navy)] hover:underline cursor-pointer"
                     >
                       <span>{ctaText}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5 text-[var(--color-amber)]" />
                     </button>
-                    <span className="text-[11px] font-semibold text-[#737D88]">
+                    <span className="text-[11px] font-semibold text-[var(--color-text-secondary)]">
                       {isService ? 'Commercial' : count > 0 ? 'ERP Synced' : 'Sales Desk'}
                     </span>
                   </div>
@@ -1783,13 +1805,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       <section id="products-section" className="nd-container nd-section-py space-y-8 xl:space-y-10 scroll-mt-20">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
           <div className="max-w-3xl space-y-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-              Live ERP Product Range
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
+              <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+              <span>Live ERP Product Range</span>
             </span>
-            <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
+            <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)]">
               Our Steel Products
             </h2>
-            <p className="nd-lead text-[#737D88]">
+            <p className="nd-lead text-[var(--color-text-secondary)]">
               Explore our available steel product range and current product information.
             </p>
           </div>
@@ -1798,14 +1821,14 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/products')}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+              className="nd-btn-secondary min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
             >
               Full Product Catalogue ({allProducts.length})
             </button>
             <button
               type="button"
               onClick={() => onNavigate('/product-rates')}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+              className="nd-btn-primary min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
             >
               Rate Sheet Portal →
             </button>
@@ -1813,15 +1836,15 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         </div>
 
         {/* ERP Product Filters */}
-        <div className="bg-white rounded-2xl border border-[#C7CED6] p-4 flex flex-col md:flex-row items-stretch md:items-center gap-3 shadow-2xs">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 flex flex-col md:flex-row items-stretch md:items-center gap-3 shadow-2xs">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-[#737D88] absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-[var(--color-text-secondary)] absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={productSearch}
               onChange={(e) => setProductSearch(e.target.value)}
               placeholder="Search steel products by name, size (e.g. 100 x 50, 75 x 40), or grade..."
-              className="w-full min-h-[44px] pl-10 pr-4 py-2.5 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] focus:bg-white text-sm outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full min-h-[44px] pl-10 pr-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-linen)]/45 focus:bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             />
           </div>
 
@@ -1833,8 +1856,8 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 onClick={() => setSectionFilter(sec)}
                 className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold border cursor-pointer transition-colors ${
                   sectionFilter === sec
-                    ? 'bg-[#105186] text-white border-[#105186]'
-                    : 'bg-[#F7F9FB] text-[#263442] border-[#C7CED6] hover:bg-[#EAF2F8]'
+                    ? 'bg-[var(--color-amber)] text-[var(--color-navy)] border-[var(--color-amber)]'
+                    : 'bg-[var(--color-linen)]/55 text-[var(--color-navy)] border-[var(--color-border)] hover:bg-[var(--color-linen)]'
                 }`}
               >
                 {sec === 'ALL' ? 'All Sections' : sec === 'MEDIUM SECTION' ? 'Medium Section' : 'Light Section'}
@@ -1846,7 +1869,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 aria-label="Filter by product category"
-                className="min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold border border-[#C7CED6] bg-white text-[#263442] outline-none cursor-pointer"
+                className="min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold border border-[var(--color-border)] bg-white text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] cursor-pointer"
               >
                 {availableCategories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -1860,26 +1883,26 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
 
         {/* ERP Product Grid or Empty State */}
         {allProducts.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#C7CED6] p-12 text-center space-y-3">
-            <Package className="w-10 h-10 text-[#737D88] mx-auto" />
-            <h3 className="font-display text-lg font-extrabold text-[#263442]">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-12 text-center space-y-3">
+            <Package className="w-10 h-10 text-[var(--color-text-secondary)] mx-auto" />
+            <h3 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
               Product Information Available on Request
             </h3>
-            <p className="text-xs text-[#737D88] max-w-md mx-auto">
+            <p className="text-xs text-[var(--color-text-secondary)] max-w-md mx-auto">
               Active steel products managed inside Nav Durga ERP will display here automatically. Connect with our sales team for current product availability and rates.
             </p>
             <button
               type="button"
               onClick={() => onOpenQuoteModal('Structural Steel Requirement', '')}
-              className="px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
+              className="nd-btn-primary px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
             >
               Request a Quote
             </button>
           </div>
         ) : filteredHomeProducts.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#C7CED6] p-10 text-center space-y-3">
-            <div className="text-base font-bold text-[#263442]">No matching products found</div>
-            <p className="text-xs text-[#737D88]">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-10 text-center space-y-3">
+            <div className="text-base font-bold text-[var(--color-navy)]">No matching products found</div>
+            <p className="text-xs text-[var(--color-text-secondary)]">
               Try clearing your search or category filter to view all active ERP products.
             </p>
             <button
@@ -1889,7 +1912,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                 setSectionFilter('ALL');
                 setCategoryFilter('ALL');
               }}
-              className="px-4 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer"
+              className="nd-btn-primary px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
             >
               Show All Products
             </button>
@@ -1902,14 +1925,16 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               return (
                 <article
                   key={item.id}
-                  className="bg-white rounded-2xl border border-[#C7CED6] hover:border-[#105186] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
+                  className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] hover:border-[var(--color-navy)] shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                 >
                   <div>
                     <div className="h-40 min-[1920px]:h-48 relative overflow-hidden">
                       <ProductCardMedia item={item} />
                       <span
-                        className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow-xs z-20 ${
-                          isMedium ? 'bg-[#105186] text-white' : 'bg-[#0B3A60] text-white'
+                        className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow-xs z-20 bg-[var(--color-navy)] ${
+                          isMedium
+                            ? 'text-[var(--color-amber)] border border-[var(--color-amber)]/45'
+                            : 'text-[var(--color-linen)] border border-white/20'
                         }`}
                       >
                         {item.section}
@@ -1918,30 +1943,30 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
 
                     <div className="p-5 space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-mono font-semibold text-[#737D88]">
+                        <span className="text-[11px] font-mono font-semibold text-[var(--color-text-secondary)]">
                           {item.category}
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-[#EAF2F8] border border-[#C7CED6] text-[11px] font-bold text-[#0B3A60]">
+                        <span className="px-2 py-0.5 rounded bg-[var(--color-linen)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-navy)]">
                           {item.grade}
                         </span>
                       </div>
-                      <h3 className="font-display text-lg font-extrabold text-[#263442]">
+                      <h3 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                         {item.name} — {item.size}
                       </h3>
-                      <p className="text-xs text-[#737D88] line-clamp-2">
+                      <p className="text-xs text-[var(--color-text-secondary)] line-clamp-2">
                         {item.description || `${item.category} (${item.size}) • ${item.rateSource}`}
                       </p>
                     </div>
                   </div>
 
-                  <div className="px-5 py-4 bg-[#F7F9FB] border-t border-[#C7CED6] flex flex-wrap items-center justify-between gap-2.5">
+                  <div className="px-5 py-4 bg-[var(--color-linen)]/50 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2.5">
                     <div>
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-[#737D88]">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">
                         Approved Rate
                       </div>
                       <div
                         className={`font-extrabold tabular-nums ${
-                          hasApprovedRate ? 'text-base text-[#263442]' : 'text-xs text-[#105186]'
+                          hasApprovedRate ? 'text-base text-[var(--color-navy)]' : 'text-xs text-[var(--color-navy)]'
                         }`}
                       >
                         {formatRateText(item.finalRate)}
@@ -1952,7 +1977,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       <button
                         type="button"
                         onClick={() => onNavigate(getProductDetailPath(item))}
-                        className="min-h-[40px] inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                        className="nd-btn-secondary min-h-[40px] inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-bold cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View Details</span>
@@ -1960,7 +1985,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
                       <button
                         type="button"
                         onClick={() => onOpenQuoteModal(`${item.name} (${item.size})`, item.grade)}
-                        className="min-h-[40px] px-3 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                        className="nd-btn-primary min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold cursor-pointer"
                       >
                         Request a Quote
                       </button>
@@ -1977,7 +2002,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/products')}
-              className="min-h-[44px] inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold cursor-pointer transition-colors"
+              className="nd-btn-secondary min-h-[44px] inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold cursor-pointer"
             >
               <span>View All {filteredHomeProducts.length} Active Products</span>
               <ArrowRight className="w-4 h-4" />
@@ -1986,24 +2011,25 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         )}
       </section>
 
-      {/* 6. ABOUT NAV DURGA ISPAT PVT. LTD. (FACTUAL OVERVIEW) */}
-      <section className="bg-[#F7F9FB] border-y border-[#C7CED6] nd-section-py">
+      {/* 6. ABOUT NAV DURGA ISPAT PVT. LTD. (DEEP NAVY CORPORATE FEATURE BAND) */}
+      <section className="bg-[var(--color-navy)] text-[var(--color-linen)] border-y border-[var(--color-amber)]/35 nd-section-py">
         <div className="nd-container grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-center">
           <div className="lg:col-span-7 space-y-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-              About Nav Durga Ispat
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-amber)]">
+              <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+              <span>About Nav Durga Ispat</span>
             </span>
-            <h2 className="font-display nd-h2-section font-extrabold text-[#263442]">
+            <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-linen)]">
               {cms.aboutTitle}
             </h2>
-            <p className="nd-lead text-[#737D88]">
+            <p className="nd-lead text-[var(--color-linen)]/85">
               {cms.aboutSummary}
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => onNavigate('/about')}
-                className="min-h-[44px] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold cursor-pointer transition-colors"
+                className="nd-btn-amber min-h-[44px] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 <span>Company Overview</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -2011,7 +2037,7 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/quality')}
-                className="min-h-[44px] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white hover:bg-[#EAF2F8] border border-[#C7CED6] text-[#263442] text-xs font-bold cursor-pointer transition-colors"
+                className="min-h-[44px] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/25 text-[var(--color-linen)] text-xs font-bold cursor-pointer transition-colors"
               >
                 <span>Quality &amp; Reliability</span>
               </button>
@@ -2019,28 +2045,28 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           </div>
 
           <div className="lg:col-span-5 grid grid-cols-1 min-[380px]:grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-5">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#737D88]">Established</div>
-              <div className="font-display text-2xl font-extrabold text-[#263442] mt-1 tabular-nums">
+            <div className="bg-[var(--color-navy-hover)] rounded-2xl border border-[var(--color-amber)]/30 p-5">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-linen)]/75">Established</div>
+              <div className="font-display text-2xl font-extrabold text-[var(--color-amber)] mt-1 tabular-nums">
                 {companyEst}
               </div>
-              <div className="text-xs text-[#737D88] mt-1">Steel industry presence</div>
+              <div className="text-xs text-[var(--color-linen)]/80 mt-1">Steel industry presence</div>
             </div>
-            <div className="bg-white rounded-2xl border border-[#C7CED6] p-5">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#737D88]">Product Catalog</div>
-              <div className="font-display text-2xl font-extrabold text-[#105186] mt-1 tabular-nums">
+            <div className="bg-[var(--color-navy-hover)] rounded-2xl border border-[var(--color-amber)]/30 p-5">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-linen)]/75">Product Catalog</div>
+              <div className="font-display text-2xl font-extrabold text-[var(--color-amber)] mt-1 tabular-nums">
                 {allProducts.length} Active
               </div>
-              <div className="text-xs text-[#737D88] mt-1">Medium &amp; Light sections</div>
+              <div className="text-xs text-[var(--color-linen)]/80 mt-1">Medium &amp; Light sections</div>
             </div>
-            <div className="min-[380px]:col-span-2 bg-white rounded-2xl border border-[#C7CED6] p-5 space-y-1.5">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#105186]">
+            <div className="min-[380px]:col-span-2 bg-[var(--color-navy-hover)] rounded-2xl border border-[var(--color-amber)]/30 p-5 space-y-1.5">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-amber)]">
                 Registered Industrial Address
               </div>
-              <div className="text-xs font-semibold text-[#263442] leading-relaxed">
+              <div className="text-xs font-semibold text-[var(--color-linen)] leading-relaxed">
                 {cms.contactAddress}
               </div>
-              <div className="text-[11px] font-mono font-bold text-[#737D88] pt-1">
+              <div className="text-[11px] font-mono font-bold text-[var(--color-linen)]/75 pt-1">
                 CIN: {companyCin}
               </div>
             </div>
@@ -2049,25 +2075,25 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
       </section>
 
       {/* 7. QUALITY AND MANUFACTURING / INTERACTIVE 3D ENGINEERING SHOWCASE */}
-      <section className="bg-[#FFFFFF] border-b border-[#C7CED6] nd-section-py">
+      <section className="bg-[var(--color-surface)] border-b border-[var(--color-border)] nd-section-py">
         <div className="nd-container space-y-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 xl:gap-6">
             <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#105186]">
-                <Cpu className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
+                <Cpu className="w-3.5 h-3.5 text-[var(--color-navy)]" />
                 <span>Interactive 3D Engineering Preview</span>
               </span>
-              <h2 className="font-display nd-h2-section font-extrabold text-[#263442] mt-1">
+              <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] mt-1">
                 Structural Steel Profiles in 3D
               </h2>
-              <p className="nd-lead text-[#737D88] mt-1">
+              <p className="nd-lead text-[var(--color-text-secondary)] mt-1">
                 Inspect MS Channel, I-Beam, Equal Angle, and rolling pass geometry before requesting your commercial quote.
               </p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate('/product-rates')}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#105186] text-[#105186] hover:text-white border border-[#105186]/25 text-xs font-bold cursor-pointer shrink-0 transition-colors"
+              className="nd-btn-primary min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer shrink-0"
             >
               View Live Rates →
             </button>
@@ -2079,43 +2105,45 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            <div className="bg-[#F7F9FB] rounded-2xl border border-[#C7CED6] p-6 sm:p-7 space-y-3 shadow-2xs">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
+            <div className="bg-[var(--color-linen)]/65 rounded-2xl border border-[var(--color-border)] p-6 sm:p-7 space-y-3 shadow-2xs">
+              <div className="h-[2.5px] w-8 bg-[var(--color-amber)]" aria-hidden="true" />
+              <span className="block text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
                 Industries &amp; Applications
               </span>
-              <h3 className="font-display text-2xl font-extrabold text-[#263442]">
+              <h3 className="font-display text-2xl font-extrabold text-[var(--color-navy)]">
                 Industrial, Structural &amp; Infrastructure Supply
               </h3>
-              <p className="text-sm text-[#737D88] leading-relaxed">
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
                 Supporting industrial buildings, structural fabrication workshops, infrastructure contractors, and regional steel dealers with consistent Medium &amp; Light structural sections.
               </p>
               <button
                 type="button"
                 onClick={() => onNavigate('/industries')}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#105186] hover:text-[#0B3A60] hover:underline cursor-pointer pt-1"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--color-navy)] hover:underline cursor-pointer pt-1"
               >
                 <span>Explore Industries Served</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 text-[var(--color-amber)]" />
               </button>
             </div>
 
-            <div className="bg-[#F7F9FB] rounded-2xl border border-[#C7CED6] p-6 sm:p-7 space-y-3 shadow-2xs">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#0B3A60]">
+            <div className="bg-[var(--color-linen)]/65 rounded-2xl border border-[var(--color-border)] p-6 sm:p-7 space-y-3 shadow-2xs">
+              <div className="h-[2.5px] w-8 bg-[var(--color-amber)]" aria-hidden="true" />
+              <span className="block text-xs font-bold uppercase tracking-wider text-[var(--color-navy)]">
                 Quality &amp; Reliability
               </span>
-              <h3 className="font-display text-2xl font-extrabold text-[#263442]">
+              <h3 className="font-display text-2xl font-extrabold text-[var(--color-navy)]">
                 Consistent Specifications &amp; Dependable Service
               </h3>
-              <p className="text-sm text-[#737D88] leading-relaxed">
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
                 {cms.qualityCommitment}
               </p>
               <button
                 type="button"
                 onClick={() => onNavigate('/quality')}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#105186] hover:text-[#0B3A60] hover:underline cursor-pointer pt-1"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--color-navy)] hover:underline cursor-pointer pt-1"
               >
                 <span>Read Quality Commitment</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 text-[var(--color-amber)]" />
               </button>
             </div>
           </div>
@@ -2131,41 +2159,45 @@ export const PublicWebsitePages: React.FC<PublicWebsitePagesProps> = ({
         aria-labelledby="quick-enquiry-heading"
         className="nd-container nd-section-py scroll-mt-20"
       >
-        <div className="bg-white rounded-2xl border border-[#C7CED6] p-6 sm:p-8 xl:p-10 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start">
-          <div className="lg:col-span-5 space-y-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#105186]">
-              Customer Quick Enquiry
-            </span>
-            <h2
-              id="quick-enquiry-heading"
-              className="font-display nd-h2-section font-extrabold text-[#263442]"
-            >
-              Request Steel Products &amp; Latest Ex-Plant Rates
-            </h2>
-            <p className="text-sm text-[#737D88] leading-relaxed">
-              Choose a steel product and size directly from our active ERP catalog, enter your required quantity, and submit your enquiry straight to our Urla Industrial Area sales desk.
-            </p>
-            <div className="space-y-2.5 text-xs text-[#263442] pt-1">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-xs grid grid-cols-1 lg:grid-cols-12">
+          <div className="lg:col-span-5 bg-[var(--color-navy)] text-[var(--color-linen)] p-6 sm:p-8 xl:p-10 space-y-4 flex flex-col justify-between">
+            <div className="space-y-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-amber)]">
+                <span className="w-6 h-[2.5px] bg-[var(--color-amber)]" aria-hidden="true" />
+                <span>Customer Quick Enquiry</span>
+              </span>
+              <h2
+                id="quick-enquiry-heading"
+                className="font-display nd-h2-section font-extrabold text-[var(--color-linen)]"
+              >
+                Request Steel Products &amp; Latest Ex-Plant Rates
+              </h2>
+              <p className="text-sm text-[var(--color-linen)]/80 leading-relaxed">
+                Choose a steel product and size directly from our active ERP catalog, enter your required quantity, and submit your enquiry straight to our Urla Industrial Area sales desk.
+              </p>
+            </div>
+
+            <div className="space-y-3 text-xs text-[var(--color-linen)] pt-4 border-t border-white/15">
               <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#105186] shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-[var(--color-amber)] shrink-0 mt-0.5" />
                 <span>{cms.contactAddress}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-[#105186] shrink-0" />
+                <Phone className="w-4 h-4 text-[var(--color-amber)] shrink-0" />
                 <span className="font-bold">{cms.contactPhone}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-[#737D88] shrink-0" />
+                <Mail className="w-4 h-4 text-[var(--color-amber)] shrink-0" />
                 <span>{cms.contactEmail}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Building2 className="w-4 h-4 text-[#737D88] shrink-0" />
-                <span className="font-mono font-semibold">CIN: {companyCin}</span>
+                <Building2 className="w-4 h-4 text-[var(--color-amber)] shrink-0" />
+                <span className="font-mono font-semibold text-[var(--color-linen)]/85">CIN: {companyCin}</span>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 p-6 sm:p-8 xl:p-10">
             <QuickEnquiryForm
               products={allProducts}
               contactWhatsapp={cms.contactWhatsapp}

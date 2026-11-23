@@ -58,7 +58,7 @@ export const NavDurgaLogo: React.FC<NavDurgaLogoProps> = ({
     return (
       <div
         onClick={onClick}
-        className={`inline-flex items-center justify-center p-1.5 bg-white/95 rounded-xl border border-slate-200/90 shadow-xs backdrop-blur-xs ${onClick ? 'cursor-pointer hover:border-orange-300' : ''} ${className}`}
+        className={`inline-flex items-center justify-center p-1.5 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] shadow-xs backdrop-blur-xs ${onClick ? 'cursor-pointer hover:border-[var(--color-amber)]' : ''} ${className}`}
       >
         {logoImg}
       </div>

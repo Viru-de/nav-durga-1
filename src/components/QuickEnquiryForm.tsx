@@ -176,17 +176,17 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
       {successEnquiry && (
         <div
           role="status"
-          className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 space-y-2"
+          className="p-4 rounded-xl bg-[var(--color-navy)] border border-[var(--color-amber)]/45 text-xs text-[var(--color-linen)] space-y-2"
         >
           <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 text-[var(--color-amber)] shrink-0 mt-0.5" />
             <div>
-              <div className="font-extrabold text-sm">
+              <div className="font-extrabold text-sm text-[var(--color-linen)]">
                 Enquiry Recorded — Ref: {successEnquiry.enquiryNumber}
               </div>
-              <p className="text-emerald-900 mt-0.5 leading-relaxed">
+              <p className="text-[var(--color-linen)]/85 mt-0.5 leading-relaxed">
                 Your requirement for{' '}
-                <span className="font-bold">
+                <span className="font-bold text-[var(--color-amber)]">
                   {successEnquiry.product}
                   {successEnquiry.size ? ` (${successEnquiry.size})` : ''} — {successEnquiry.quantity}{' '}
                   {successEnquiry.unit}
@@ -200,7 +200,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               href={waHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors"
+              className="nd-btn-amber inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Share Ref on WhatsApp</span>
@@ -212,7 +212,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
       {error && (
         <div
           role="alert"
-          className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs font-bold text-amber-950"
+          className="p-3.5 rounded-xl bg-[var(--color-amber-soft)] border border-[var(--color-amber)] text-xs font-bold text-[var(--color-navy)]"
         >
           {error}
         </div>
@@ -224,7 +224,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
           <div>
             <label
               htmlFor="qe-product"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Select Steel Product *
             </label>
@@ -232,7 +232,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               id="qe-product"
               value={selectedProductName}
               onChange={(e) => setSelectedProductName(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             >
               {uniqueProductNames.map((prodName) => (
                 <option key={prodName} value={prodName}>
@@ -248,7 +248,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
           <div>
             <label
               htmlFor="qe-spec"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Size / Specification *
             </label>
@@ -257,7 +257,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
                 id="qe-spec"
                 value={selectedSpecId}
                 onChange={(e) => setSelectedSpecId(e.target.value)}
-                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
               >
                 {specsForSelectedProduct.map((spec) => (
                   <option key={spec.id} value={spec.id}>
@@ -272,7 +272,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
                 value={customSizeText}
                 onChange={(e) => setCustomSizeText(e.target.value)}
                 placeholder="e.g. 100 x 50 mm / Standard Spec"
-                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
               />
             )}
           </div>
@@ -282,7 +282,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
           <div>
             <label
               htmlFor="qe-custom-product"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Specify Steel Product Name *
             </label>
@@ -292,7 +292,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               value={customProductText}
               onChange={(e) => setCustomProductText(e.target.value)}
               placeholder="e.g. MS Channel / Structural Beam / MS Angle"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             />
           </div>
         )}
@@ -302,7 +302,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
           <div>
             <label
               htmlFor="qe-qty"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Quantity *
             </label>
@@ -314,14 +314,14 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               required
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186] tabular-nums"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] tabular-nums"
             />
           </div>
 
           <div>
             <label
               htmlFor="qe-unit"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Unit
             </label>
@@ -329,7 +329,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               id="qe-unit"
               value={unit}
               onChange={(e) => setUnit(e.target.value as 'MT' | 'Kg' | 'Piece' | 'Bundle')}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             >
               <option value="MT">MT (Metric Ton)</option>
               <option value="Kg">Kg</option>
@@ -341,7 +341,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
           <div>
             <label
               htmlFor="qe-city"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               City / Delivery Location
             </label>
@@ -351,7 +351,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               value={city}
               onChange={(e) => setCity(e.target.value)}
               placeholder="e.g. Raipur / Bilaspur"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             />
           </div>
         </div>
@@ -361,7 +361,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
           <div>
             <label
               htmlFor="qe-name"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Your Full Name *
             </label>
@@ -372,14 +372,14 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Suresh Agrawal"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             />
           </div>
 
           <div>
             <label
               htmlFor="qe-phone"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Mobile / WhatsApp Number *
             </label>
@@ -390,14 +390,14 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98XXX XXXXX"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             />
           </div>
 
           <div>
             <label
               htmlFor="qe-company"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Company / Firm Name
             </label>
@@ -407,14 +407,14 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               placeholder="Optional business name"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             />
           </div>
 
           <div>
             <label
               htmlFor="qe-email"
-              className="block text-xs font-bold text-[#263442] mb-1"
+              className="block text-xs font-bold text-[var(--color-navy)] mb-1"
             >
               Email Address (Optional)
             </label>
@@ -424,7 +424,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="buyer@company.com"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
             />
           </div>
         </div>
@@ -432,7 +432,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
         <div>
           <label
             htmlFor="qe-notes"
-            className="block text-xs font-bold text-[#263442] mb-1"
+            className="block text-xs font-bold text-[var(--color-navy)] mb-1"
           >
             Message / Length &amp; Delivery Notes
           </label>
@@ -442,7 +442,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Mention preferred lengths, dispatch timeline, or additional sizes..."
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#C7CED6] bg-white text-sm text-[#263442] outline-none focus:ring-2 focus:ring-[#105186]"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] outline-none focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)]"
           />
         </div>
 
@@ -450,7 +450,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
           <button
             type="submit"
             disabled={submitting}
-            className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#105186] hover:bg-[#0B3A60] disabled:opacity-60 text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer transition-colors"
+            className="nd-btn-primary w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl disabled:opacity-60 text-xs sm:text-sm font-bold shadow-xs cursor-pointer"
           >
             <Send className="w-4 h-4" />
             <span>{submitting ? 'Submitting Enquiry...' : 'Submit Quick Enquiry'}</span>
@@ -460,7 +460,7 @@ export const QuickEnquiryForm: React.FC<QuickEnquiryFormProps> = ({
             href={waHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+            className="nd-btn-secondary w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-xs font-bold"
           >
             <MessageSquare className="w-4 h-4" />
             <span>Enquire on WhatsApp</span>

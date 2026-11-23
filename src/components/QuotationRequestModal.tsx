@@ -122,25 +122,25 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-[#14213D]/55 backdrop-blur-xs flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="quote-modal-heading"
     >
-      <div className="bg-white rounded-2xl border border-[#C7CED6] shadow-2xl w-full max-w-xl overflow-hidden max-h-[92vh] flex flex-col">
-        <div className="px-6 py-4 bg-[#F7F9FB] border-b border-[#C7CED6] flex items-center justify-between shrink-0">
+      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-2xl w-full max-w-xl overflow-hidden max-h-[92vh] flex flex-col">
+        <div className="px-6 py-4 bg-[var(--color-navy)] border-b border-[var(--color-amber)]/35 flex items-center justify-between shrink-0">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#105186]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-amber)]">
               Nav Durga Ispat Sales Desk
             </span>
-            <h3 id="quote-modal-heading" className="font-display text-lg font-extrabold text-[#263442]">
+            <h3 id="quote-modal-heading" className="font-display text-lg font-extrabold text-[var(--color-linen)]">
               Request Industrial Quotation
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg text-[#737D88] hover:bg-[#EAF2F8] hover:text-[#105186] cursor-pointer transition-colors"
+            className="p-2 rounded-lg text-[var(--color-linen)]/80 hover:bg-white/10 hover:text-[var(--color-amber)] cursor-pointer transition-colors"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -149,35 +149,35 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
 
         {submittedEnquiry ? (
           <div className="p-6 space-y-4 overflow-y-auto">
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-emerald-700 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-[var(--color-navy)] border border-[var(--color-amber)]/45 flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-[var(--color-amber)] shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-bold text-emerald-950 text-sm">
+                <h4 className="font-bold text-[var(--color-linen)] text-sm">
                   Quotation Request Logged ({submittedEnquiry.enquiryNumber})
                 </h4>
-                <p className="text-xs text-emerald-800 mt-1">
+                <p className="text-xs text-[var(--color-linen)]/85 mt-1">
                   Your requirement has been forwarded directly to Nav Durga Ispat&apos;s Urla dispatch &amp; sales team. Our sales officer will share confirmed ex-plant pricing shortly.
                 </p>
               </div>
             </div>
 
-            <div className="bg-[#F7F9FB] rounded-xl border border-[#C7CED6] p-4 text-xs space-y-1.5 text-[#263442]">
+            <div className="bg-[var(--color-linen)]/55 rounded-xl border border-[var(--color-border)] p-4 text-xs space-y-1.5 text-[var(--color-navy)]">
               <div className="flex justify-between">
-                <span className="text-[#737D88]">Product:</span>
+                <span className="text-[var(--color-text-secondary)]">Product:</span>
                 <span className="font-bold">{submittedEnquiry.product}</span>
               </div>
               {submittedEnquiry.size && (
                 <div className="flex justify-between">
-                  <span className="text-[#737D88]">Size / Spec:</span>
+                  <span className="text-[var(--color-text-secondary)]">Size / Spec:</span>
                   <span className="font-semibold">{submittedEnquiry.size}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-[#737D88]">Grade:</span>
+                <span className="text-[var(--color-text-secondary)]">Grade:</span>
                 <span className="font-semibold">{submittedEnquiry.grade}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#737D88]">Estimated Quantity:</span>
+                <span className="text-[var(--color-text-secondary)]">Estimated Quantity:</span>
                 <span className="font-bold tabular-nums">
                   {submittedEnquiry.quantity} {submittedEnquiry.unit}
                 </span>
@@ -189,7 +189,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                className="nd-btn-amber inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Fast-Track on WhatsApp</span>
@@ -197,7 +197,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] text-[#0B3A60] text-xs font-bold cursor-pointer"
+                className="nd-btn-secondary px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
               >
                 Close
               </button>
@@ -206,14 +206,14 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
             {error && (
-              <div role="alert" className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-semibold text-amber-900">
+              <div role="alert" className="p-3 rounded-xl bg-[var(--color-amber-soft)] border border-[var(--color-amber)] text-xs font-semibold text-[var(--color-navy)]">
                 {error}
               </div>
             )}
 
             {products.length > 0 && (
               <div>
-                <label className="block text-xs font-bold text-[#263442] mb-1">
+                <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                   Quick Select Active ERP Product &amp; Size
                 </label>
                 <select
@@ -227,7 +227,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                       setGrade(found.grade);
                     }
                   }}
-                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-[#F7F9FB] text-sm text-[#263442] focus:ring-2 focus:ring-[#105186] outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-linen)]/45 text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                 >
                   <option value="">Custom / Manual Entry Below</option>
                   {products.map((p) => (
@@ -241,7 +241,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-bold text-[#263442] mb-1">
+                <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                   Your Name *
                 </label>
                 <input
@@ -250,28 +250,28 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Suresh Agrawal"
-                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#263442] mb-1">
+                <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                   Company / Firm Name
                 </label>
                 <div className="relative">
-                  <Building2 className="w-4 h-4 text-[#737D88] absolute left-3 top-2.5" />
+                  <Building2 className="w-4 h-4 text-[var(--color-text-secondary)] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="e.g. Mahavir Infra Pvt. Ltd."
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#263442] mb-1">
+                <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                   Mobile / WhatsApp Number *
                 </label>
                 <input
@@ -280,12 +280,12 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 98XXX XXXXX"
-                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#263442] mb-1">
+                <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                   City / Delivery Location
                 </label>
                 <input
@@ -293,16 +293,16 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Raipur / Bilaspur / Nagpur"
-                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#263442] mb-1">
+                <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                   Product / Profile
                 </label>
                 <div className="relative">
-                  <Package className="w-4 h-4 text-[#737D88] absolute left-3 top-2.5" />
+                  <Package className="w-4 h-4 text-[var(--color-text-secondary)] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     value={product}
@@ -310,25 +310,25 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                       setSelectedProductId('');
                       setProduct(e.target.value);
                     }}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] focus:border-[#105186] outline-none"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-1">
-                  <label className="block text-xs font-bold text-[#263442] mb-1">
+                  <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                     Grade
                   </label>
                   <input
                     type="text"
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
-                    className="w-full px-2.5 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
+                    className="w-full px-2.5 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                   />
                 </div>
                 <div className="col-span-1">
-                  <label className="block text-xs font-bold text-[#263442] mb-1">
+                  <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                     Qty
                   </label>
                   <input
@@ -337,17 +337,17 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                     step="any"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full px-2.5 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none tabular-nums"
+                    className="w-full px-2.5 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none tabular-nums"
                   />
                 </div>
                 <div className="col-span-1">
-                  <label className="block text-xs font-bold text-[#263442] mb-1">
+                  <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                     Unit
                   </label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value as 'MT' | 'Kg' | 'Piece' | 'Bundle')}
-                    className="w-full px-2 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
+                    className="w-full px-2 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                   >
                     <option value="MT">MT</option>
                     <option value="Kg">Kg</option>
@@ -359,7 +359,7 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#263442] mb-1">
+              <label className="block text-xs font-bold text-[var(--color-navy)] mb-1">
                 Email (Optional) &amp; Length / Delivery Notes
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -368,34 +368,34 @@ export const QuotationRequestModal: React.FC<QuotationRequestModalProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="buyer@company.com"
-                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                 />
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Standard 6m/12m length or custom spec"
-                  className="w-full px-3 py-2 rounded-xl border border-[#C7CED6] bg-white text-sm focus:ring-2 focus:ring-[#105186] outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-amber)] focus:border-[var(--color-navy)] outline-none"
                 />
               </div>
             </div>
 
-            <div className="pt-2 border-t border-[#C7CED6]/60 flex items-center justify-between gap-3">
-              <span className="text-[11px] text-[#737D88]">
+            <div className="pt-2 border-t border-[var(--color-border)] flex items-center justify-between gap-3">
+              <span className="text-[11px] text-[var(--color-text-secondary)]">
                 Ex-Plant Urla, Raipur • Direct Mill Sales
               </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#737D88] hover:bg-[#EAF2F8] cursor-pointer"
+                  className="nd-btn-secondary px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] disabled:opacity-60 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                  className="nd-btn-primary inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl disabled:opacity-60 text-xs font-bold shadow-xs cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{submitting ? 'Submitting...' : 'Submit Enquiry'}</span>

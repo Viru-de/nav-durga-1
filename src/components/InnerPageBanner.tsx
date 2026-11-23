@@ -77,7 +77,7 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
   return (
     <section
       aria-label={`${title} page header`}
-      className="relative w-full min-h-[210px] sm:min-h-[270px] lg:h-[330px] min-[1920px]:h-[360px] min-[2560px]:h-[380px] flex items-center overflow-hidden bg-[#0B3A60] border-b border-[#C7CED6] no-print"
+      className="relative w-full min-h-[210px] sm:min-h-[270px] lg:h-[330px] min-[1920px]:h-[360px] min-[2560px]:h-[380px] flex items-center overflow-hidden bg-[var(--color-navy)] border-b border-[var(--color-border)] no-print"
     >
       {/* Edge-to-edge industrial photographic backdrop */}
       {!imgFailed ? (
@@ -96,29 +96,30 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
       ) : (
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-br from-[#0B3A60] via-[#105186] to-[#263442]"
+          className="absolute inset-0 bg-gradient-to-br from-[#14213D] via-[#1B2B4E] to-[#0E182D]"
         />
       )}
 
-      {/* Measured brand-blue gradient overlays for crisp white text contrast */}
+      {/* Measured Deep Navy gradient overlays for crisp text contrast */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-[#0B3A60]/92 via-[#0B3A60]/78 to-[#105186]/58"
+        className="absolute inset-0 bg-gradient-to-r from-[#14213D]/90 via-[#14213D]/72 to-[#14213D]/38"
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-[#0B3A60]/85 via-transparent to-[#0B3A60]/35"
+        className="absolute inset-0 bg-gradient-to-t from-[#14213D]/78 via-transparent to-[#14213D]/28"
       />
 
-      {/* Subtle architectural accent rule at bottom */}
+      {/* Subtle Amber architectural accent rule at bottom */}
       <div
         aria-hidden="true"
-        className="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-[#105186] via-[#EAF2F8]/50 to-transparent"
+        className="absolute bottom-0 inset-x-0 h-[3px] bg-gradient-to-r from-[#FFB020] via-[#FFB020]/55 to-transparent"
       />
 
       {/* Foreground Title & Breadcrumb */}
       <div className="relative z-10 nd-container py-9 sm:py-12">
         <div className="max-w-3xl min-[1920px]:max-w-4xl space-y-3 nd-reveal">
+          <div className="w-10 h-[3px] bg-[var(--color-amber)]" aria-hidden="true" />
           <h1
             className="font-display nd-h1-banner font-extrabold text-white tracking-tight drop-shadow-xs"
             style={{ textWrap: 'balance' }}
@@ -127,7 +128,7 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
           </h1>
 
           {subtitle && (
-            <p className="nd-lead text-[#EAF2F8]/90 max-w-2xl min-[1920px]:max-w-3xl font-medium">
+            <p className="nd-lead text-[var(--color-linen)]/90 max-w-2xl min-[1920px]:max-w-3xl font-medium">
               {subtitle}
             </p>
           )}
@@ -135,7 +136,7 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
           {/* Clean unboxed breadcrumb navigation below title */}
           <nav
             aria-label="Breadcrumb"
-            className="pt-1 flex flex-wrap items-center gap-1.5 text-xs sm:text-sm font-medium text-[#EAF2F8]/85"
+            className="pt-1 flex flex-wrap items-center gap-1.5 text-xs sm:text-sm font-medium text-[var(--color-linen)]/85"
           >
             {breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1;
@@ -143,7 +144,7 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
                 <React.Fragment key={`${crumb.label}-${index}`}>
                   {index > 0 && (
                     <ChevronRight
-                      className="w-3.5 h-3.5 text-[#C7CED6]/80 shrink-0"
+                      className="w-3.5 h-3.5 text-[var(--color-amber)] shrink-0"
                       aria-hidden="true"
                     />
                   )}
@@ -151,7 +152,7 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
                     <button
                       type="button"
                       onClick={() => onNavigate(crumb.path!)}
-                      className="inline-flex items-center gap-1 text-[#EAF2F8]/90 hover:text-white hover:underline underline-offset-4 transition-colors cursor-pointer whitespace-nowrap"
+                      className="inline-flex items-center gap-1 text-[var(--color-linen)]/90 hover:text-[var(--color-amber)] hover:underline underline-offset-4 transition-colors cursor-pointer whitespace-nowrap"
                     >
                       {index === 0 && (
                         <Home className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
@@ -163,8 +164,8 @@ export const InnerPageBanner: React.FC<InnerPageBannerProps> = ({
                       aria-current={isLast ? 'page' : undefined}
                       className={
                         isLast
-                          ? 'text-white font-semibold'
-                          : 'text-[#EAF2F8]/80'
+                          ? 'text-[var(--color-amber)] font-semibold'
+                          : 'text-[var(--color-linen)]/85'
                       }
                     >
                       {crumb.label}

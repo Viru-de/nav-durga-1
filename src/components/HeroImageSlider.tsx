@@ -235,7 +235,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
-      className="relative w-full overflow-hidden border-b border-[#C7CED6] h-[62vh] min-h-[450px] max-h-[640px] md:h-[70vh] md:min-h-[520px] lg:h-[76vh] lg:min-h-[600px] lg:max-h-[840px] min-[2200px]:max-h-[960px] flex items-center bg-[#EAF2F8] outline-none focus-visible:ring-2 focus-visible:ring-[#105186]"
+      className="relative w-full overflow-hidden border-b border-[var(--color-border)] h-[62vh] min-h-[450px] max-h-[640px] md:h-[70vh] md:min-h-[520px] lg:h-[76vh] lg:min-h-[600px] lg:max-h-[840px] min-[2200px]:max-h-[960px] flex items-center bg-[var(--color-navy)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-amber)]"
     >
       {/* Full-Width Slide Stack */}
       <div className="absolute inset-0 w-full h-full select-none" aria-hidden="true">
@@ -258,9 +258,9 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
               } ${isActive ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'}`}
             >
               {stage === 'broken' ? (
-                <div className="w-full h-full bg-gradient-to-br from-slate-300 via-slate-200 to-slate-100 flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-2 text-slate-500">
-                    <Factory className="w-12 h-12 text-slate-400" />
+                <div className="w-full h-full bg-gradient-to-br from-[var(--color-navy)] via-[var(--color-navy)] to-[#1E2F54] flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-2 text-[var(--color-linen)]">
+                    <Factory className="w-12 h-12 text-[var(--color-amber)]" />
                     <span className="text-xs font-bold uppercase tracking-widest">
                       Nav Durga Ispat — Industrial Rolling Mill
                     </span>
@@ -296,10 +296,10 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
         })}
       </div>
 
-      {/* Subtle Light-to-Dark Overlay Only Over Hero Media for WCAG Text Readability */}
+      {/* Measured Deep Navy Gradient Scrim Preserving Industrial Photography */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-[2] bg-gradient-to-r from-slate-950/75 via-slate-900/50 to-slate-900/20 pointer-events-none"
+        className="absolute inset-0 z-[2] bg-gradient-to-r from-[#14213D]/84 via-[#14213D]/52 to-[#14213D]/18 pointer-events-none"
       />
 
       {/* Consistent Foreground Hero Copy & Dual Primary CTAs */}
@@ -313,15 +313,16 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
             prefersReducedMotion ? '' : 'transition-opacity duration-500 ease-out'
           }`}
         >
-          <p className="inline-block px-3 sm:px-3.5 py-1.5 rounded-lg bg-white/95 border border-[#C7CED6] text-[#105186] text-[10px] sm:text-xs font-extrabold uppercase tracking-widest shadow-xs">
-            {smallHeading}
+          <p className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-lg bg-[var(--color-navy)]/90 border border-[var(--color-amber)]/65 text-[var(--color-amber)] text-[10px] sm:text-xs font-extrabold uppercase tracking-widest shadow-xs">
+            <span className="w-2 h-[2px] bg-[var(--color-amber)]" aria-hidden="true" />
+            <span>{smallHeading}</span>
           </p>
 
           <h1 className="font-display nd-h1-hero font-extrabold text-white tracking-tight uppercase drop-shadow-xs">
             {mainHeadline}
           </h1>
 
-          <p className="nd-lead text-slate-100 max-w-2xl min-[1920px]:max-w-3xl font-medium">
+          <p className="nd-lead text-[var(--color-linen)] max-w-2xl min-[1920px]:max-w-3xl font-medium">
             {supportingText}
           </p>
 
@@ -329,7 +330,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
             <button
               type="button"
               onClick={() => handleCtaAction(primaryTarget, onExploreProducts)}
-              className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 min-h-[44px] py-2.5 sm:py-3.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs sm:text-sm font-bold uppercase tracking-wide shadow-md cursor-pointer transition-colors"
+              className="nd-btn-amber inline-flex items-center justify-center gap-2 px-4 sm:px-6 min-h-[44px] py-2.5 sm:py-3.5 rounded-xl text-xs sm:text-sm font-extrabold uppercase tracking-wide shadow-md cursor-pointer"
             >
               <span>{primaryLabel}</span>
               <ArrowRight className="w-4 h-4 shrink-0" />
@@ -338,9 +339,9 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
             <button
               type="button"
               onClick={() => handleCtaAction(secondaryTarget, () => onNavigate('/product-rates'))}
-              className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 min-h-[44px] py-2.5 sm:py-3.5 rounded-xl bg-white hover:bg-[#EAF2F8] text-[#263442] text-xs sm:text-sm font-bold uppercase tracking-wide shadow-md cursor-pointer transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 min-h-[44px] py-2.5 sm:py-3.5 rounded-xl bg-[var(--color-linen)] hover:bg-[var(--color-surface)] text-[var(--color-navy)] border border-[var(--color-linen)] text-xs sm:text-sm font-extrabold uppercase tracking-wide shadow-md cursor-pointer transition-colors"
             >
-              <TrendingUp className="w-4 h-4 text-[#105186] shrink-0" />
+              <TrendingUp className="w-4 h-4 text-[var(--color-navy)] shrink-0" />
               <span>{secondaryLabel}</span>
             </button>
           </div>
@@ -354,7 +355,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
             type="button"
             onClick={() => handlePrev(true)}
             aria-label="Previous slide"
-            className="hidden sm:inline-flex items-center justify-center absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 z-[4] min-h-[44px] min-w-[44px] rounded-xl bg-white/90 hover:bg-white text-slate-900 border border-slate-200/80 shadow-md cursor-pointer transition-colors"
+            className="hidden sm:inline-flex items-center justify-center absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 z-[4] min-h-[44px] min-w-[44px] rounded-xl bg-[var(--color-linen)]/95 hover:bg-[var(--color-amber)] text-[var(--color-navy)] border border-[var(--color-border)] shadow-md cursor-pointer transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -363,7 +364,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
             type="button"
             onClick={() => handleNext(true)}
             aria-label="Next slide"
-            className="hidden sm:inline-flex items-center justify-center absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 z-[4] min-h-[44px] min-w-[44px] rounded-xl bg-white/90 hover:bg-white text-slate-900 border border-slate-200/80 shadow-md cursor-pointer transition-colors"
+            className="hidden sm:inline-flex items-center justify-center absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 z-[4] min-h-[44px] min-w-[44px] rounded-xl bg-[var(--color-linen)]/95 hover:bg-[var(--color-amber)] text-[var(--color-navy)] border border-[var(--color-border)] shadow-md cursor-pointer transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -374,7 +375,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
               type="button"
               onClick={() => handlePrev(true)}
               aria-label="Previous slide"
-              className="sm:hidden inline-flex items-center justify-center min-h-[38px] min-w-[38px] rounded-lg bg-white/90 hover:bg-white text-slate-900 shadow-sm cursor-pointer"
+              className="sm:hidden inline-flex items-center justify-center min-h-[38px] min-w-[38px] rounded-lg bg-[var(--color-linen)]/95 hover:bg-[var(--color-amber)] text-[var(--color-navy)] shadow-sm cursor-pointer transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -382,7 +383,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
             <div
               role="tablist"
               aria-label="Choose hero slide"
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/85 backdrop-blur-xs border border-slate-200/80 shadow-sm"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--color-navy)]/85 backdrop-blur-xs border border-[var(--color-linen)]/20 shadow-sm"
             >
               {slides.map((slide, idx) => {
                 const isSelected = idx === activeIndex;
@@ -396,8 +397,8 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
                     onClick={() => goToSlide(idx, true)}
                     className={`h-2 rounded-full transition-all cursor-pointer ${
                       isSelected
-                        ? 'w-6 bg-[#105186]'
-                        : 'w-2 bg-[#C7CED6] hover:bg-[#737D88]'
+                        ? 'w-6 bg-[var(--color-amber)]'
+                        : 'w-2 bg-[var(--color-linen)]/45 hover:bg-[var(--color-linen)]'
                     }`}
                   />
                 );
@@ -408,7 +409,7 @@ export const HeroImageSlider: React.FC<HeroImageSliderProps> = ({
               type="button"
               onClick={() => handleNext(true)}
               aria-label="Next slide"
-              className="sm:hidden inline-flex items-center justify-center min-h-[38px] min-w-[38px] rounded-lg bg-white/90 hover:bg-white text-slate-900 shadow-sm cursor-pointer"
+              className="sm:hidden inline-flex items-center justify-center min-h-[38px] min-w-[38px] rounded-lg bg-[var(--color-linen)]/95 hover:bg-[var(--color-amber)] text-[var(--color-navy)] shadow-sm cursor-pointer transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

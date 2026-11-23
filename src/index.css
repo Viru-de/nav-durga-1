@@ -3,33 +3,109 @@
 @layer base {
   :root {
     color-scheme: light;
-    --nd-primary: #105186;
-    --nd-primary-deep: #0B3A60;
-    --nd-primary-light: #EAF2F8;
-    --nd-silver: #C7CED6;
-    --nd-metallic: #737D88;
-    --nd-offwhite: #F7F9FB;
-    --nd-white: #FFFFFF;
-    --nd-text: #263442;
+    --color-linen: #F1ECE3;
+    --color-navy: #14213D;
+    --color-amber: #FFB020;
+
+    --color-background: var(--color-linen);
+    --color-primary: var(--color-navy);
+    --color-accent: var(--color-amber);
+
+    --color-text-primary: #14213D;
+    --color-text-secondary: #46536A;
+    --color-surface: #FFFFFF;
+    --color-surface-soft: #FAF7F2;
+    --color-border: rgba(20, 33, 61, 0.15);
+    --color-navy-hover: #0E182D;
+    --color-amber-hover: #E59B14;
+    --color-amber-soft: rgba(255, 176, 32, 0.14);
+
+    /* Legacy alias mapping so any remaining utility references stay aligned */
+    --nd-primary: var(--color-navy);
+    --nd-primary-deep: var(--color-navy-hover);
+    --nd-primary-light: var(--color-linen);
+    --nd-silver: var(--color-border);
+    --nd-metallic: var(--color-text-secondary);
+    --nd-offwhite: var(--color-background);
+    --nd-white: var(--color-surface);
+    --nd-text: var(--color-text-primary);
   }
 
   html {
     scroll-behavior: smooth;
-    background-color: #FFFFFF;
-    color: #263442;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
     overflow-x: clip;
   }
 
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #F7F9FB;
-    color: #263442;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
     overflow-x: clip;
   }
 
   h1, h2, h3, h4, .font-display {
     font-family: 'Manrope', 'Plus Jakarta Sans', system-ui, sans-serif;
   }
+}
+
+/* ==========================================================================
+   Reusable 60/30/10 Interactive Controls & Surfaces
+   ========================================================================== */
+.nd-btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-linen);
+  border: 1px solid var(--color-primary);
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.nd-btn-primary:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  border-color: var(--color-accent);
+}
+.nd-btn-primary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.nd-btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.nd-btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-linen);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.nd-btn-secondary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.nd-btn-outline-navy {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+.nd-btn-outline-navy:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: var(--color-linen);
+}
+
+.nd-btn-amber {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  border: 1px solid var(--color-accent);
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.nd-btn-amber:hover:not(:disabled) {
+  background-color: var(--color-linen);
+  color: var(--color-primary);
+  border-color: var(--color-linen);
 }
 
 /* ==========================================================================
@@ -109,7 +185,7 @@
 @media print {
   body {
     background-color: #ffffff !important;
-    color: #0f172a !important;
+    color: #14213D !important;
   }
   .no-print {
     display: none !important;
@@ -119,18 +195,18 @@
   }
 }
 
-/* Subtle light scrollbar */
+/* Subtle warm neutral scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-linen);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(20, 33, 61, 0.25);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-navy);
 }

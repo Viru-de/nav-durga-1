@@ -166,14 +166,14 @@ const PresenceMapCanvas: React.FC<PresenceMapCanvasProps> = ({
     lookupState === 'unavailable'
   ) {
     return (
-      <div className="h-full w-full bg-gradient-to-br from-[#F7F9FB] via-[#EAF2F8] to-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-[#105186] text-white flex items-center justify-center shadow-sm mb-3">
+      <div className="h-full w-full bg-gradient-to-br from-[var(--color-linen)] via-[var(--color-surface)] to-[var(--color-linen)] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-[var(--color-navy)] text-[var(--color-amber)] flex items-center justify-center shadow-sm mb-3">
           <MapPin className="w-6 h-6" />
         </div>
-        <h3 className="font-display text-lg font-extrabold text-[#263442]">
+        <h3 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
           Nav Durga Ispat Pvt. Ltd. — Raipur
         </h3>
-        <p className="text-xs text-[#737D88] max-w-md mt-1 leading-relaxed">
+        <p className="text-xs text-[var(--color-text-secondary)] max-w-md mt-1 leading-relaxed">
           {locations[0]?.address || FALLBACK_HEAD_OFFICE_ADDRESS}
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
@@ -181,7 +181,7 @@ const PresenceMapCanvas: React.FC<PresenceMapCanvasProps> = ({
             href={directionsHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold transition-colors"
+            className="nd-btn-primary inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
           >
             <Navigation className="w-3.5 h-3.5" />
             <span>Get Directions on Google Maps</span>
@@ -193,11 +193,11 @@ const PresenceMapCanvas: React.FC<PresenceMapCanvasProps> = ({
 
   if (lookupState === 'loading' || !activePin) {
     return (
-      <div className="h-full w-full bg-[#EAF2F8] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-10 h-10 rounded-xl bg-white border border-[#C7CED6] text-[#105186] flex items-center justify-center mb-2.5 shadow-2xs">
+      <div className="h-full w-full bg-[var(--color-linen)] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-navy)] flex items-center justify-center mb-2.5 shadow-2xs">
           <MapPin className="w-5 h-5 animate-pulse" />
         </div>
-        <div className="text-xs font-bold text-[#0B3A60]">
+        <div className="text-xs font-bold text-[var(--color-navy)]">
           Locating Urla Industrial Area, Raipur...
         </div>
       </div>
@@ -230,9 +230,9 @@ const PresenceMapCanvas: React.FC<PresenceMapCanvasProps> = ({
             }}
           >
             <Pin
-              background={isSelected ? '#105186' : '#737D88'}
-              borderColor="#0B3A60"
-              glyphColor="#FFFFFF"
+              background={isSelected ? '#14213D' : '#46536A'}
+              borderColor="#FFB020"
+              glyphColor={isSelected ? '#FFB020' : '#F1ECE3'}
               scale={isSelected ? 1.15 : 1}
             />
           </AdvancedMarker>
@@ -241,9 +241,9 @@ const PresenceMapCanvas: React.FC<PresenceMapCanvasProps> = ({
 
       {infoOpen && marker && activePin && (
         <InfoWindow anchor={marker} maxWidth={260} onCloseClick={() => setInfoOpen(false)}>
-          <div className="p-1 space-y-1 text-[#263442]">
-            <div className="text-xs font-extrabold text-[#105186]">{activePin.title}</div>
-            <div className="text-[11px] text-[#263442] leading-snug">
+          <div className="p-1 space-y-1 text-[#14213D]">
+            <div className="text-xs font-extrabold text-[#14213D]">{activePin.title}</div>
+            <div className="text-[11px] text-[#46536A] leading-snug">
               {activePin.formattedAddress || activePin.address}
             </div>
             <a
@@ -252,7 +252,7 @@ const PresenceMapCanvas: React.FC<PresenceMapCanvasProps> = ({
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#105186] hover:underline pt-0.5"
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#14213D] hover:underline pt-0.5"
             >
               <Navigation className="w-3 h-3" />
               <span>Directions</span>
@@ -308,19 +308,19 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
   return (
     <section
       id="our-presence-section"
-      className="bg-[#FFFFFF] border-t border-[#C7CED6] nd-section-py scroll-mt-20"
+      className="bg-[var(--color-surface)] border-t border-[var(--color-border)] nd-section-py scroll-mt-20"
     >
       <div className="nd-container space-y-8 xl:space-y-10">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 xl:gap-6">
           <div className="max-w-3xl space-y-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#105186]">
-              <MapPin className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[var(--color-navy)]">
+              <MapPin className="w-3.5 h-3.5 text-[var(--color-amber)]" />
               <span>Registered Plant &amp; Office Location</span>
             </span>
-            <h2 className="font-display nd-h2-section font-extrabold text-[#263442] tracking-tight">
+            <h2 className="font-display nd-h2-section font-extrabold text-[var(--color-navy)] tracking-tight">
               Our Presence
             </h2>
-            <p className="nd-lead text-[#737D88]">
+            <p className="nd-lead text-[var(--color-text-secondary)]">
               Rooted in Raipur, Chhattisgarh, with a presence in the steel industry.
             </p>
           </div>
@@ -330,7 +330,7 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
               href={directionsHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl bg-[#EAF2F8] hover:bg-[#d8e8f4] border border-[#105186]/25 text-[#105186] text-xs font-bold transition-colors"
+              className="nd-btn-secondary inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold"
             >
               <Navigation className="w-3.5 h-3.5" />
               <span>Get Directions</span>
@@ -339,7 +339,7 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
             <button
               type="button"
               onClick={() => onOpenQuoteModal('Structural Steel Enquiry — Raipur', '')}
-              className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+              className="nd-btn-primary inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
             >
               <span>Connect With Sales</span>
             </button>
@@ -359,32 +359,62 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
                     onClick={() => setSelectedId(loc.id)}
                     className={`w-full text-left rounded-2xl border p-5 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-[#EAF2F8] border-[#105186] shadow-xs'
-                        : 'bg-[#F7F9FB] border-[#C7CED6] hover:border-[#105186]/50'
+                        ? 'bg-[var(--color-navy)] border-[var(--color-amber)] text-[var(--color-linen)] shadow-xs'
+                        : 'bg-[var(--color-linen)] border-[var(--color-border)] hover:border-[var(--color-navy)] text-[var(--color-navy)]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1.5">
-                        <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-[#105186]">
+                        <div
+                          className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider ${
+                            isSelected ? 'text-[var(--color-amber)]' : 'text-[var(--color-navy)]'
+                          }`}
+                        >
                           <Building2 className="w-3.5 h-3.5 shrink-0" />
                           <span>{loc.title}</span>
                         </div>
-                        <div className="font-display text-lg font-extrabold text-[#263442]">
+                        <div
+                          className={`font-display text-lg font-extrabold ${
+                            isSelected ? 'text-white' : 'text-[var(--color-navy)]'
+                          }`}
+                        >
                           Nav Durga Ispat Pvt. Ltd.
                         </div>
-                        <p className="text-xs sm:text-sm text-[#263442] leading-relaxed">
+                        <p
+                          className={`text-xs sm:text-sm leading-relaxed ${
+                            isSelected ? 'text-[var(--color-linen)]/90' : 'text-[var(--color-text-secondary)]'
+                          }`}
+                        >
                           {loc.address}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-[#C7CED6]/80 flex flex-wrap items-center justify-between gap-2 text-xs text-[#737D88]">
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-[#263442]">
-                        <Phone className="w-3.5 h-3.5 text-[#105186]" />
+                    <div
+                      className={`mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-2 text-xs ${
+                        isSelected
+                          ? 'border-[var(--color-linen)]/15 text-[var(--color-linen)]/85'
+                          : 'border-[var(--color-border)] text-[var(--color-text-secondary)]'
+                      }`}
+                    >
+                      <span
+                        className={`inline-flex items-center gap-1.5 font-semibold ${
+                          isSelected ? 'text-[var(--color-linen)]' : 'text-[var(--color-navy)]'
+                        }`}
+                      >
+                        <Phone
+                          className={`w-3.5 h-3.5 ${
+                            isSelected ? 'text-[var(--color-amber)]' : 'text-[var(--color-navy)]'
+                          }`}
+                        />
                         {loc.phone || cms.contactPhone}
                       </span>
                       {loc.notes && (
-                        <span className="font-mono text-[11px] font-semibold text-[#0B3A60]">
+                        <span
+                          className={`font-mono text-[11px] font-semibold ${
+                            isSelected ? 'text-[var(--color-amber)]' : 'text-[var(--color-navy)]'
+                          }`}
+                        >
                           {loc.notes}
                         </span>
                       )}
@@ -394,12 +424,12 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
               })}
             </div>
 
-            <div className="rounded-2xl border border-[#C7CED6] bg-[#F7F9FB] p-5 space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#0B3A60]">
-                <ShieldCheck className="w-4 h-4 text-[#105186]" />
+            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-linen)] p-5 space-y-2.5">
+              <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[var(--color-navy)]">
+                <ShieldCheck className="w-4 h-4 text-[var(--color-navy)]" />
                 <span>Urla Industrial Area Presence</span>
               </div>
-              <p className="text-xs text-[#737D88] leading-relaxed">
+              <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
                 Serving industrial buyers, structural fabricators, and infrastructure contractors directly from Urla Industrial Area, Raipur, Chhattisgarh.
               </p>
               <div className="pt-1 flex flex-wrap items-center gap-3 text-xs font-bold">
@@ -407,20 +437,20 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
                   href={mapsSearchHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[#105186] hover:text-[#0B3A60] hover:underline"
+                  className="inline-flex items-center gap-1 text-[var(--color-navy)] hover:underline underline-offset-4"
                 >
                   <span>Open in Google Maps</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-3 h-3 text-[var(--color-amber)]" />
                 </a>
-                <span className="text-[#C7CED6]">•</span>
-                <span className="text-[#263442]">{cms.dispatchHours}</span>
+                <span className="text-[var(--color-border)]">•</span>
+                <span className="text-[var(--color-navy)]">{cms.dispatchHours}</span>
               </div>
             </div>
           </div>
 
           {/* Interactive Google Map Container */}
           <div className="lg:col-span-7">
-            <div className="h-[340px] sm:h-[420px] lg:h-full lg:min-h-[460px] min-[1920px]:min-h-[540px] w-full rounded-2xl border border-[#C7CED6] overflow-hidden shadow-xs bg-[#F7F9FB]">
+            <div className="h-[340px] sm:h-[420px] lg:h-full lg:min-h-[460px] min-[1920px]:min-h-[540px] w-full rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-xs bg-[var(--color-linen)]">
               {effectiveApiKey ? (
                 <APIProvider
                   apiKey={effectiveApiKey}
@@ -436,21 +466,21 @@ export const PresenceMapSection: React.FC<PresenceMapSectionProps> = ({
                   />
                 </APIProvider>
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-[#F7F9FB] via-[#EAF2F8] to-white flex flex-col items-center justify-center p-6 text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-[#105186] text-white flex items-center justify-center shadow-sm mb-3">
+                <div className="h-full w-full bg-gradient-to-br from-[var(--color-linen)] via-[var(--color-surface)] to-[var(--color-linen)] flex flex-col items-center justify-center p-6 text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--color-navy)] text-[var(--color-amber)] flex items-center justify-center shadow-sm mb-3">
                     <MapPin className="w-6 h-6" />
                   </div>
-                  <h3 className="font-display text-lg font-extrabold text-[#263442]">
+                  <h3 className="font-display text-lg font-extrabold text-[var(--color-navy)]">
                     Nav Durga Ispat Pvt. Ltd. — Urla Industrial Area
                   </h3>
-                  <p className="text-xs text-[#737D88] max-w-md mt-1 leading-relaxed">
+                  <p className="text-xs text-[var(--color-text-secondary)] max-w-md mt-1 leading-relaxed">
                     {activeLocation?.address || verifiedAddress}
                   </p>
                   <a
                     href={directionsHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#105186] hover:bg-[#0B3A60] text-white text-xs font-bold transition-colors"
+                    className="nd-btn-primary mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
                   >
                     <Navigation className="w-3.5 h-3.5" />
                     <span>Get Directions</span>
